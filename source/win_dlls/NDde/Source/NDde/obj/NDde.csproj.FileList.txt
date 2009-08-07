@@ -1,0 +1,8 @@
+bin\Debug\NDde.xml
+bin\Debug\NDde.dll
+bin\Debug\NDde.pdb
+obj\Debug\ResolveAssemblyReference.cache
+obj\Debug\NDde.Properties.Resources.resources
+obj\Debug\NDde.csproj.GenerateResource.Cache
+obj\Debug\NDde.dll
+obj\Debug\NDde.pdb

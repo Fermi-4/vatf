@@ -1,0 +1,130 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D77772F9-3D3D-40BA-B95F-05C45878078F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NDde</RootNamespace>
+    <AssemblyName>NDde</AssemblyName>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>DDEKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\NDde.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\NDde.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Foundation\Advanced\Monitor\DdemlMessageActivityEventArgs.cs" />
+    <Compile Include="Foundation\Advanced\Monitor\DdemlLinkActivityEventArgs.cs" />
+    <Compile Include="Foundation\DdemlEventArgs.cs" />
+    <Compile Include="Foundation\Advanced\Monitor\DdemlStringActivityEventArgs.cs" />
+    <Compile Include="Foundation\Advanced\Monitor\DdemlErrorActivityEventArgs.cs" />
+    <Compile Include="Foundation\Advanced\Monitor\DdemlConversationActivityEventArgs.cs" />
+    <Compile Include="Foundation\Advanced\Monitor\DdemlCallbackActivityEventArgs.cs" />
+    <Compile Include="Foundation\Server\DdemlConversation.cs" />
+    <Compile Include="Public\Advanced\DdeTransaction.cs" />
+    <Compile Include="Public\Advanced\IDdeTransactionFilter.cs" />
+    <None Include="Public\Advanced\Monitor\DdeCallbackActivityEventArgs.cs" />
+    <None Include="Public\Advanced\Monitor\DdeConversationActivityEventArgs.cs" />
+    <None Include="Public\Advanced\Monitor\DdeErrorActivityEventArgs.cs" />
+    <None Include="Public\Advanced\Monitor\DdeLinkActivityEventArgs.cs" />
+    <None Include="Public\Advanced\Monitor\DdeMessageActivityEventArgs.cs" />
+    <None Include="Public\Advanced\Monitor\DdeMonitor.cs" />
+    <None Include="Public\Advanced\Monitor\DdeStringActivityEventArgs.cs" />
+    <Compile Include="Public\Client\DdeClient.cs" />
+    <Compile Include="Public\Advanced\DdeContext.cs">
+    </Compile>
+    <Compile Include="Public\DdeEventArgs.cs" />
+    <Compile Include="Public\Server\DdeConversation.cs" />
+    <Compile Include="Public\DdeException.cs" />
+    <Compile Include="Public\Client\DdeAdviseEventArgs.cs" />
+    <Compile Include="Public\Client\DdeDisconnectedEventArgs.cs" />
+    <Compile Include="Foundation\Advanced\IDdemlTransactionFilter.cs" />
+    <Compile Include="Foundation\Advanced\DdemlTransaction.cs" />
+    <Compile Include="Public\Advanced\DdeRegistrationEventArgs.cs" />
+    <Compile Include="Foundation\Advanced\DdemlRegistrationEventArgs.cs" />
+    <Compile Include="Foundation\Client\DdemlDisconnectedEventArgs.cs" />
+    <Compile Include="Foundation\Ddeml.cs" />
+    <Compile Include="Foundation\Client\DdemlAdviseEventArgs.cs" />
+    <Compile Include="Foundation\Client\DdemlClient.cs" />
+    <Compile Include="Foundation\Advanced\DdemlContext.cs" />
+    <Compile Include="Foundation\DdemlException.cs" />
+    <Compile Include="Foundation\Advanced\Monitor\DdemlMonitor.cs" />
+    <Compile Include="Foundation\Server\DdemlServer.cs" />
+    <Compile Include="Public\Server\DdeServer.cs" />
+    <Compile Include="Documentation\NamespaceDoc.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="WeakReferenceDictionary.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DDEKey.snk" />
+    <None Include="Documentation\Examples.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>if not exist "$(SolutionDir)..\Binary" mkdir "$(SolutionDir)..\Binary\"
+echo Deleting $(ProjectName).dll file in output directory... &amp; del /F "$(SolutionDir)..\Binary\$(ProjectName).dll"
+echo Deleting $(ProjectName).xml file in output directory... &amp; del /F "$(SolutionDir)..\Binary\$(ProjectName).xml"
+
+if exist "$(TargetDir)$(ProjectName).dll" goto DLL_COPY
+echo $(TargetDir)$(ProjectName).dll does not exist!
+goto END
+
+:DLL_COPY
+echo Copying $(ProjectName).dll file to output directory... &amp; xcopy /Y /R "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)..\Binary\"
+
+if exist "$(TargetDir)$(ProjectName).xml" goto XML_COPY
+echo $(TargetDir)$(ProjectName).xml does not exist!
+goto END
+
+:XML_COPY
+echo Copying $(ProjectName).xml file to output directory... &amp; xcopy /Y /R  "$(TargetDir)$(ProjectName).xml" "$(SolutionDir)..\Binary\"
+
+:END</PostBuildEvent>
+  </PropertyGroup>
+</Project>
