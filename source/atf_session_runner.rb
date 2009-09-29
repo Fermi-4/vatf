@@ -7,6 +7,7 @@ require 'framework_constants'
 require 'connection_equipment/connection_equipment'
 require 'fileutils'
 require 'connection_handler'
+require 'power_handler'
 require 'media_equipment/media_equipment'
 require 'test_equipment/test_equipment'
 require 'dvsdk/dvsdk'
@@ -42,7 +43,8 @@ class CmdLineParser
       options.rtp = nil
       options.session_iterations = 1
       options.tests_to_run = [['all', 1]]
-      options.tester = 'testlink'
+      #options.tester = 'testlink'
+      options.tester = `set COMPUTERNAME`.strip.split('=')[1]       # FIXME: It is not Linux friendly
       options.drive = nil
       options.bench_path = "C:/VATF/bench.rb"
       options.results_base_dir = "//gtsnowball/System_Test/Automation/gtsystst_logs/video"
@@ -286,7 +288,8 @@ class SessionHandler
       @results_html_file.add_logs_table
       @results_html_file.add_test_result_table  
       @equipment = Hash.new
-      @connection_handler = ConnectionHandler.new(@files_dir)      
+      @connection_handler = ConnectionHandler.new(@files_dir)
+      @power_handler = PowerHandler.new()
       logs_array = Array.new
       @test_params = @rtp_db.get_test_parameters
       @test_params.image_path = Hash.new{|img_hash,img_key| img_hash[img_key] = @image_path} if @image_path
@@ -311,6 +314,7 @@ class SessionHandler
           else
             config_file = File.new(@view_drive+@rtp_db.get_config_script,"r")
         end
+        equipment_list = Hash.new{|h,k| h[k] = Hash.new}
         config_file.each do |line|
             raise "platform has not been specified in test matrix!!" if line.downcase.include?("<platform>") && !@rtp_db.get_platform && !@cli_params['platform']
             line.sub!(/<platform>/i, @cli_params['platform'] ? @cli_params['platform'] : @rtp_db.get_platform.to_s)
@@ -318,25 +322,58 @@ class SessionHandler
             if config_matches && (var, e_type = config_matches.captures)[1]
                 var = var.strip
                 e_type = e_type.strip
-                equip_class_type, equip_id = /([\w-]+)[",\s]*([\w-]+)/i.match(e_type).captures
+                equip_class_type, equip_id = /([\w-]+)(?:[",\s]+([\w-]+)){0,1}/i.match(e_type).captures
                 equip_class_type = equip_class_type.downcase.strip
-                equip_id = equip_id.to_i
-                equip_log = @files_dir+"/"+var.strip+"_"+iter.to_s+"_log.txt"
-                if $equipment_table[equip_class_type][equip_id].driver_class_name 
-                    if Object.const_get($equipment_table[equip_class_type][equip_id].driver_class_name).method_defined?(:start_logger)            
-                        @equipment[var] = Object.const_get($equipment_table[equip_class_type][equip_id].driver_class_name).new($equipment_table[equip_class_type][equip_id],equip_log)
-                    else
-                        @equipment[var] = Object.const_get($equipment_table[equip_class_type][equip_id].driver_class_name).new($equipment_table[equip_class_type][equip_id].telnet_ip)
-                    end
-                else
-                    @equipment[var] = var
-                end 
-                @connection_handler.load_switch_connections(@equipment[var],equip_class_type,equip_id, iter)
-                logs_array << [var, equip_log] if $equipment_table[equip_class_type][equip_id].driver_class_name && Object.const_get($equipment_table[equip_class_type][equip_id].driver_class_name).method_defined?(:start_logger)
+                equip_id = equip_id.to_s.downcase.strip
+                if(!equipment_list[equip_class_type][equip_id]) 
+                  equipment_list[equip_class_type][equip_id] = []
+                end
+                equipment_list[equip_class_type][equip_id] << var
             end
+          end
+        rescue Exception => e
+          raise e.to_s+"\n"+e.backtrace.to_s+"\nVerify that #{@rtp_db.get_config_script} contains valid bench file entries"
+      end
+      begin
+        current_etype = ''
+        eq_id = ''
+        current_instance = ''
+        current_var = ''
+        equipment_list.each do |equip_type, equip_info|
+          current_etype = equip_type
+          assets_caps = $equipment_table[equip_type].keys.clone.sort.reverse
+          equip_info.keys.sort.reverse.each do |req_caps|
+            equip_info[req_caps].each_with_index do |test_vars, i|
+              current_var = test_vars
+              current_instance = i
+              equip_log = @files_dir+"/"+test_vars.strip+"_"+iter.to_s+"_log.txt"
+              eq_id = req_caps
+              if !$equipment_table[equip_type][eq_id] || !$equipment_table[equip_type][eq_id][i]
+                assets_caps.each do |current_asset_caps|
+                  if req_caps == [''] || (current_asset_caps.downcase.split('_') & req_caps.split('_')).sort == req_caps.split('_').sort
+                    eq_id = current_asset_caps
+                    break
+                  end
+                end
+              end
+              raise "Unable to find asset #{equip_type} with #{req_caps} capabilities" if !$equipment_table[equip_type][eq_id] || !$equipment_table[equip_type][eq_id][i]
+              if $equipment_table[equip_type][eq_id][i].driver_class_name 
+                  if Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).method_defined?(:start_logger)            
+                      @equipment[test_vars] = Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).new($equipment_table[equip_type][eq_id][i],equip_log)
+                  else
+                      @equipment[test_vars] = Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).new($equipment_table[equip_type][eq_id][i].telnet_ip)
+                  end
+              else
+                  @equipment[test_vars] = test_vars
+              end 
+              @connection_handler.load_switch_connections(@equipment[test_vars],equip_type,eq_id, i, iter)
+              @power_handler.load_power_ports($equipment_table[equip_type][eq_id][i].power_port)
+              logs_array << [test_vars, equip_log] if $equipment_table[equip_type][eq_id][i].driver_class_name && Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).method_defined?(:start_logger)
+            end
+          end
         end
         rescue Exception => e
-            raise e.to_s+"\n Unable to assign equipment #{e_type} to #{var}. Verify that #{@rtp_db.get_config_script} contains valid bench file entries; that you can communicate with #{e_type}; and that #{e_type} IO information is correct."
+            raise e.to_s+"\n"+e.backtrace.to_s+"\n Unable to assign equipment #{current_etype}, #{eq_id} entry #{current_instance} to #{current_var}. Verify that #{@rtp_db.get_config_script} contains valid bench file entries; that you can communicate with #{current_etype}, #{eq_id} entry #{current_instance}; and that #{current_etype}, #{eq_id} entry #{current_instance} IO information is correct."
       end
       @connection_handler.media_switches.each{|key,val| logs_array << ["MediaSwitch"+key.to_s, val[1]]}
       test_script_found = false
@@ -345,13 +382,13 @@ class SessionHandler
       t_setup = Time.now.to_s
       puts "\n===== Calling "+@rtp_db.get_test_script+"'s setup() at time "+t_setup
       if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
-        @rtp_db.staf_handle.submit("local","MONITOR","LOG MESSAGE '\n===== Calling #{@rtp_db.get_test_script}'s setup() at time #{t_setup}' NAME test_status ")
+        @rtp_db.monitor_log("\n===== Calling #{@rtp_db.get_test_script}'s setup() at time #{t_setup}")
       end
       setup   
       t_run = Time.now.to_s
       puts "\n===== Calling "+@rtp_db.get_test_script+"'s run() at time "+t_run
       if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
-       @rtp_db.staf_handle.submit("local","MONITOR","LOG MESSAGE '\n===== Calling #{@rtp_db.get_test_script}'s run() at time #{t_run}' NAME test_status ")
+       @rtp_db.monitor_log("\n===== Calling #{@rtp_db.get_test_script}'s run() at time #{t_run}")
       end
       run
       test_script_found = true
@@ -388,7 +425,7 @@ class SessionHandler
         t_clean = Time.now.to_s
         puts "===== Calling "+@rtp_db.get_test_script+"'s clean() at time "+t_clean
         if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
-          @rtp_db.staf_handle.submit("local","MONITOR","LOG MESSAGE '===== Calling #{@rtp_db.get_test_script}'s clean() at time #{t_clean}' NAME test_status")
+          @rtp_db.monitor_log("===== Calling #{@rtp_db.get_test_script}'s clean() at time #{t_clean}")
         end
         clean if test_script_found
         @connection_handler.media_switches.each {|key,val| val[0].stop_logger} if @connection_handler
