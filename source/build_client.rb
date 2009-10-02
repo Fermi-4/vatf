@@ -24,7 +24,7 @@ class BuildClient
         directory = "#{params['server'].nfs_root_path}/#{params['tester']}/#{params['target']}/#{params['platform']}/#{params['source']}"
         kernel_inc = params['code_source'] ? params['code_source'].to_s+'/include' : "/view/#{params['target'].downcase}_#{params['platform'].downcase}_#{params['microType'].downcase}/vobs/#{LspConstants::Kernel_Root_Path}/include"
         params['server'].send_cmd("cd #{directory}", params['server'].prompt, 10)
-        params['server'].send_cmd("mkdir bin", params['server'].prompt, 10) if !File.exists?("#{directory}/bin")
+        params['server'].send_cmd("mkdir -m 666 bin", params['server'].prompt, 10) if !File.exists?("#{directory}/bin")
         params['server'].send_cmd("cleartool startview #{params['target'].downcase}_#{params['platform'].downcase}_#{params['microType'].downcase}", params['server'].prompt, 60) if !params['code_source']
         params['server'].send_cmd("make" +
                                   " KERNEL_INC=#{kernel_inc}" +
@@ -37,7 +37,7 @@ class BuildClient
         return if !@@is_config_step_required
         directory = "#{params['server'].nfs_root_path}/#{params['tester']}/#{params['target']}/#{params['platform']}/#{params['source']}"
         params['server'].send_cmd("cd #{directory}", params['server'].prompt, 10)
-        params['server'].send_cmd("mkdir bin", params['server'].prompt, 10) if !File.exists?("#{directory}/bin")
+        params['server'].send_cmd("mkdir -m 666 bin", params['server'].prompt, 10) if !File.exists?("#{directory}/bin")
         params['server'].send_cmd("./configure " +
                                   " exec_prefix=#{directory}", params['server'].prompt, 1200)
         @@is_config_step_required = false

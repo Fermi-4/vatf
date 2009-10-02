@@ -5,15 +5,7 @@ module ATFDBHandlers
   Base Database handler class.
 =end
   class XMLAtfDbHandler < BaseATFXmlHandler
-    begin
-      @@staf_handle = STAFHandle.new("staf_xml") 
-    rescue
-      @@staf_handle = nil
-      puts "STAF handle not initialized"
-    end
-    def staf_handle
-      @@staf_handle
-    end
+
 
     private   
       def split_with_escape(expression, delimiter)
@@ -76,11 +68,13 @@ module ATFDBHandlers
             @test_data["test_session"]["testcase"].length.times { |i|
                 if (@test_data["test_session"]["testcase"][i]["id"].to_s == tcase_id)
                     @db_tcase = @test_data["test_session"]["testcase"][i]
+                    @db_tcase["caseID"] = tcase_id
                 end
             }
         else
             if (@test_data["test_session"]["testcase"]["id"].to_s == tcase_id)
                 @db_tcase = @test_data["test_session"]["testcase"]
+                @db_tcase["caseID"] = tcase_id
             end
         end
       end 
@@ -187,6 +181,7 @@ module ATFDBHandlers
         test_param_klass = silent_const_assignment("TestParameters",Class.new)
         tcase_attr = @db_tcase
         img_path = get_image_path
+        temp_staf_handle = @staf_handle
         test_param_klass.class_eval do
           attr_reader :params_chan, :params_equip, :params_control
           attr_reader *tcase_attr.keys
@@ -195,12 +190,13 @@ module ATFDBHandlers
             @params_chan = ParamsChan.new()  
             @params_equip = ParamsEquip.new()
             @params_control = ParamsControl.new()
+            @staf_handle = temp_staf_handle
             tcase_attr.each do |tc_attr, val|
               next if tc_attr.to_s.match(/params_(Equip|Chan|Control)/i) 
               instance_variable_set("@#{tc_attr}",val)
             end
-            if !img_path && @@staf_handle
-              staf_req = @@staf_handle.submit("local","VAR","GET SHARED VAR auto/sw_assets/kernel") 
+            if !img_path && @staf_handle
+              staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/sw_assets/kernel") 
               if(staf_req.rc == 0)
                 @image_path = staf_req.result
               end
@@ -209,10 +205,10 @@ module ATFDBHandlers
             end
           end
           def method_missing(sym, *args, &block)
-            if @@staf_handle
-              staf_req = @@staf_handle.submit("local","VAR","GET SHARED VAR auto/sw_assets/#{sym}")
+            if @staf_handle
+              staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/sw_assets/#{sym}")
               if (staf_req.rc != 0)
-                super
+                raise UndefinedSwAsset.new("Undefined sw asset named #{sym}")
               else
                 staf_req.result
               end
@@ -308,11 +304,15 @@ module ATFDBHandlers
     end
 
     def is_staf_enabled
-      if @@staf_handle
+      if @staf_handle
         return true
       else
         return false
       end
     end
 end
+
+class UndefinedSwAsset < Exception
+end
+
 end

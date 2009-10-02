@@ -200,6 +200,9 @@ include Log4r
     def log_info(debug_info)
       @apc_log.info(debug_info) if @apc_log
     end
+    def disconnect()
+      
+    end
     
   end
 end

@@ -12,9 +12,9 @@ class ConnectionHandler
     end
     #This function loads the connections defined for each equipment in the switch into hashes, these hashes are used to keep track of the connections made
     #between equipments during a test.
-    def load_switch_connections(var, class_type,class_id, iter)
-      load_connections(var, 'video', $equipment_table[class_type][class_id].video_io_info, iter)
-      load_connections(var, 'audio', $equipment_table[class_type][class_id].audio_io_info, iter)
+    def load_switch_connections(var, class_type,class_id, index, iter)
+      load_connections(var, 'video', $equipment_table[class_type][class_id][index].video_io_info, iter)
+      load_connections(var, 'audio', $equipment_table[class_type][class_id][index].audio_io_info, iter)
       rescue Exception => e
       puts e.to_s
       raise

@@ -7,7 +7,7 @@ module ATFDBHandlers
 =end
   class BaseATFXmlHandler 
     include REXML 
-    attr_accessor :db_type 
+    attr_accessor :db_type, :staf_handle
     private
       @xml_path
       @db_type 
@@ -32,7 +32,24 @@ module ATFDBHandlers
     
       #Constructor of the class takes 1 or no arguments
     def initialize (type = nil) 
- 
+      @staf_handle = STAFHandle.new("staf_xml") 
+      staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/tee/monitor") 
+      if(staf_req.rc == 0)
+        @monitor = staf_req.result
+      else
+        @monitor = nil
+      end
+      rescue
+        @staf_handle = nil
+        puts "STAF handle not initialized"
+    end
+    
+    def monitor_log(message)
+      if(@monitor != nil)
+        @staf_handle.submit("local","#{@monitor}","LOG MESSAGE '#{message}' NAME test_status")
+      else
+        puts "STAF monitor not set"
+      end
     end
       
       #Connects to the database, and returns a handle to the connection

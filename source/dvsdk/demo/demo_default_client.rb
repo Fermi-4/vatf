@@ -57,7 +57,7 @@ module DemoHandlers
           boot_args = SiteInfo::Bootargs[params['platform'].downcase.strip]
           boot_args = params['bootargs'] if params['bootargs']
           tmp_path = "#{params['tester'].downcase}/#{params['target'].downcase}/#{params['platform'].downcase}"
-          if image_path != nil && File.exists?(image_path) && get_image(image_path, params['samba_path'], params['server'], tmp_path) then
+          if image_path != nil && File.exists?(image_path) && get_image(image_path, '\\test'+params['samba_path'].gsub(/\\\\/,"\\"), params['server'], 'test/'+tmp_path) then
             boot_to_bootloader(params)
             #set bootloader env vars and tftp the image to the unit -- Note: add more commands here if you need to change the environment further
             @target.send_cmd("setenv serverip #{params['tftp_ip']}",@boot_prompt, 30)
@@ -136,7 +136,7 @@ module DemoHandlers
             BuildClient.copy(f, dst_path)
             raise "Please specify TFTP path like /tftproot in Linux server in bench file." if server.tftp_path.to_s == ''
             #puts "#{server.nfs_root_path}#{tmp_path}/bin/#{File.basename(f)}"
-            server.send_cmd("mkdir -p #{server.tftp_path}#{tmp_path}",server.prompt, 10)
+            server.send_cmd("mkdir -p -m 666 #{server.tftp_path}#{tmp_path}",server.prompt, 10)
             server.send_cmd("mv -f #{server.nfs_root_path.sub(/(\\|\/)$/,'')}#{tmp_path}/bin/#{File.basename(f)} #{server.tftp_path}#{tmp_path}", server.prompt, 10)
           elsif File.extname(f) == '.ko'
             BuildClient.copy(f, dst_path) 

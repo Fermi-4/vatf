@@ -261,7 +261,7 @@ class SessionHandler
         1.upto(num_test_iterations) do |test_iter| #running the number of iterations defined for this test
           puts "\n\nRunning Test #{test_case_id.to_s} test iteration #{test_iter.to_s} session iteration #{@session_iter.to_s}"
           if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
-            @rtp_db.staf_handle.submit("local","MONITOR","LOG MESSAGE 'Running Test #{test_case_id.to_s} test iteration #{test_iter.to_s} session iteration #{@session_iter.to_s}' NAME test_status ")
+            @rtp_db.monitor_log("Running Test #{test_case_id.to_s} test iteration #{test_iter.to_s} session iteration #{@session_iter.to_s}")
           end
           start_test(test_iter) 
           sleep 1 #Added because some platforms can not handle a fast disconnections->connections operation
@@ -306,8 +306,6 @@ class SessionHandler
       end
       
       begin
-        var = ''
-        e_type = ''
         case(@db_type)
           when "xml"
             config_file = @rtp_db.get_config_script.split(";")

@@ -54,7 +54,7 @@ def run_session
     session_iter_completed +=1
     end
     rescue Exception => e
-    puts e.to_s
+    puts e.backtrace.to_s
     ensure
     if session_runner
       session_results = session_runner.save_session_results(session_iter_completed)
