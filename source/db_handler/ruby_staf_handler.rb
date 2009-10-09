@@ -1,4 +1,4 @@
-if(system("staf local"))
+if(system("staf local service help"))
   require File.dirname(__FILE__)+'/staf/STAFException'
   require File.dirname(__FILE__)+'/staf/STAFResult'
   require File.dirname(__FILE__)+'/staf/STAFHandle'

@@ -71,9 +71,9 @@
 # login_prompt: Regexp (regular expression) containing the pattern of the prompt expected to login in to an equipment
 #               video_te = EquipmentInfo("video_te",0)
 #                   video_te.login_prompt = /Login:/
-# power_port: number containing the port for power cycling equipment
+# power_port: Hash whose key identifies the power_controller equipment and the value identifies the port 
 #               video_te = EquipmentInfo("video_te",0)
-#                   video_te.power_port = 6
+#                   video_te.power_port = {'0'=> 6}
 # tftp_path: string containing the tftp root path
 #             video_te = EquipmentInfo("video_te",0)
 #                   video_te.tftp_path = '/tftpboot'
@@ -190,11 +190,11 @@ dut.login_prompt = /login/
 dut.login = 'root'
 dut.prompt = /#/
 dut.boot_prompt = /:>/
-dut.power_port = 5
+dut.power_port = {'0' => 5}
 dut.usb_ip = '10.10.10.1' 
 
 #power controller information
-te = EquipmentInfo.new("apc_power_controller", 0)
+te = EquipmentInfo.new("power_controller", 0)
 te.telnet_ip = '10.218.103.162'
 te.telnet_port = 23
 te.driver_class_name = "ApcPowerController"

@@ -32,39 +32,42 @@ module LspTargetHandlers
       @targetc_log = nil if @targetc_log
     end
     
-    def send_cmd(command, expected_match=/.*/, timeout=30)
+    def send_cmd(command, expected_match=/.*/, timeout=30, clear_history=true)
       @is_timeout = false
       begin
       @response = ""
       log_info("Host: " + command)
+      clear_buffer = ''
       @target.puts(command)
-      first_cmd_word = command.split(/\s/)[0].to_s
-      i = 0
-      first_cmd_word.each_byte {|c| 
+	  if clear_history
+        first_cmd_word = command.split(/\s/)[0].to_s
+        i = 0
+        first_cmd_word.each_byte {|c| 
           first_cmd_word[i] = '.'  if c.to_i < 32
           i+=1
-      }
-      
-      first_cmd_word = Regexp.new(first_cmd_word)
-      clear_buffer = ''
+        }
+        first_cmd_word = Regexp.new(first_cmd_word)
+      end
       partial_response = ''
       status = Timeout::timeout(timeout) {
-    	  while(!clear_buffer.match(first_cmd_word)) do #clearing the read buffer
-              #Thread.critical = true
-              clear_buffer+= @target.preprocess(@target.readpartial(8)) if !@target.eof?
-              #Thread.critical = false
+        if clear_history
+          while(!clear_buffer.match(first_cmd_word)) do #clearing the read buffer
+            #Thread.critical = true
+            clear_buffer+= @target.preprocess(@target.readpartial(8)) if !@target.eof?
+            #Thread.critical = false
           end
           partial_response = clear_buffer.scan(/#{first_cmd_word}.*/m)[0]
           index = clear_buffer.index(partial_response)
           clear_buffer = clear_buffer[0,[index-1,0].max]
-          while(!partial_response.match(expected_match))
-	  	      if !@target.eof?
-				  last_read = @target.preprocess(@target.readpartial(1024)) 
-	  	      	  partial_response += last_read
-	  	          print last_read
-			  end
-	      end
-	      raise Timeout::Error.new("Error while sending #{command} to #{@telnet_ip}") if !partial_response.match(expected_match)
+        end
+        while(!partial_response.match(expected_match))
+          if !@target.eof?
+            last_read = @target.preprocess(@target.readpartial(1024)) 
+            partial_response += last_read
+            print last_read
+          end
+        end
+        raise Timeout::Error.new("Error while sending #{command} to #{@telnet_ip}") if !partial_response.match(expected_match)
       }
       rescue Timeout::Error => e
         puts ">>>> On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s
@@ -79,6 +82,14 @@ module LspTargetHandlers
       	log_info("Target: \n" + @response)
     end
     
+	  def send_sudo_cmd(cmd, expected_match=/.*/, timeout=30)
+      send_cmd("sudo #{cmd}", /(Password:)|(#{expected_match})/im, timeout) 		
+      if @response.include?('Password')
+        send_cmd(@telnet_passwd,expected_match,timeout, false)
+        raise 'Unable to send command as sudo' if @is_timeout
+      end
+    end
+	
     def disconnect
 		ensure
 		  @target.close if @target
@@ -231,11 +242,11 @@ module LspTargetHandlers
       @build_files.each {|f|
         dst_path   = dst_folder_win+"\\#{File.basename(f)}"    # This is the Windows'samba path
         if f.gsub(/\\/,'/') == src_win.gsub(/\\/,'/') 
-          puts "copy from: #{f}"
-          puts "copy to: #{dst_path}"
+          #puts "copy from: #{f}"
+          #puts "copy to: #{dst_path}"
           BuildClient.copy(f, dst_path)
           raise "Please specify TFTP path like /tftproot in Linux server in bench file." if server.tftp_path.to_s == ''
-          server.send_cmd("mkdir -p -m 666 #{server.tftp_path}#{dst_linux}",server.prompt, 10)
+          server.send_cmd("mkdir -p -m 777 #{server.tftp_path}#{dst_linux}",server.prompt, 10)
           server.send_cmd("mv -f #{nfs_path}/#{File.basename(f)} #{server.tftp_path}#{dst_linux}", server.prompt, 10)
         elsif File.extname(f) == '.ko'
           BuildClient.copy(f, dst_path) 
