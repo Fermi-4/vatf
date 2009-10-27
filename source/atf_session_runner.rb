@@ -53,6 +53,7 @@ class CmdLineParser
       options.target_source_drive = nil
       options.email = nil
       options.release = nil
+      options.browser = true
       
       opts = OptionParser.new do |opts|
         opts.banner = "Usage: atf_run.rb -u <user name> -v <view drive> -r <rtp path or image::level:=areas> [-s <n>] [-d <results directory>] [-b <bench file path>] [-p <platform>] [-x <np for reboot>] [-e <target code sources>] [-k <product version>] [-m <e-mail address>] -t <[tcaseID1,...,tcaseIDn]*n;tcaseIDx;....;tcaseID>"
@@ -114,6 +115,10 @@ class CmdLineParser
         
         opts.on("-k","=OPTIONAL IF -r IS AN RTP PATH","specifies the release to be tested. For instance, it could be the kernel version or a product/component version") do |release|
           options.release = release
+        end
+        
+        opts.on("-o","do NOT open browser with results html at the end of the test session") do 
+          options.browser = false
         end
         
         opts.on("-m","=OPTIONAL","specifies the e-mail address(es) to send the test results summary at the end of the test execution. Separate multiple address w/ semicolons") do |email_addr|

@@ -94,7 +94,9 @@ def run_session
       "\nThanks for using TI's CI System"
       send_email('CI Test Results', email_msg, 'VATF@ti.com', email_to_list)
     else
-      system("explorer #{multi_session_html.gsub("/","\\")}")
+      if(options.browser)
+        system("explorer #{multi_session_html.gsub("//gtsnowball/System_Test/Automation/gtsystst_logs/video","http://gtsystest.telogy.design.ti.com/video").gsub("/","\\")}")
+      end
     end
   end
   
