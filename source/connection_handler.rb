@@ -21,28 +21,27 @@ class ConnectionHandler
     end 
     
     #This function makes a video and audio connection between tests equipments, it connects the specified output of from_equip to the specified inputs of to_equip. Takes from_equip a hash whose entries are
-    #of the form <equip> => <output_num>, where <equip> is an object related to an equipment and output_num is the index assigned to the output that will be used for the connection, and to_equip a hash whose entries are
-    #of the form <equip> => <input_num>, where <equip> is an object related to an equipment and input_num is the index assigned to the input that will be used for the connection
-    def make_connection(from_equip, to_equip, video_iface = 'composite', audio_iface = 'mini35mm')
-      make_video_connection(from_equip, to_equip, video_iface)
-      make_audio_connection(from_equip, to_equip, audio_iface)
+    #of the form <equip> => <output_num>, where <equip> is an object related to an equipment and output_num is the index assigned to the output that will be used for the connection, to_equip a hash whose entries are
+    #of the form <equip> => <input_num>, where <equip> is an object related to an equipment and input_num is the index assigned to the input that will be used for the connection, video_iface a string indicating the type of video connection (i.e composite)
+    #, and audio_iface a string indicating the type of audio connection (i.e mini35mm)
+    def make_connection(from_equip, to_equip)
     end
     
     #This function makes a video connection between tests equipments, it connects the specified output of from_equip to specified inputs of to_equip. Takes from_equip a hash whose entries are
-    #of the form <equip> => <output_num>, where <equip> is an object related to an equipment and output_num is the index assigned to the output that will be used for the connection, and to_equip a hash whose entries are
-    #of the form <equip> => <input_num>, where <equip> is an object related to an equipment and input_num is the index assigned to the input that will be used for the connection
-    def make_video_connection(from_equip, to_equip, iface = 'composite')
-      make_io_connection(from_equip, to_equip, 'video', iface)
+    #of the form <equip> => <output_num>, where <equip> is an object related to an equipment and output_num is the index assigned to the output that will be used for the connection, to_equip a hash whose entries are
+    #of the form <equip> => <input_num>, where <equip> is an object related to an equipment and input_num is the index assigned to the input that will be used for the connection, and iface a string indicating the type of video connection (i.e composite)
+    def make_video_connection(from_equip, to_equip)
+      make_io_connection(from_equip, to_equip, 'video')
       rescue Exception => e
         puts e.to_s
         raise
     end
     
     #This function makes an audio connection between tests equipments, it connects the specified output of from_equip to the specified inputs of to_equip. Takes from_equip a hash whose entries are
-    #of the form <equip> => <output_num>, where <equip> is an object related to an equipment and output_num is the index assigned to the output that will be used for the connection, and to_equip a hash whose entries are
-    #of the form <equip> => <input_num>, where <equip> is an object related to an equipment and input_num is the index assigned to the input that will be used for the connection
-    def make_audio_connection(from_equip, to_equip, iface = 'mini35mm')
-      make_io_connection(from_equip, to_equip, 'audio', iface)
+    #of the form <equip> => <output_num>, where <equip> is an object related to an equipment and output_num is the index assigned to the output that will be used for the connection, to_equip a hash whose entries are
+    #of the form <equip> => <input_num>, where <equip> is an object related to an equipment and input_num is the index assigned to the input that will be used for the connection, and iface a string indicating the type of audio connection (i.e mini35mm)
+    def make_audio_connection(from_equip, to_equip)
+      make_io_connection(from_equip, to_equip, 'audio')
       rescue Exception => e
         puts e.to_s
         raise
@@ -61,7 +60,7 @@ class ConnectionHandler
         switch_direction = '_inputs' if iface_type.include?('output')
         switch_log = @files_dir+"/switch"+iter.to_s+"_"+key.to_s+"_log.txt"
         if !@media_switches[key]
-          @media_switches[key] = [Object.const_get($equipment_table['media_switch'][key].driver_class_name).new($equipment_table['media_switch'][key], switch_log),switch_log]
+          @media_switches[key] = [Object.const_get($equipment_table['media_switch'][key.to_s][0].driver_class_name).new($equipment_table['media_switch'][key.to_s][0], switch_log),switch_log]
         end
         current_iface_type = iface_type.sub('@','').sub(/_.*$/,switch_direction)
         @equipment_switch_connections[var] = Hash.new if !@equipment_switch_connections[var]
@@ -73,22 +72,27 @@ class ConnectionHandler
       end
     end
     rescue Exception => e
-      raise e.to_s+"\nUnable to load #{io_type.to_s} IO information for #{var.to_s}"
+      raise e.to_s+"\n"+e.backtrace.to_s+"\nUnable to load #{io_type.to_s} IO information for #{var.to_s}"
   end
   
-  def make_io_connection(from, to, io_type, iface_type)
+  def make_io_connection(from, to, io_type)
     if @media_switches.length > 0
       source = from.keys[0]
-      switch_id = @equipment_switch_connections[source][io_type][iface_type+"_inputs"][from[source]][0]
+      source_output = from[source]
+      src_output_type = source_output.keys[0]
+      src_output_number = source_output[src_output_type]
+      switch_id = @equipment_switch_connections[source][io_type][src_output_type+"_inputs"][src_output_number][0]
       switch = @media_switches[switch_id][0]
-      outputs_array = Array.new
-      to.each do |equip, output_number|
-        outputs_array << @equipment_switch_connections[equip][io_type][iface_type+"_outputs"][output_number][1]
+      switch_outputs_array = Array.new
+      to.each do |equip, input_info|
+        input_info.each do |iface_type, sw_output_number|
+          switch_outputs_array << @equipment_switch_connections[equip][io_type][iface_type+"_outputs"][sw_output_number][1]
+        end
       end
-      switch.send('connect_'+io_type, @equipment_switch_connections[source][io_type][iface_type+"_inputs"][from[source]][1], outputs_array)
+      switch.send('connect_'+io_type, @equipment_switch_connections[source][io_type][src_output_type+"_inputs"][src_output_number][1], switch_outputs_array)
     end
     rescue Exception => e
-      raise e.to_s+"\n Unable to make #{io_type.to_s} connection from #{from.to_s.gsub(/[<#>]+/,'')} to #{to.to_s.gsub(/[<#>]+/,'')} through #{iface_type.to_s}"
+      raise e.backtrace.to_s+"\n Unable to make #{io_type.to_s} connection from #{from.to_s.gsub(/[<#>]+/,'')} to #{to.to_s.gsub(/[<#>]+/,'')}"
   end
   
   def get_io_array(switch_id,io_ranges)

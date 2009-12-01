@@ -5,43 +5,6 @@ module ATFDBHandlers
   Base Database handler class.
 =end
   class XMLAtfDbHandler < BaseATFXmlHandler
-
-
-    private   
-      def split_with_escape(expression, delimiter)
-        rtn = []
-        if expression then
-          expression.scan(/(?:(?:\\#{delimiter})|(?:[^#{delimiter}]))+/).each do |x|
-          rtn << x.gsub("\\#{delimiter}", delimiter.to_s) 	
-          end
-        end
-        return rtn
-      end
-
-      #Creates a class with name class_name, whose attributes are the comma delimited values in class_attr_array
-      def create_param_class(class_name, class_attr_array)    
-        klass = silent_const_assignment(class_name,Class.new)
-        if class_attr_array.is_a?(String)
-          test_params = split_with_escape(class_attr_array.strip, ',')
-          attr_hash = Hash.new()
-          test_params.each do |param|
-            if param.strip.length > 0
-              parse_param = split_with_escape(param.strip, '=')
-              attr_hash[parse_param[0].strip.downcase]= split_with_escape(parse_param[1], ';')
-            end      
-          end
-          if attr_hash.keys.length > 0
-            klass.class_eval do
-              attr_reader *attr_hash.keys
-              define_method(:initialize)do
-                attr_hash.each do |at_name,at_val|
-                instance_variable_set("@#{at_name}",at_val)
-                end
-              end
-            end
-          end
-        end 
-      end
       
     public
       
@@ -140,7 +103,6 @@ module ATFDBHandlers
       #Returns the image path from the cms database (must use image manager to add the appropiate tfile fields)
       def get_image_path
         @test_data["image_path"]
-
       end
       
       #Returns the target assinged to the current rtp
@@ -173,49 +135,9 @@ module ATFDBHandlers
          end
          result
       end
-      #Creates an object whose properties are vaariables and classes with the test cases parameters
-      def get_test_parameters
-        create_param_class("ParamsChan", @db_tcase["params_chan"])
-        create_param_class("ParamsEquip", @db_tcase["params_equip"])
-        create_param_class("ParamsControl", @db_tcase["params_control"])
-        test_param_klass = silent_const_assignment("TestParameters",Class.new)
-        tcase_attr = @db_tcase
-        img_path = get_image_path
-        temp_staf_handle = @staf_handle
-        test_param_klass.class_eval do
-          attr_reader :params_chan, :params_equip, :params_control
-          attr_reader *tcase_attr.keys
-          attr_accessor :image_path, :platform, :target
-          define_method(:initialize) do
-            @params_chan = ParamsChan.new()  
-            @params_equip = ParamsEquip.new()
-            @params_control = ParamsControl.new()
-            @staf_handle = temp_staf_handle
-            tcase_attr.each do |tc_attr, val|
-              next if tc_attr.to_s.match(/params_(Equip|Chan|Control)/i) 
-              instance_variable_set("@#{tc_attr}",val)
-            end
-            if !img_path && @staf_handle
-              staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/sw_assets/kernel") 
-              if(staf_req.rc == 0)
-                @image_path = staf_req.result
-              end
-            else
-              @image_path = img_path 
-            end
-          end
-          def method_missing(sym, *args, &block)
-            if @staf_handle
-              staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/sw_assets/#{sym}")
-              if (staf_req.rc != 0)
-                raise UndefinedSwAsset.new("Undefined sw asset named #{sym}")
-              else
-                staf_req.result
-              end
-            end
-          end
-        end
-        TestParameters.new() 
+      # Creates an object whose properties are vaariables and classes with the test cases parameters
+      def get_test_parameters(additional_parameters = {})
+        super(@db_tcase, @db_tcase["params_chan"], @db_tcase["params_equip"], @db_tcase["params_control"], additional_parameters)
       end
       
       #Populates the results in the Tresult table and sets the result in Tcase (Pass,Fail,Cancel,Skip).

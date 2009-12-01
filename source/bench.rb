@@ -4,13 +4,11 @@
 #All entries in the bench file must belong to the EquipmentInfo class. This class has the following
 #methods and properties:
 #   Methods
-#     new(name,id)
+#     new(name,capabilities/id)
 #     Constructor of the class takes two parameter as input:
 #    	 name: string to associate an equipment with a given name
-#         id: used to differentiate equipment with the same "name" attribute. 
-#     If two equipment in the bench have the same [name, id]	pair then only the information of the last
-#     equipment associated with said pair is kept by the VATF.
-#	
+#         capabilities or id: used to differentiate equipment with the same "name" attribute but with different capabilities. 
+
 #    Properties
 #	  telnet_ip: string containing the ip address used to connect to an equipment. For example
 #	  		     video_te = EquipmentInfo("video_te",0)
@@ -104,114 +102,173 @@
 #FOR SOME EXAMPLES SEE BELOW
 
 
+# DUTs
+# DM365 located at Rack 3, shelf3
+dut = EquipmentInfo.new("dm365")
+dut.driver_class_name = "LinuxDm365Driver"
+dut.video_io_info.composite_inputs = {0 => [11]}
+dut.video_io_info.composite_outputs = {0 => [11]}
+dut.video_io_info.svideo_inputs = {0 => [17]}
+dut.video_io_info.component_inputs = {1 => [3]}
+dut.video_io_info.component_outputs = {1 => [3]}
+dut.audio_io_info.mini35mm_inputs = {0 => [25]}
+dut.audio_io_info.mini35mm_outputs = {0 => [25]}
+dut.telnet_ip = '10.0.0.100'
+dut.telnet_port = 6011
+dut.executable_path = '/drop2'
+dut.prompt = /root.*#/m
+dut.boot_prompt = /DM365\s*EVM\s*>/m
+dut.login = 'root'
+dut.telnet_login = 'root'
+dut.login_prompt = 'login'
+dut.nfs_root_path = '/usr/workdir/filesys/dvsdk_310/dm365'
+dut.samba_root_path = "\\\\10.218.111.201\\filesys\\dvsdk_310\\dm365"
+dut.power_port = {0 => 7}
 
-#Composite switch
+# Freon board located at Rack 2, shelf3
+dut = EquipmentInfo.new("omapl138")
+dut.driver_class_name = "LinuxOmapL13xDriver"
+dut.telnet_ip = '10.0.0.100'
+dut.telnet_port = 6008
+dut.executable_path = '/drop1'
+dut.prompt = /root.*#/
+dut.boot_prompt = /Boot\s*>/
+dut.login = 'root'
+dut.telnet_login = 'root'
+dut.login_prompt = 'login'
+dut.nfs_root_path = '/usr/workdir/filesys/freon/'
+dut.samba_root_path = "\\\\10.218.111.201\\filesys\\freon"
+dut.power_port = {0 => 3}
+
+# Media connection equipment information
+
+#Composite switch Rack2
 te = EquipmentInfo.new("media_switch",0)
 te.telnet_ip = "10.0.0.200"
 te.telnet_port = 23
 te.driver_class_name = "VideoSwitch"
 
-#Component switch
+#Component switch Rack 3
 te = EquipmentInfo.new("media_switch",1)
 te.telnet_ip = "10.0.0.101"
 te.telnet_port = 23
 te.driver_class_name = "VideoSwitch"
 
-tv = EquipmentInfo.new("tv",0) #left tv
+#SDI switch Rack3
+te = EquipmentInfo.new("media_switch",2)
+te.telnet_ip = "10.0.0.102"
+te.telnet_port = 23
+te.driver_class_name = "VideoSwitch"
+
+#TVs information
+tv = EquipmentInfo.new("tv") #left tv
+# tv.video_io_info.composite_inputs = {0 => [30]}
+# tv.audio_io_info.mini35mm_inputs = {0 => [30]}
 tv.video_io_info.composite_inputs = {0 => [25]}
 tv.video_io_info.svideo_inputs = {0 => [25]}
-tv.audio_io_info.mini35mm_inputs = {0 => [27]}
+tv.audio_io_info.mini35mm_inputs = {0 => [23]}
 tv.video_io_info.component_inputs = {1 => [11]}
 
-tv = EquipmentInfo.new("tv",1)  #right tv
+tv = EquipmentInfo.new("tv")  #right tv
+# tv.video_io_info.composite_inputs = {0 => [31]}
+# tv.audio_io_info.mini35mm_inputs = {0 => [31]}
 tv.video_io_info.composite_inputs = {0 => [27]}
 tv.video_io_info.svideo_inputs = {0 => [27]}
-tv.audio_io_info.mini35mm_inputs = {0 => [27]}
+#tv.audio_io_info.mini35mm_inputs = {0 => [27]}
+tv.audio_io_info.mini35mm_inputs = {0 => [23]}
 tv.video_io_info.component_inputs = {1 => [12]}
 
 # Camera Info
-tv = EquipmentInfo.new("camera",0)
+tv = EquipmentInfo.new("camera")
 tv.video_io_info.composite_outputs = {0 => [28]}
 tv.video_io_info.svideo_outputs = {0 => [28]}
 tv.audio_io_info.mini35mm_outputs = {0 => [27]}  
 
 # DVD players info
-dvd = EquipmentInfo.new("dvd",1)
+dvd = EquipmentInfo.new("dvd","pal")
 dvd.video_io_info.composite_outputs = {0 => ["26"]}
 dvd.video_io_info.svideo_outputs = {0 => ["26"]}
 dvd.audio_io_info.mini35mm_outputs = {0 => ["26"]}
+#dvd.driver_class_name = "PioneerDvdPlayer"
+#dvd.telnet_ip = "10.0.0.100"
+#dvd.telnet_port = 6002
 
-dvd = EquipmentInfo.new("dvd", 0)
+dvd = EquipmentInfo.new("dvd","ntsc")
+dvd.video_io_info.composite_outputs = {0 => ["29"]}
+dvd.video_io_info.svideo_outputs = {0 => ["29"]}
+dvd.audio_io_info.mini35mm_outputs = {0 => ["29"]}
+#dvd.driver_class_name = "PioneerDvdPlayer"
+#dvd.telnet_ip = "10.0.0.100"]
+#dvd.telnet_port = 6001
+
+dvd = EquipmentInfo.new("dvd", "hd") # blue-ray
+dvd.video_io_info.composite_outputs = {0 => ["26"]}
+dvd.video_io_info.svideo_outputs = {0 => ["26"]}
 dvd.video_io_info.component_outputs = {1 => ["15"]}
-dvd.audio_io_info.mini35mm_outputs = {1 => ["17"]}
+#dvd.audio_io_info.mini35mm_outputs = {1 => ["17"]}
+dvd.audio_io_info.mini35mm_outputs = {0 => ["7"]}
 
-video_tester = EquipmentInfo.new("video_tester",0)
+#Video clarity on Rack3
+video_tester = EquipmentInfo.new("video_tester")
 video_tester.telnet_ip = "10.0.0.57"
 video_tester.driver_class_name = "VideoClarity"
-video_tester.video_io_info.composite_inputs = {0 => [26]}
-video_tester.video_io_info.composite_outputs = {0 => [27]}
-video_tester.video_io_info.svideo_inputs = {0 => [26]}
-video_tester.video_io_info.svideo_outputs = {0 => [27]}
-video_tester.video_io_info.component_inputs = {1 => [16]}
-video_tester.video_io_info.component_outputs = {1 => [16]}
+video_tester.video_io_info.sdi_inputs = {2 => [16]}
+video_tester.video_io_info.sdi_outputs = {2 => [16]}
 
-#Rack3 shelf1
-dut = EquipmentInfo.new("dm355",0)
-dut.driver_class_name = "DvtbLinuxClientDM355"
-dut.video_io_info.composite_inputs = {0 => ["4"]}
-dut.video_io_info.svideo_inputs = {0 => ["4"]}
-dut.video_io_info.composite_outputs = {0 => [4]}
-dut.audio_io_info.mini35mm_inputs = {0 => [2,6]}
-dut.audio_io_info.mini35mm_outputs = {0 => [1]}
-dut.telnet_ip = '10.0.0.100'
-dut.telnet_port = 6003
-dut.executable_path = '/ah/dm355/drop17/exec'
-dut.prompt = /root.*#/
-dut.login = 'root'
-dut.login_prompt = 'login'
-dut.nfs_root_path = '/usr/workdir/mv_pro5_08/filesys'
-dut.samba_root_path = "\\\\10.218.111.201\\mv_pro5_08\\filesys"
+#video clarity converters
+conv = EquipmentInfo.new("component_converter","0")
+conv.video_io_info.sdi_inputs = {2 => [15]}
+conv.video_io_info.sdi_outputs = {2 => [15]}
+conv.video_io_info.component_inputs = {1 => [16]}
+conv.video_io_info.component_outputs = {1 => [16]}
+
+conv = EquipmentInfo.new("composite_converter","0")
+conv.video_io_info.sdi_inputs = {2 => [1]}
+conv.video_io_info.sdi_outputs = {2 => [1]}
+conv.video_io_info.composite_inputs = {0 => [26]}
+conv.video_io_info.composite_outputs = {0 => [27]}
+conv.video_io_info.svideo_inputs = {0 => [26]}
+conv.video_io_info.svideo_outputs = {0 => [27]}
+
+conv = EquipmentInfo.new("svideo_converter","0")
+conv.video_io_info.sdi_inputs = {2 => [1]}
+conv.video_io_info.sdi_outputs = {2 => [1]}
+conv.video_io_info.svideo_inputs = {0 => [26]}
+conv.video_io_info.svideo_outputs = {0 => [27]}
+conv.video_io_info.composite_inputs = {0 => [26]}
+conv.video_io_info.composite_outputs = {0 => [27]}
+
+#Power controller 1 on rack 3
+te = EquipmentInfo.new("power_controller", 0)
+te.telnet_ip = '10.0.0.60'
+te.telnet_port = 23
+te.driver_class_name = "ApcPowerController"
+te.telnet_login = 'apc'
+te.telnet_passwd = 'apc'
 
 #Audio equipment Information
-audio_controller = EquipmentInfo.new("audio_player",0)
+audio_controller = EquipmentInfo.new("audio_player")
 audio_controller.driver_class_name = "AudioCard"
 audio_controller.audio_hardware_info.analog_audio_inputs = "0"
 audio_controller.audio_hardware_info.analog_audio_outputs = "0"
 audio_controller.audio_io_info.mini35mm_inputs = {0 => [27]}
 audio_controller.audio_io_info.mini35mm_outputs = {0 => [27]}
 
-# example for lsp testing
-dut = EquipmentInfo.new("dm365",0)
-dut.driver_class_name = "LspTargetController"
-dut.telnet_ip = '192.168.1.2'
-dut.telnet_port = 6004
-dut.telnet_login = ''
-dut.login_prompt = /login/
-dut.login = 'root'
-dut.prompt = /#/
-dut.boot_prompt = /:>/
-dut.power_port = {'0' => 5}
-dut.usb_ip = '10.10.10.1' 
+#Objective Speech Tester information
+aud = EquipmentInfo.new("speech_tester")
+aud.driver_class_name = "OperaForClr"
+aud.telnet_ip = "10.218.111.209"
 
-#power controller information
-te = EquipmentInfo.new("power_controller", 0)
-te.telnet_ip = '10.218.103.162'
-te.telnet_port = 23
-te.driver_class_name = "ApcPowerController"
-te.telnet_login = 'apc'
-te.telnet_passwd = 'apc'
-
-# linux pc information
-linux_server = EquipmentInfo.new("linux_server", 0)
-linux_server.driver_class_name = "LspTargetController"
-linux_server.telnet_ip = '10.218.103.12'
+#Linux Host
+linux_server = EquipmentInfo.new("linux_server")
+linux_server.driver_class_name = "LinuxEquipmentDriver"
+linux_server.telnet_ip = '10.218.111.201'
 linux_server.telnet_port = 23
-linux_server.telnet_login = 'a0133059'
-linux_server.telnet_passwd = 'xxxxxxxx'
-#linux_server.prompt = /[#\]]+/
-linux_server.prompt = /@/
-linux_server.nfs_root_path = '/usr/workdir/filesys/mv_pro5'
-linux_server.samba_root_path = 'filesys\mv_pro5'
+linux_server.telnet_login = 'mylogin'
+linux_server.telnet_passwd = 'mypassword'
+linux_server.prompt = /\$@@/m
+linux_server.boot_prompt = /\$/m
+linux_server.nfs_root_path = '/usr/workdir/filesys/'
+linux_server.samba_root_path = "filesys"
 linux_server.tftp_path = '/tftpboot'
-linux_server.executable_path = '/data'
-linux_server.usb_ip = '10.10.10.2' 
+

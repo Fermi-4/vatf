@@ -1,32 +1,18 @@
 require 'dbi'
 require 'active_record'
 require 'framework_constants'
+require File.dirname(__FILE__)+'/base_handler'
 
 module ATFDBHandlers
 =begin
   Base Database handler class.
 =end
-  class BaseATFDbHandler
+  class BaseATFDbHandler < BaseATFDataHandler
+
     private
       @db_path
       @db_type 
-    
-    #Function used to assign a name created dynamically. Turns off VERBOSE to disable warnings,
-    #User must make sure name used is not already assigned to another class.  
-    def silent_const_assignment(class_name, klass)
-      warn_level = $VERBOSE
-      $VERBOSE = nil
-      assigned_klass = Object.const_set class_name, klass
-      $VERBOSE = warn_level
-      assigned_klass
-    end
-    
-    #Creates a class class_name, that inherits from superclass, and executes block
-    def create_class(class_name, superclass, &block)  
-      klass = Class.new superclass, &block
-      silent_const_assignment(class_name, klass)
-    end
-      
+
     public
     
       #Constructor of the class takes 1 or no arguments

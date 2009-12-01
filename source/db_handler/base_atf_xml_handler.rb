@@ -1,56 +1,18 @@
 require 'rexml/document'
 require 'framework_constants'
 require 'db_handler/ruby_staf_handler'
+require File.dirname(__FILE__)+'/base_handler'
+
 module ATFDBHandlers
 =begin
   Base Database handler class.
 =end
-  class BaseATFXmlHandler 
+  class BaseATFXmlHandler < BaseATFDataHandler
     include REXML 
     attr_accessor :db_type, :staf_handle
     private
       @xml_path
       @db_type 
-    
-    #Function used to assign a name created dynamically. Turns off VERBOSE to disable warnings,
-    #User must make sure name used is not already assigned to another class.  
-    def silent_const_assignment(class_name, klass)
-      warn_level = $VERBOSE
-      $VERBOSE = nil
-      assigned_klass = Object.const_set class_name, klass
-      $VERBOSE = warn_level
-      assigned_klass
-    end
-    
-    #Creates a class class_name, that inherits from superclass, and executes block
-    def create_class(class_name, superclass, &block)  
-      klass = Class.new superclass, &block
-      silent_const_assignment(class_name, klass)
-    end
-      
-    public
-    
-      #Constructor of the class takes 1 or no arguments
-    def initialize (type = nil) 
-      @staf_handle = STAFHandle.new("staf_xml") 
-      staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/tee/monitor") 
-      if(staf_req.rc == 0)
-        @monitor = staf_req.result
-      else
-        @monitor = nil
-      end
-      rescue
-        @staf_handle = nil
-        puts "STAF handle not initialized"
-    end
-    
-    def monitor_log(message)
-      if(@monitor != nil)
-        @staf_handle.submit("local","#{@monitor}","LOG MESSAGE '#{message}' NAME test_status")
-      else
-        puts "STAF monitor not set"
-      end
-    end
       
       #Connects to the database, and returns a handle to the connection
     def connect_database(path)
@@ -77,7 +39,6 @@ module ATFDBHandlers
       e.gsub!(/^\<!\[CDATA\[/,"")
       e.gsub!(/\n/,"")
       e.gsub!(/\]\]\>$/,"")
-      
     end
   end
 end

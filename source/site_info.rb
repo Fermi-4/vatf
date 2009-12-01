@@ -1,5 +1,8 @@
 module SiteInfo
  SITE_MAIL_SERVER   = 'smtp.mail.ti.com'    # e-mail server to use to send test results e-mail notifications
+ NETWORK_REFERENCE_FILES_FOLDER = '//10.218.111.203/VISA/'      # TODO: Make sure this is the right place
+ LOCAL_FILES_FOLDER             = 'C:/Video_tools/'
+
  Bootargs        = {
                 'dm6467' => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=120M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',
                 'dm355'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=116M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',

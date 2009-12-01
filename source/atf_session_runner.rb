@@ -10,14 +10,13 @@ require 'connection_handler'
 require 'power_handler'
 require 'media_equipment/media_equipment'
 require 'test_equipment/test_equipment'
-require 'dvsdk/dvsdk'
 require 'vgdk/vgdk'
 require 'rubyclr'
 require 'file_converters/file_converters'
 require 'win_forms/win_forms'
 require 'find'
 require 'facets'
-require 'target/lsp_target'
+require 'target/targets'
 require 'external_systems/external_systems'
 require 'net/smtp'
 require 'site_info'
@@ -27,6 +26,13 @@ module Find
     find(*paths) { |path| return path if yield path }
   end
   module_function :file
+  
+  def files(*paths)
+    result = []
+    find(*paths) { |path| result = result | [path] if yield path }
+    result
+  end
+  module_function :files
 end
 
 =begin
@@ -52,7 +58,7 @@ class CmdLineParser
       options.num_fails_to_reboot = nil
       options.target_source_drive = nil
       options.email = nil
-      options.release = nil
+      options.release_assets = {}
       options.browser = true
       
       opts = OptionParser.new do |opts|
@@ -93,7 +99,7 @@ class CmdLineParser
           options.target_source_drive = path.strip
         end
         
-        opts.on("-v drive","=OPTIONAL","view drive letter, i.e x:") do |drive|
+        opts.on("-v drive","=MANDATORY","view drive letter, i.e x:") do |drive|
           options.drive = drive.strip
         end
         
@@ -126,28 +132,28 @@ class CmdLineParser
         end
         
         opts.on("-r path","=MANDATORY","a semicolon combination of paths to rtp(s), i.e. [binary_path##sourcepath::]C:\\an_rtp.mdb; and a string of structure image_path::level:=areas, i.e myTargetImage::sanity:=[usb,nand,video]") do |path|
-          options.rtp = Hash.new{|rtp_hash, rtp_key| rtp_hash[rtp_key] = Hash.new}
+          options.rtp = {}
           rtp_array = path.split(';')
-          rtp_array.each do |val|
-            image_and_level_plus_areas = val.strip.split('::')
-            image_and_level_plus_areas.insert(0,nil) if image_and_level_plus_areas.length < 2 
-            image_and_source = [nil, nil]             
-            image_and_source = image_and_level_plus_areas[0].split('##') if image_and_level_plus_areas[0]
-            image = image_and_source[0] 
-            sources = nil
-            sources = image_and_source[1] if  image_and_source[1]
-            level_and_areas = image_and_level_plus_areas[1]            
-            if level_and_areas.include?(":=")
-                level_plus_areas = level_and_areas.split(':=')
+          rtp_array.each do |val|         
+            if val.include?(":=")
+                level_plus_areas = val.split(':=')
                 level = level_plus_areas[0].strip
                 areas = level_plus_areas[1].strip.gsub(/[\s\[\]]/,'').split(',')
-                options.rtp[level][image] = {'sources' => sources, 'test_areas' => areas}
+                options.rtp[level] = {'test_areas' => areas}
             else
-                rtp_paths = level_and_areas.strip.gsub(/[\s\[\]]/,'').split(',')
+                rtp_paths = val.strip.gsub(/[\s\[\]]/,'').split(',')
                 rtp_paths.each do |current_path| 
-                  options.rtp[current_path][image] = {'sources' => sources, 'test_areas' => current_path}
+                  options.rtp[current_path] = {'test_areas' => current_path}
                 end
             end
+          end
+        end
+        
+        opts.on("-a","=OPTIONAL","Specifies the information regarding any asset(s) required to run a test. The sytanx used is a spaced separated set of <asset name>=<asset information> pairs") do |assets|
+          assets_array = assets.split(';')
+          assets_array.each do |current_asset|
+            asset_info = current_asset.split('=')
+            options.release_assets[asset_info[0].strip] = asset_info[1].strip
           end
         end
         
@@ -167,18 +173,16 @@ class CmdLineParser
      end   
      opts.parse!(args)
      
-     if !options.rtp #|| !options.tests_to_run || !options.tester || !options.drive
+     if !options.rtp || !options.drive #|| !options.tests_to_run || !options.tester 
         puts opts
         exit
      end
      
-     options.rtp.each do |rtp_key, rtp_image|
-      rtp_image.each do |rtp_image, rtp_val|
-        if rtp_val['test_areas'].kind_of?(Array) && (!rtp_image || !options.platform)
-          puts "Argument -p missing or image path not specified for #{rtp_image.to_s}###{rtp_val['sources']}::#{rtp_key}:=#{rtp_val['test_areas'].to_s}"
-          puts opts
-          exit
-        end
+     options.rtp.each do |rtp_key, rtp_val|
+      if rtp_val['test_areas'].kind_of?(Array) && (!options.release_assets['kernel'] || !options.platform)
+        puts "Argument -p missing or image path not specified for #{rtp_key}:=#{rtp_val['test_areas'].to_s}"
+        puts opts
+        exit
       end
      end
      options
@@ -205,7 +209,7 @@ class SessionHandler
     def initialize(req_params, opt_params)
       params = {'rtp_path' =>nil, 'view_drive' => nil, 'bench_path' => nil, 'results_path' => nil}.merge(req_params)
       raise "Required parameter missing in #{self.class.to_s}::initialize" if params.has_value?(nil)      
-      params = params.merge({'target_source_drive' => nil, 'consec_non_pass' => nil, 'multi_sess_sum' => nil, 'platform' => nil, 'img' => nil}.merge(opt_params))
+      params = params.merge({'target_source_drive' => nil, 'consec_non_pass' => nil, 'multi_sess_sum' => nil, 'platform' => nil, 'release_assets' => {}}.merge(opt_params))
       @cli_params = params
       require params['bench_path'].gsub(/\.\w*$/,"")
       @view_drive = params['view_drive']
@@ -224,7 +228,6 @@ class SessionHandler
       end
       @rtp_db.connect_database(@rtp_path)
       @multi_session_summary = params['multi_sess_sum']
-      @image_path = params['img'].gsub(/\//,"\\") if params['img']
       @consecutive_non_pass_allowed = params['consec_non_pass']
       @consecutive_non_passed_tests = 0
       @old_keys = '';@new_keys = ''
@@ -275,7 +278,7 @@ class SessionHandler
         @non_existent_tests[test_case_id]= test_case_id.to_s+", "
       end
       rescue Exception => e
-        puts e.to_s
+        puts e.to_s+"\n"+e.backtrace.to_s
       ensure
           save_iterations_result if @rtp_db.test_exists(test_case_id)  
           
@@ -296,8 +299,8 @@ class SessionHandler
       @connection_handler = ConnectionHandler.new(@files_dir)
       @power_handler = PowerHandler.new()
       logs_array = Array.new
-      @test_params = @rtp_db.get_test_parameters
-      @test_params.image_path = Hash.new{|img_hash,img_key| img_hash[img_key] = @image_path} if @image_path
+      @test_params = @rtp_db.get_test_parameters(@cli_params['release_assets'])
+      @test_params.image_path = @test_params.image_path.merge(@cli_params['release_assets']) if @test_params.image_path
       @test_params.platform = @cli_params['platform'] if @cli_params['platform']
       @test_params.target = @cli_params['release'] if @cli_params['release']
       
@@ -353,7 +356,7 @@ class SessionHandler
               eq_id = req_caps
               if !$equipment_table[equip_type][eq_id] || !$equipment_table[equip_type][eq_id][i]
                 assets_caps.each do |current_asset_caps|
-                  if req_caps == [''] || (current_asset_caps.downcase.split('_') & req_caps.split('_')).sort == req_caps.split('_').sort
+                  if req_caps == '' || (current_asset_caps.downcase.split('_') & req_caps.split('_')).sort == req_caps.split('_').sort
                     eq_id = current_asset_caps
                     break
                   end
@@ -361,7 +364,7 @@ class SessionHandler
               end
               raise "Unable to find asset #{equip_type} with #{req_caps} capabilities" if !$equipment_table[equip_type][eq_id] || !$equipment_table[equip_type][eq_id][i]
               if $equipment_table[equip_type][eq_id][i].driver_class_name 
-                  if Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).method_defined?(:start_logger)            
+                  if $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'           
                       @equipment[test_vars] = Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).new($equipment_table[equip_type][eq_id][i],equip_log)
                   else
                       @equipment[test_vars] = Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).new($equipment_table[equip_type][eq_id][i].telnet_ip)
@@ -371,7 +374,7 @@ class SessionHandler
               end 
               @connection_handler.load_switch_connections(@equipment[test_vars],equip_type,eq_id, i, iter)
               @power_handler.load_power_ports($equipment_table[equip_type][eq_id][i].power_port)
-              logs_array << [test_vars, equip_log] if $equipment_table[equip_type][eq_id][i].driver_class_name && Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).method_defined?(:start_logger)
+              logs_array << [test_vars, equip_log] if $equipment_table[equip_type][eq_id][i].driver_class_name && $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
             end
           end
         end
@@ -407,13 +410,14 @@ class SessionHandler
       end
       html_result = @test_result[1]
       rescue Exception => e
+        html_result = e.to_s+" "+e.backtrace.to_s.gsub(/\s+/," ")
+        puts html_result.to_s
+        html_result.gsub!(/[<>]+/,"")
         @test_iter_sum[2] += 1
         @test_sess_sum[2] += 1
         @consecutive_non_passed_tests += 1 if @test_params.auto
         @test_result[0] = FrameworkConstants::Result[:blk]
-        @test_result[1] = e.to_s.gsub(/\s+/," ")
-        html_result = e.backtrace.to_s.gsub(/\s+/," ")
-        puts html_result.to_s
+        @test_result[1] = e.to_s.gsub(/[\s<>]+/," ")
         raise
       ensure
         @old_keys = @new_keys
@@ -466,8 +470,13 @@ class SessionHandler
       if @non_existent_tests.values.length > 0
         @session_html.add_paragraph("Test case(s): "+@non_existent_tests.values.to_s+" do(es) not exist in the database",{:color => "#FF0000"})
       end
-      #@session_html.add_run_information(@session_start_time.strftime("%m/%d/%Y  %I:%M%p"), @session_ended.strftime("%m/%d/%Y  %I:%M%p"), @session_ended.strftime("%m/%d/%Y  %I:%M%p"), @rtp_path, @test_params.platform, @test_params.image_path['kernel'])
-      @session_html.add_run_information(@session_start_time.strftime("%m/%d/%Y  %I:%M%p"), @session_ended.strftime("%m/%d/%Y  %I:%M%p"), @session_ended.strftime("%m/%d/%Y  %I:%M%p"), @rtp_path, @test_params.platform, (@image_path.to_s == ""? "Image Path In Database" : @image_path) )
+      release_assets = ''
+      if @cli_params['release_assets'].empty?
+        release_assets = "Assets Information In Database"
+      else
+        @cli_params['release_assets'].each{|asset_name, asset_val| release_assets+=asset_name+'='+asset_val+'\n'}
+      end
+      @session_html.add_run_information(@session_start_time.strftime("%m/%d/%Y  %I:%M%p"), @session_ended.strftime("%m/%d/%Y  %I:%M%p"), @session_ended.strftime("%m/%d/%Y  %I:%M%p"), @rtp_path, @test_params.platform, release_assets)
       @session_html.add_totals_information(@test_sess_sum[0],@test_sess_sum[1],@test_sess_sum[2])
       @session_html.write_file
       ensure

@@ -39,7 +39,7 @@ class EquipmentInfo
     attr_reader :name, :id
     attr_accessor :telnet_ip, :telnet_port, :port_master, :driver_class_name, :audio_hardware_info, :telnet_login, 
             :telnet_passwd, :prompt, :boot_prompt, :executable_path, :nfs_root_path, :samba_root_path, \
-            :login, :login_prompt, :power_port, :tftp_path, :tftp_ip, :video_io_info, :audio_io_info, :usb_ip
+            :login, :login_prompt, :power_port, :tftp_path, :tftp_ip, :video_io_info, :audio_io_info, :usb_ip, :serial_port
             
     #Constructor of the class            
     def initialize(name, id = nil)
@@ -61,7 +61,7 @@ class EquipmentInfo
   
     def sort_caps(caps)
       caps_array = caps.split("_").sort
-      result = caps_array[0]
+      result = caps_array[0].to_s
       1.upto(caps_array.length-1){|i| result += '_' + caps_array[i]}
       result
     end

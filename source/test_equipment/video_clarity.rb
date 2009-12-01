@@ -43,6 +43,12 @@ module TestEquipment
       vc_exec('videoOutput', params['device'])
     end
     
+    #This function is used to enable or disable VANC transmission during  video playback
+    def enable_vanc(vanc_flag = false)
+      vanc_val = vanc_flag ? 1 : 0
+      vc_exec('vanc', vanc_val)
+    end
+    
     #This function set the video format used. Takes vidout_params a hash with 'format' as key and for values either: 
     #   - A string with one of the standard types of format allowed: 
     #          '525': for 525 59.95Hz. 
@@ -221,7 +227,7 @@ module TestEquipment
       seq_name = params['seq_name']
       delete_video_sequence({'lib_path' => params['lib_path'], 'seq_name' => seq_name})
       File.delete(src_clip) if File.exists?(src_clip) && params['lib_path'] == @vc_test_dir
-      File.copy(params['src_clip'],src_clip) if !File.exists?(src_clip)
+      File.copy(params['src_clip'],src_clip) if File.exists?(params['src_clip']) && File.size?(src_clip) != File.size(params['src_clip'])
       if params['data_format'] && params['video_height'] && params['video_width'] && params['type'] && params['frame_rate']
           info_file = File.new(File.dirname(src_clip)+'\default.hdr','w+')
           file_content = [   '% Color Format (YUV420, YUV422, YUV422P, YUV422_10, RGB, RGBA)',
@@ -276,8 +282,9 @@ module TestEquipment
       source_seq = import_video(params)
       pattern_seq = import_video({'src_clip' => params['pattern_file'], 'seq_name' => 'vc_pattern_sequence'})
       seq_name = 'ref_sequence'
-      File.delete("\\\\#{@telnet_ip}\\Source\\#{seq_name}.cvp") if File.exists?("\\\\#{@telnet_ip}\\Source\\#{seq_name}.cvp")
-      playlist = File.new("\\\\#{@telnet_ip}\\Source\\#{seq_name}.cvp",'w+')
+      temp_seq = 'intermediate_'+seq_name
+      File.delete("\\\\#{@telnet_ip}\\Source\\#{temp_seq}.cvp") if File.exists?("\\\\#{@telnet_ip}\\Source\\#{temp_seq}.cvp")
+      playlist = File.new("\\\\#{@telnet_ip}\\Source\\#{temp_seq}.cvp",'w+')
       playlist.puts(pattern_seq+"\t-1\t-1\t1")
       playlist.puts(source_seq+"\t-1\t-1\t1")
       playlist.close
@@ -294,7 +301,10 @@ module TestEquipment
         log_info('Response: '+response)
       end
       delete_video_sequence({'lib_path' => params['lib_path'], 'seq_name' => seq_name})
-      raise 'Unable to create source sequence' if !vc_exec('import', "\"#{@vc_src_dir}\\#{seq_name}.cvp\"", "\"#{seq_name}\"", params['to_disk'])
+      delete_video_sequence({'lib_path' => params['lib_path'], 'seq_name' => temp_seq})
+      raise 'Unable to create source sequence' if !vc_exec('import', "\"#{@vc_src_dir}\\#{temp_seq}.cvp\"", "\"#{temp_seq}\"", params['to_disk'])
+      load_video({'port' => 'A', 'video' => temp_seq}) && set_viewing_mode({'mode' => 'A'}) && set_video_input({'type' => 'clearView', 'rec_mode' => 'single'})
+      record_video({'files' => [{'lib_path' => params['lib_path'], 'seq_name' => seq_name}], 'num_frames' => params['num_frames']+1})
       seq_name
       ensure
         vc_telnet.close if vc_telnet
@@ -324,38 +334,45 @@ module TestEquipment
           set_first_frame({'port' => 'B', 'frame' => first_frame})
           File.delete(res_path) if File.exists?(res_path)         
           if vc_exec('temporal', "\"#{@vc_test_dir+"\\"+current_seq+'.temporal'}\"", params['y_thresh'], params['cb_thresh'], params['cr_thresh'], params['no_ref'], params['use_spatial'], params['normalize']) 
-          temp_results << get_temp_vals(res_path)
-        else
-          return nil    
+			temp_results << [get_temp_vals(res_path), first_frame]
+		  else
+            return nil    
           end
       end
-          alignment_frame = 0
-          max_cross_correlation = 0
-          test_seq = temp_results[1]['y']['frame_results'][1..temp_results[1]['y']['frame_results'].length-1]
-          test_seq_mean = get_mean(test_seq)
-          test_var = get_variance(test_seq)
-          test_seq_norm = []
-          test_seq.each{|t| test_seq_norm << (t-test_seq_mean)/Math.sqrt(test_var)}
-          start_point = temp_results[0]['y']['frame_results'].length - test_seq.length
-          (start_point).downto(1) do |i|
-              current_ref = temp_results[0]['y']['frame_results'][i..(i+test_seq.length-1)]
-              ref_seq_mean = get_mean(current_ref)
-              ref_var = get_variance(current_ref)
-              ref_seq_norm = []
-              current_ref.each{|t| ref_seq_norm << (t-ref_seq_mean)/Math.sqrt(ref_var)}
-              ref_seq_magnitude = ref_seq_norm[0]**2
-              current_min_y = ref_seq_norm[0]*test_seq_norm[0]
-              1.upto(test_seq_norm.length-1) do |j|
-                  ref_seq_magnitude += ref_seq_norm[j]**2
-                  current_min_y += ref_seq_norm[j] * test_seq_norm[j]
-              end
-              current_cross_corr = current_min_y/ref_seq_magnitude
-              if current_cross_corr >= max_cross_correlation
-                  alignment_frame = i
-                  max_cross_correlation = current_cross_corr
-              end
-          end
-          alignment_frame - 1
+	  alignment_frame = 0
+	  max_cross_correlation = 0
+	  long_seq_id = 0
+	  short_seq_id = 1
+	  if temp_results[0][0]['y']['frame_results'].length < temp_results[1][0]['y']['frame_results'].length
+		long_seq_id = 1 
+		short_seq_id = 0
+	  end
+	  long_seq = temp_results[long_seq_id][0]['y']['frame_results']
+	  short_seq = temp_results[short_seq_id][0]['y']['frame_results'][1..temp_results[short_seq_id][0]['y']['frame_results'].length-1]
+	  short_seq_mean = get_mean(short_seq)
+	  test_var = get_variance(short_seq)
+	  short_seq_norm = []
+	  short_seq.each{|t| short_seq_norm << (t-short_seq_mean)/Math.sqrt(test_var)}
+	  start_point = long_seq.length - short_seq.length
+	  (start_point).downto(1) do |i|
+		  current_ref = long_seq[i..(i+short_seq.length-1)]
+		  ref_seq_mean = get_mean(current_ref)
+		  ref_var = get_variance(current_ref)
+		  ref_seq_norm = []
+		  current_ref.each{|t| ref_seq_norm << (t-ref_seq_mean)/Math.sqrt(ref_var)}
+		  ref_seq_magnitude = ref_seq_norm[0]**2
+		  current_min_y = ref_seq_norm[0]*short_seq_norm[0]
+		  1.upto(short_seq_norm.length-1) do |j|
+			  ref_seq_magnitude += ref_seq_norm[j]**2
+			  current_min_y += ref_seq_norm[j] * short_seq_norm[j]
+		  end
+		  current_cross_corr = current_min_y/ref_seq_magnitude
+		  if current_cross_corr >= max_cross_correlation
+			  alignment_frame = i
+			  max_cross_correlation = current_cross_corr
+		  end
+	  end
+	  alignment_frame + temp_results[long_seq_id][1] - 1
     end
     
     #This function is used to export a video sequence from a video clarity library to a file. Takes export_params  a hash containing the following key => <value> pairs:
@@ -367,7 +384,7 @@ module TestEquipment
     #     - 'frame_rate' => <frame rate> (Optional) frame rate associated with the file in frames per second. Used only if 'type' is set to 'AVI'
     def export_video_file(export_params = {})
       params = {'dst_file' => '', 'seq_name' => '', 'first_frame' => 0, 'last_frame' => 1000, 'type' => 'RAW' , 'frame_rate' => 30}.merge(export_params)
-      vc_exec('export', "\"#{params["seq_name"]}\"", params['first_frame'], params['last_frame'], "\"#{params["dst_file"]}\"", params['type'], params['frame_rate'])
+      vc_exec('configExport', params['type'], params['frame_rate'], '0', '1', '1', '1') && vc_exec('export', "\"#{params["seq_name"]}\"", params['first_frame'], params['last_frame'], "\"#{params["dst_file"]}\"", params['type'], params['frame_rate'])
     end
     
     #This fucntion is used to activate a video library in video clarity. Takes lib_params a hash containing the folloiwing key => <value> pairs:
@@ -411,7 +428,7 @@ module TestEquipment
     # This function is used to setup video clarity for recording. Takes dev_params a hash containing the following key => value pairs:
     #       - 'type' => <io mode> sets video clarity's io operational mode. Valid values 'broadcast' for broadcast (allows play and record); 
     #                   'clearView' for ClearView mode (software only mode no external io); or 'dvi' for dvi output mode.
-    #       - 'rec_mode' => <recording mode> string specifying the video recording mode valid values are 'inOut' for simmultaneous play-out an record;
+    #       - 'rec_mode' => <recording mode> string specifying the video recording mode valid values are 'InOut' for simmultaneous play-out an record;
     #                       'single' to perform record only operations on one input; or 'dual' as in dual mode to record simmulatenously on two channels (used for high data rate format 1080p60, 1080p 50, etc).
     #       - 'input' => <number> number specifying the video board's logical input used for recording.
     #       - 'board' => <number> number specifying the board whose input is going to be used for recording
@@ -443,11 +460,11 @@ module TestEquipment
     #              'AES': for AES
     #              'Analog': for generic analog signals
     def set_video_input(dev_params = {})
-      params = {'type' => 'broadcast', 'rec_mode' => 'inOut', 'input' => 0, 'board' => 0, 'src_format' => 'SDI2', 'audio_input' => 'None'}.merge(dev_params)
+      params = {'type' => 'broadcast', 'rec_mode' => 'InOut', 'input' => 0, 'board' => 0, 'src_format' => 'SDI', 'audio_input' => 'None'}.merge(dev_params)
       vc_exec('videoInput', params['type'].downcase, params['rec_mode'], params['input'], params['board'], params['src_format'].upcase, params['audio_input'])
     end
     
-    # This functions causes video clarity to atrt recording video. Takes rec_params a hash containing the following key => value pairs:
+    # This functions causes video clarity to start recording video. Takes rec_params a hash containing the following key => value pairs:
     #     - 'files' => [{'lib_path' => '', 'seq_name' => ''}]
     #     - 'num_frames' => <num frame to record> number specifying the number of frames that will be recorded.
     #     - 'abort_on_drop' => <0 or 1> flag to indicate if the video recording operation should be aborted if a frame drop is detected. 0 do not abort, 1 abort 
@@ -456,6 +473,7 @@ module TestEquipment
       file_args = ''
       params = {'files' => [{'lib_path' => '', 'seq_name' => ''}], 'num_frames' => 1, 'abort_on_drop' => 0, 'save_to_mem' => 0}.merge(rec_params)
       params['files'].each do |current_params| 
+        delete_video_sequence({'lib_path' => current_params['lib_path'], 'seq_name' => current_params['seq_name']})
         file_args += " \"#{current_params['lib_path']}\" \"#{current_params['seq_name']}\""
       end
       vc_exec('record', file_args, params['num_frames'].to_i, params['abort_on_drop'], params['save_to_mem'])
@@ -499,20 +517,27 @@ module TestEquipment
     #     - 'video_width' => <width> number specifying the width if each frame in number of pixels
     #     - 'num_frames' => <number of frames> number specifying the number of frames to be recorded.
     #     - 'frame_rate' => <frame rate> number specifying the frame rate (in frames per second) associated with the clip if any.
+    #     - 'enable_vanc' => true if vanc should be transmitted during playback, false otherwise.
     def video_out_to_video_in_test(test_params = {})
-      params = {'ref_clip' => '', 'test_clip' => '', 'play_type' => 'Once','format' => 525,'data_format' => '422i', 'video_height' => 480, 'image_format' => 'YCbCr8', 'video_width' => 720, 'num_frames' => 300, 'frame_rate' => 30}.merge(test_params)
-      result = set_output_format({'format' => params['format']})
+      params = {'ref_clip' => '', 'test_clip' => '', 'play_type' => 'Repeat','format' => 525,'data_format' => '422i', 'video_height' => 480, 'image_format' => 'YCbCr8', 'video_width' => 720, 'num_frames' => 300, 'frame_rate' => 30, 'enable_vanc' => false}.merge(test_params)
+      result = activate_lib && set_output_format({'format' => params['format']}) 
       params['ref_seq'] = create_source_sequence(params.merge({'src_clip' => params['ref_clip']}))
       test_seq, test_seq_ref, test_clip, ref_result = get_ref_file(params)
-      result = result && ref_result && goto_frame({'port' => 'A', 'frame' => 0}) 
+      result = result && ref_result && goto_frame({'port' => 'A', 'frame' => 0}) && enable_vanc(params['enable_vanc'])
       yield 
-      result = result && record_video({'files' => [{'lib_path' => @vc_test_dir, 'seq_name' => test_seq}], 'num_frames' => params['num_frames'].to_i}) &&
+	  result = result && record_video({'files' => [{'lib_path' => @vc_test_dir, 'seq_name' => test_seq}], 'num_frames' => (params['num_frames'].to_i+10).ceil}) &&
       activate_lib({'lib_path' => @vc_test_dir}) && load_video({'port' => 'B','video' => test_seq_ref}) && load_video({'port' => 'A','video' => test_seq}) && set_first_frame({'port' => 'B', 'frame' => 0}) && 
-      set_viewing_mode({'mode' => 'Seamless'}) && set_metric_window({'x_offset' => params['metric_window'][0], 'y_offset' => params['metric_window'][1], 'width' => params['metric_window'][2], 'height' => params['metric_window'][3]}) && align_videos
+      alignment_frame = get_alignment_frame({'ref_seq' => test_seq_ref, 'test_seq' => test_seq, 'ref_seq_1st_frame' => 2, 'test_seq_1st_frame' => 0})
+      result = result && alignment_frame && load_video({'port' => 'B','video' => test_seq_ref}) && load_video({'port' => 'A','video' => test_seq})
+      test_seq_frames = get_first_and_last_frame({'port' => 'B'})
+      result = result && set_first_and_last_frame({'port' => 'A', 'first' => alignment_frame, 'last' => alignment_frame.to_i + test_seq_frames[1].to_i - 2}) && set_first_frame({'port' => 'B','frame' => 2})
+      set_viewing_mode({'mode' => 'Seamless'}) && set_metric_window({'x_offset' => params['metric_window'][0], 'y_offset' => params['metric_window'][1], 'width' => params['metric_window'][2], 'height' => params['metric_window'][3]}) && spatial_align_videos
       get_psnr_results({'res_path' => @vc_test_dir+'\\'+'psnr_results.psnr'}) if result
       get_jnd_results({'res_path' => @vc_test_dir+'\\'+'jnd_results.jnd'}) if result
-      result = result && stop_video && export_video_file({'dst_file' => test_clip+'_exp.avi', 'seq_name' => test_seq, 'first_frame' => 0, 'last_frame' => params['num_frames'].to_i - 1, 'type' => 'AVI' , 'frame_rate' => params['frame_rate']})
-      File.copy(@vc_res_dir+test_seq+'_exp.avi', params['test_clip']) if File.exists?(@vc_res_dir+test_seq+'_exp.avi') && result 
+      get_dmos_results({'res_path' => @vc_test_dir+'\\'+'dmos_results.mos'}) if result
+      result = result && stop_video 
+      export_video_file({'dst_file' => test_clip+'_exp.avi', 'seq_name' => test_seq, 'first_frame' => 0, 'last_frame' => params['num_frames'].to_i - 1, 'type' => 'AVI' , 'frame_rate' => params['frame_rate']}) 
+      File.copy(@vc_res_dir+test_seq+'_exp.avi', params['test_clip']) if File.exists?(@vc_res_dir+test_seq+'_exp.avi') 
       result
     end
     
@@ -556,7 +581,7 @@ module TestEquipment
     #     - 'rec_mode'  => <recording mode> string specifying the recording mode. Valid values are 'single' only one video clarity input channel is used for recording; or 'dual' as in dual mode 
     #                      two input channels are used for recording (typically used for high data rate format 1080p10, etc).
     def file_to_video_in_test(test_params = {})
-      params = {'ref_clip' => '', 'test_clip' =>'', 'format' => '525', 'play_type' => 'Once', 'data_format' => nil, 'image_format' => 'YCbCr8', 'video_height' => nil, 'video_width' => nil, 'num_frames' => 300, 'rec_mode' => 'single', 'frame_rate' => 30, 'rec_delay' => 1}.merge(test_params)
+      params = {'ref_clip' => '', 'test_clip' =>'', 'format' => '525', 'play_type' => 'Repeat', 'data_format' => nil, 'image_format' => 'YCbCr8', 'video_height' => nil, 'video_width' => nil, 'num_frames' => 300, 'rec_mode' => 'single', 'frame_rate' => 30, 'rec_delay' => 1}.merge(test_params)
       result = set_output_format({'format' => params['format']})
       dummy_test_seq, test_seq_ref, dummy_test_clip, ref_result = get_ref_file(params)
       test_seq =  'current_test'
@@ -564,16 +589,17 @@ module TestEquipment
       File.delete(@vc_res_dir+test_seq+'_exp.avi') if File.exists?(@vc_res_dir+test_seq+'_exp.avi')
       result = result && ref_result && activate_lib({'lib_path' => @vc_test_dir}) && set_video_input({'rec_mode' => params['rec_mode']})  
       yield
-      sleep [params['rec_delay'].to_f,1].max
+      sleep [params['rec_delay'].to_f,0.1].max
       result = result && record_video({'files' => [{'lib_path' => @vc_test_dir, 'seq_name' => test_seq}], 'num_frames' => params['num_frames']-(params['rec_delay'] * 30)}) 
       alignment_frame = get_alignment_frame({'ref_seq' => test_seq_ref, 'test_seq' => test_seq, 'ref_seq_1st_frame' => 0, 'test_seq_1st_frame' => 3})
       result = result && alignment_frame && load_video({'port' => 'B','video' => test_seq_ref}) && load_video({'port' => 'A','video' => test_seq})
       test_seq_frames = get_first_and_last_frame({'port' => 'A'})
       result = result && set_first_and_last_frame({'port' => 'B', 'first' => alignment_frame, 'last' => alignment_frame.to_i + test_seq_frames[1].to_i - 3}) && set_first_frame({'port' => 'A','frame' => 3})
-      export_video_file({'dst_file' => test_clip+'_exp.avi', 'seq_name' => test_seq, 'first_frame' => 0, 'last_frame' => params['num_frames'].to_i - 1, 'type' => 'AVI' , 'frame_rate' => params['frame_rate']}) && 
-      set_viewing_mode({'mode' => 'Seamless'}) && set_metric_window({'x_offset' => params['metric_window'][0], 'y_offset' => params['metric_window'][1], 'width' => params['metric_window'][2], 'height' => params['metric_window'][3]}) && spatial_align_videos 
+      export_video_file({'dst_file' => test_clip+'_exp.avi', 'seq_name' => test_seq, 'first_frame' => 0, 'last_frame' => params['num_frames'].to_i - 1, 'type' => 'AVI' , 'frame_rate' => params['frame_rate']}) 
+      result = result && set_viewing_mode({'mode' => 'Seamless'}) && set_metric_window({'x_offset' => params['metric_window'][0], 'y_offset' => params['metric_window'][1], 'width' => params['metric_window'][2], 'height' => params['metric_window'][3]}) && spatial_align_videos 
       get_psnr_results({'res_path' => @vc_test_dir+'\\'+'psnr_results.psnr'}) if result
       get_jnd_results({'res_path' => @vc_test_dir+'\\'+'jnd_results.jnd'}) if result
+      get_dmos_results({'res_path' => @vc_test_dir+'\\'+'dmos_results.mos'}) if result
       result = result && stop_video
       File.copy(@vc_res_dir+test_seq+'_exp.avi', params['test_clip']) if File.exists?(@vc_res_dir+test_seq+'_exp.avi') && result 
       result     
@@ -612,6 +638,7 @@ module TestEquipment
       result = result && activate_lib && load_video({'port' => 'B','video' => src_clip})&& set_first_frame({'port' => 'B', 'frame' => 0})
       get_psnr_results({'res_path' => @vc_test_dir+'\\'+'psnr_results.psnr'}) if result
       get_jnd_results({'res_path' => @vc_test_dir+'\\'+'jnd_results.jnd'})  if result
+      get_dmos_results({'res_path' => @vc_test_dir+'\\'+'dmos_results.mos'}) if result
       result && stop_video
     end
     
@@ -648,11 +675,12 @@ module TestEquipment
     #                         'YCbCr10' for YCbCr 10bpc; 'ARGB' for ARGB 8bpc; 'RGBA' for RGBA 8bpc; 'RGB8' for RGB 8bpc; 'BGR8' for BGR 8bpc; 'RGB10' for RGB 10bpc.
     #     - 'video_width' => <width> number specifying the width if each frame in number of pixels
     #     - 'num_frames' => <number of frames> number specifying the number of frames to be recorded.
-    #     - 'frame_rate' => <frame rate> number specifying the frame rate (in frames per second) associated with the clip if any.    
+    #     - 'frame_rate' => <frame rate> number specifying the frame rate (in frames per second) associated with the clip if any. 
+    #     - 'enable_vanc' => true if vanc should be transmitted during playback, false otherwise.    
     def play_video_out(play_params = {})
-      params = {'src_clip' => '', 'data_format' => '422i', 'play_type' => 'Once','format' => 525,'image_format' => 'YCbCr8','video_height' => 480, 'video_width' => 720, 'num_frames' => 1000, 'frame_rate' => 30}.merge(play_params)
+      params = {'src_clip' => '', 'data_format' => '422i', 'play_type' => 'Once','format' => 525,'image_format' => 'YCbCr8','video_height' => 480, 'video_width' => 720, 'num_frames' => 1000, 'frame_rate' => 30, 'enable_vanc' => false}.merge(play_params)
       result = activate_lib && set_video_output && set_output_format({'format'=>params['format'].to_s}) && set_image_format({'format' => params['image_format'].to_s}) && set_viewing_mode({'mode' => 'A'}) && set_play_mode({'play_type'=>params['play_type']})
-      src_clip = import_video({'src_clip' => params['src_clip'],  'data_format' => params['data_format'], 'video_height' => params['video_height'], 'video_width' => params['video_width'], 'num_frames' => params['num_frames'].to_i, 'frame_rate' => params['frame_rate']})
+      src_clip = enable_vanc(params['enable_vanc']) && import_video({'src_clip' => params['src_clip'],  'data_format' => params['data_format'], 'video_height' => params['video_height'], 'video_width' => params['video_width'], 'num_frames' => params['num_frames'].to_i, 'frame_rate' => params['frame_rate']})
       result && load_video({'video' => src_clip}) && play_video
     end
     
@@ -702,18 +730,20 @@ module TestEquipment
     #           '411i' for 8 bit interleaved 4:1:1 subsampling
     #           '411p' for 8 bit planar 4:1:1 subsampling
     #           '444i': for YUV 444 subsampling.
+    #     - 'enable_vanc' => true if vanc should be transmitted during playback, false otherwise. 
     def video_out_to_file_test(test_params = {})
-      params = {'ref_clip' => '', 'test_file' =>  '', 'play_type' => 'Once','format' => 525,'data_format' => '422i', 'video_height' => 486, 'image_format' => 'YCbCr8', 'video_width' => 720, 'num_frames' => 300, 'frame_rate' => 30, 'test_file_data_format' => '420p'}.merge(test_params)
+      params = {'ref_clip' => '', 'test_file' =>  '', 'play_type' => 'Repeat','format' => 525,'data_format' => '422i', 'video_height' => 486, 'image_format' => 'YCbCr8', 'video_width' => 720, 'num_frames' => 300, 'frame_rate' => 30, 'test_file_data_format' => '420p', 'enable_vanc' => false}.merge(test_params)
       result = set_output_format({'format' => params['format']})
       params['ref_seq'] = create_source_sequence(params.merge({'src_clip' => params['ref_clip']}))
       test_seq, test_seq_ref, test_clip, ref_result = get_ref_file({'src_clip' => params['ref_clip']}.merge(params))
-      result = result && ref_result && goto_frame({'port' => 'A', 'frame' => 0}) && set_play_mode({'play_type'=>'Repeat'}) && play_video
+      result = result && ref_result && enable_vanc(params['enable_vanc']) && goto_frame({'port' => 'A', 'frame' => 0}) && set_play_mode({'play_type'=>'Repeat'}) && play_video
       yield
       result = result && stop_video && activate_lib({'lib_path' => @vc_test_dir})
       tst_clip = import_video({'lib_path' => @vc_test_dir, 'seq_name' => test_seq,'src_clip' => params['test_file'], 'data_format' => params['test_file_data_format'], 'video_height' => params['video_height'], 'video_width' => params['video_width'], 'num_frames' => [params['num_frames'].to_i,1000].max, 'frame_rate' => params['frame_rate']})
       result = result && load_video({'port' => 'A','video' => tst_clip}) && load_video({'port' => 'B','video' => test_seq_ref}) && goto_frame({'port' => 'A', 'frame' => (params['num_frames'].to_i/2).floor}) && goto_frame({'port' => 'B', 'frame' => 0}) && set_viewing_mode({'mode' => 'Seamless'}) && set_metric_window({'x_offset' => params['metric_window'][0], 'y_offset' => params['metric_window'][1], 'width' => params['metric_window'][2], 'height' => params['metric_window'][3]}) && align_videos
       get_psnr_results({'res_path' => @vc_test_dir+'\\'+'psnr_results.psnr'}) if result
       get_jnd_results({'res_path' => @vc_test_dir+'\\'+'jnd_results.jnd'}) if result
+      get_dmos_results({'res_path' => @vc_test_dir+'\\'+'dmos_results.mos'}) if result
       result && stop_video 
     end
     
@@ -724,9 +754,30 @@ module TestEquipment
     #       - 'use_spatial' => <0 or 1> flag to enable or disable the used of the spatial alignment settings when performing a jnd analysis. 0 do not use settings, 1 use settingd.
     #       - 'normalize' => <0 or 1> flag to enable normalization of the clips when performing a jnd analysis. 0 enable normalization, 1 disable normalization.
     def get_jnd_results(jnd_params)
+      @jnd_results = get_quality_index_results(jnd_params){|params| vc_exec('jnd', "\"#{params['res_path']}\"", params['y_thresh'], params['chroma_thresh'], params['use_spatial'], params['normalize'])}
+    end
+    
+    # This function is used perform a jnd analysis on the two video sequences currently loaded into the video ports. Takes jnd_params a hash containing the following key => value pairs:
+    #       - 'res_path' => <result path> string containing the path of a file where the jnd results will be stored.,
+    #       - 'y_thresh' => <number> number specifying the the luminance threshold if a frame's jnd luminance result is above this threshhold then this frame is considered to have failed.
+    #       - 'chroma_thresh' => <number> number specifying the the chrominance threshold if a frame's jnd chrominance result is above this threshhold then this frame is considered to have failed.
+    #       - 'use_spatial' => <0 or 1> flag to enable or disable the used of the spatial alignment settings when performing a jnd analysis. 0 do not use settings, 1 use settingd.
+    #       - 'normalize' => <0 or 1> flag to enable normalization of the clips when performing a jnd analysis. 0 enable normalization, 1 disable normalization.
+    def get_dmos_results(dmos_params)
+      # @dmos_results = get_quality_index_results(dmos_params){|params| vc_exec('dmos', "\"#{params['res_path']}\"", params['y_thresh'], params['chroma_thresh'], params['use_spatial'], params['normalize'])}
+      @dmos_results = @jnd_results
+    end
+    
+    # This function is used perform a jnd analysis on the two video sequences currently loaded into the video ports. Takes jnd_params a hash containing the following key => value pairs:
+    #       - 'res_path' => <result path> string containing the path of a file where the jnd results will be stored.,
+    #       - 'y_thresh' => <number> number specifying the the luminance threshold if a frame's jnd luminance result is above this threshhold then this frame is considered to have failed.
+    #       - 'chroma_thresh' => <number> number specifying the the chrominance threshold if a frame's jnd chrominance result is above this threshhold then this frame is considered to have failed.
+    #       - 'use_spatial' => <0 or 1> flag to enable or disable the used of the spatial alignment settings when performing a jnd analysis. 0 do not use settings, 1 use settingd.
+    #       - 'normalize' => <0 or 1> flag to enable normalization of the clips when performing a jnd analysis. 0 enable normalization, 1 disable normalization.
+    def get_quality_index_results(jnd_params)
       stop_video
       params = {'res_path' => '', 'y_thresh' => 10, 'chroma_thresh' => 10, 'use_spatial' => 1, 'normalize' => 0}.merge(jnd_params)
-      @jnd_results = {
+      quality_results = {
                'y' =>  { 
                     'frame_results' => Array.new,
                     'min' => -1,
@@ -742,38 +793,25 @@ module TestEquipment
               }
       res_path = @vc_res_dir+File.basename(params['res_path'])
       File.delete(res_path) if File.exists?(res_path)
-      if vc_exec('jnd', "\"#{params['res_path']}\"", params['y_thresh'], params['chroma_thresh'], params['use_spatial'], params['normalize']) 
-        jnd_file = File.new(res_path,'r')
-        jnd_lines = jnd_file.readlines
-        jnd_lines.each do |current_line|
+      if yield params
+        result_file = File.new(res_path,'r')
+        result_lines = result_file.readlines
+        result_lines.each do |current_line|
           case current_line
             when /Sequence\s+Metric.*/im
               metric_array = current_line.downcase.split(/[\s:]+/)
-              @jnd_results[metric_array[2].sub('cb','chroma')][metric_array[3]] = metric_array[4].to_f
+              quality_results[metric_array[2].sub('cb','chroma')][metric_array[3]] = metric_array[4].to_f
             when /([\d\.]+\s+){4}\d+/
               metric_array = current_line.downcase.split(/[\s:]+/)
-              @jnd_results['y']['frame_results'][metric_array[0].to_i] = metric_array[1].to_f
-              @jnd_results['chroma']['frame_results'][metric_array[0].to_i] = metric_array[2].to_f
+              quality_results['y']['frame_results'][metric_array[0].to_i] = metric_array[1].to_f
+              quality_results['chroma']['frame_results'][metric_array[0].to_i] = metric_array[2].to_f
           end
         end
-        jnd_file.close
+        result_file.close
       end
+      quality_results
     end
     
-    # This function can be used to retrieve the min, max or average jnd result of a clip or the jnd result of a frame in a clip after get_jnd_results has been called. Takes jnd_params a hash containing the following key => <value> pairs:
-    #     - 'component' => <component type> string specifying the component for which the jnd result(s) should be retrieved. Valid values are 'y' for luminance; or 'chroma' for chrominance
-    #     - 'type' => <type of value> (Required if frame is not specified) string specifying the type of jnd value desired for the component valid values are 'avg' for average; 'min' for minimum; or 'max' for maximum.
-    #     - 'frame' => <number> (optional) number specifying the frame for which the jnd score is wanted.
-    # At least one of the two optional arguments must be specifed.    
-    def get_jnd_score(jnd_params = {})
-      params = {'component' => 'y', 'type' => 'avg', 'frame' => nil}.merge(jnd_params)
-      if params['frame']
-        @jnd_results[params['component']]['frame_results'][params['frame'].to_i]
-      else
-        @jnd_results[params['component']][params['type']]
-      end
-    end
-  
     # This function is used perform a psnr analysis on the two video sequences currently loaded into the video ports. Takes psnr_params a hash containing the following key => value pairs:
     #       - 'res_path' => <result path> string containing the path of a file where the psnr results will be stored.,
     #       - 'y_thresh' => <number> number specifying the luminance threshold, if a frame's psnr luminance result is above this threshhold then this frame is considered to have failed.
@@ -824,6 +862,20 @@ module TestEquipment
         psnr_file.close
       end
     end
+    
+    # This function can be used to retrieve the min, max or average jnd result of a clip or the jnd result of a frame in a clip after get_jnd_results has been called. Takes jnd_params a hash containing the following key => <value> pairs:
+    #     - 'component' => <component type> string specifying the component for which the jnd result(s) should be retrieved. Valid values are 'y' for luminance; or 'chroma' for chrominance
+    #     - 'type' => <type of value> (Required if frame is not specified) string specifying the type of jnd value desired for the component valid values are 'avg' for average; 'min' for minimum; or 'max' for maximum.
+    #     - 'frame' => <number> (optional) number specifying the frame for which the jnd score is wanted.
+    # At least one of the two optional arguments must be specifed.    
+    def get_jnd_score(jnd_params = {})
+      params = {'component' => 'y', 'type' => 'avg', 'frame' => nil}.merge(jnd_params)
+      if params['frame']
+        @jnd_results[params['component']]['frame_results'][params['frame'].to_i]
+      else
+        @jnd_results[params['component']][params['type']]
+      end
+    end
   
     # This function can be used to retrieve the min, max or average psnr result of a clip or the psnr result of a frame in a clip after get_jnd_results has been called. Takes jnd_params a hash containing the following key => <value> pairs:
     #     - 'component' => <component type> string specifying the component for which the psnr result(s) should be retrieved. Valid values are 'y' for luminance; 'cb' for difference blue; or 'cr' for difference red.
@@ -838,6 +890,20 @@ module TestEquipment
       end
     end
     
+    # This function can be used to retrieve the min, max or average dmos result of a clip or the dmos result of a frame in a clip after get_dmos_results has been called. Takes dmos_params a hash containing the following key => <value> pairs:
+    #     - 'component' => <component type> string specifying the component for which the dmos result(s) should be retrieved. Valid values are 'y' for luminance; or 'chroma' for chrominance
+    #     - 'type' => <type of value> (Required if frame is not specified) string specifying the type of dmos value desired for the component valid values are 'avg' for average; 'min' for minimum; or 'max' for maximum.
+    #     - 'frame' => <number> (optional) number specifying the frame for which the dmos score is wanted.
+    # At least one of the two optional arguments must be specifed.    
+    def get_dmos_score(dmos_params = {})
+      params = {'component' => 'y', 'type' => 'avg', 'frame' => nil}.merge(dmos_params)
+      if params['frame']
+        @dmos_results[params['component']]['frame_results'][params['frame'].to_i]
+      else
+        @dmos_results[params['component']][params['type']]
+      end
+    end
+    
     # This function ireturns an array with the jnd scores of each frame in a clip after get_jnd_results has been called. Takes jnd_params a hash containing the following key => <value> pairs:
     #     - 'component' => <image component> a string containing the image component for which the values are wanted. Valid values are 'y' for luminance; or 'chroma' for chrominance 
     def get_jnd_scores(jnd_params = {})
@@ -845,11 +911,18 @@ module TestEquipment
       @jnd_results[params['component']]['frame_results']
     end
     
-    # This function ireturns an array with the psnr scores of each frame in a clip after get_psnr_results has been called. Takes psnr_params a hash containing the following key => <value> pairs:
+    # This function returns an array with the psnr scores of each frame in a clip after get_psnr_results has been called. Takes psnr_params a hash containing the following key => <value> pairs:
     #     - 'component' => <image component> a string containing the image component for which the values are wanted. Valid values are 'y' for luminance; 'cb' for difference blue; or 'cr' for difference red. 
     def get_psnr_scores(psnr_params = {})
       params = {'component' => 'y'}.merge(psnr_params)
       @psnr_results[params['component']]['frame_results']
+    end
+    
+    # This function ireturns an array with the dmos scores of each frame in a clip after get_jnd_results has been called. Takes dmos_params a hash containing the following key => <value> pairs:
+    #     - 'component' => <image component> a string containing the image component for which the values are wanted. Valid values are 'y' for luminance; or 'chroma' for chrominance 
+    def get_dmos_scores(dmos_params = {})
+      params = {'component' => 'y'}.merge(dmos_params)
+      @dmos_results[params['component']]['frame_results']
     end
     
     # This function aborts an action that has been previously started. 
@@ -1006,7 +1079,9 @@ module TestEquipment
       test_seq_ref = 'current_test_ref'
       test_clip = @vc_test_dir+'\\'+test_seq
       File.delete(@vc_res_dir+test_seq+'_exp.avi') if File.exists?(@vc_res_dir+test_seq+'_exp.avi')
-      result = result && set_play_mode({'play_type'=>params['play_type']}) && load_video({'video' => src_clip}) && set_video_input && record_video({'files' => [{'lib_path' => @vc_test_dir, 'seq_name' => test_seq_ref}], 'num_frames' => params['num_frames'].to_i})
+      result = result && set_play_mode({'play_type'=>params['play_type']}) && load_video({'video' => src_clip}) && set_video_input && play_video
+      sleep 1
+      result = result && stop_video && goto_frame({'port' => 'A', 'frame' => 0}) && record_video({'files' => [{'lib_path' => @vc_test_dir, 'seq_name' => test_seq_ref}], 'num_frames' => params['num_frames'].to_i})
       [test_seq, test_seq_ref, test_clip, result]
     end
     

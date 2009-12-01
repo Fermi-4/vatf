@@ -6,42 +6,6 @@ module ATFDBHandlers
 =end
   class AccessAtfDbHandler < BaseATFDbHandler
     attr_accessor :db_tcase, :db_tresult, :db_ttest_file, :db_ttest_run, :db_tfile, :db_tfileset
-    
-    private
-      def split_with_escape(expression, delimiter)
-        rtn = []
-        if expression then
-          expression.scan(/(?:(?:\\#{delimiter})|(?:[^#{delimiter}]))+/).each do |x|
-          rtn << x.gsub("\\#{delimiter}", delimiter.to_s) 
-        	end
-      	end
-        return rtn
-      end
-
-      #Creates a class with name class_name, whose attributes are the comma delimited values in class_attr_array
-      def create_param_class(class_name, class_attr_array)    
-        klass = silent_const_assignment(class_name,Class.new)
-        if class_attr_array.is_a?(String)
-          test_params = split_with_escape(class_attr_array.strip, ',')
-          attr_hash = Hash.new()
-          test_params.each do |param|
-            if param.strip.length > 0
-              parse_param = split_with_escape(param.strip, '=')
-              attr_hash[parse_param[0].strip.downcase]= split_with_escape(parse_param[1], ';')
-            end      
-          end
-          if attr_hash.keys.length > 0
-            klass.class_eval do
-              attr_reader *attr_hash.keys
-              define_method(:initialize)do
-                attr_hash.each do |at_name,at_val|
-                instance_variable_set("@#{at_name}",at_val)
-                end
-              end
-            end
-          end
-        end 
-      end
       
     public
       
@@ -228,29 +192,8 @@ module ATFDBHandlers
 		 result
 	  end
   		#Creates an object whose properties are vaariables and classes with the test cases parameters
-      def get_test_parameters
-        create_param_class("ParamsChan", @db_tcase.paramsChan)
-        create_param_class("ParamsEquip", @db_tcase.paramsEquip)
-        create_param_class("ParamsControl", @db_tcase.paramsControl)
-        test_param_klass = silent_const_assignment("TestParameters",Class.new)
-		tcase_attr = @db_tcase.attributes()
-		img_path = get_image_path
-        test_param_klass.class_eval do
-          attr_reader :params_chan, :params_equip, :params_control
-		  attr_reader *tcase_attr.keys
-		  attr_accessor :image_path, :platform, :target
-          define_method(:initialize) do
-            @params_chan = ParamsChan.new()
-            @params_equip = ParamsEquip.new()
-            @params_control = ParamsControl.new()
-			tcase_attr.each do |tc_attr, val|
-			    next if tc_attr.to_s.match(/params(Equip|Chan|Control)/i) 
-				instance_variable_set("@#{tc_attr}",val)
-			end
-			@image_path = img_path
-          end
-        end
-        TestParameters.new()
+      def get_test_parameters(additional_parameters = {})
+        super(@db_tcase.attributes(), @db_tcase.paramsChan, @db_tcase.paramsEquip, @db_tcase.paramsControl, additional_parameters)
       end
       
       #Populates the results in the Tresult table and sets the result in Tcase (Pass,Fail,Cancel,Skip).
