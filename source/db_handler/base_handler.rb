@@ -103,13 +103,14 @@ module ATFDBHandlers
           additional_parameters.each do |param_name, param_val|
             instance_variable_set("@#{param_name}",param_val)
           end
+          @image_path = {}
           if !img_path && @staf_handle
             staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/sw_assets/kernel") 
             if(staf_req.rc == 0)
-              @image_path = staf_req.result
+              @image_path['kernel'] = staf_req.result
             end
           else
-            @image_path = img_path 
+            @image_path['kernel'] = img_path 
           end
         end
         
