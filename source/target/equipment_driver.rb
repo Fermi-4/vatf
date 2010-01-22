@@ -23,7 +23,8 @@ module Equipment
         end
       }
       @target = EquipmentConnection.new(platform_info)
-      @target.connect
+      res = @target.connect
+      log_info("Respond from @target.connect: "+res.to_s)
       rescue Exception => e
         log_info("Initialize: "+e.to_s)
         raise

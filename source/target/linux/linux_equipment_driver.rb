@@ -22,7 +22,7 @@ module Equipment
       tftp_ip    = params['server'].telnet_ip
       samba_path = params['samba_path'] 
 			nfs_path   = params['nfs_path']
-			nfs_root   = @nfs_root_path
+			nfs_root	=params['nfs_root']
       boot_args = SiteInfo::Bootargs[params['platform'].downcase.strip]
       boot_args = params['bootargs'] if params['bootargs']
       tmp_path = "#{params['tester'].downcase.strip}/#{params['target'].downcase.strip}/#{params['platform'].downcase.strip}"

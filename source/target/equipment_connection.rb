@@ -23,8 +23,9 @@ class EquipmentConnection
   end
 
   def connect
-    @telnet.connect if @telnet
-    @serial.connect if @serial
+    conn_response = @telnet.connect if @telnet
+    conn_response = @serial.connect if @serial
+	conn_response
   end
 
   def disconnect

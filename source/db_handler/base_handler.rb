@@ -96,6 +96,7 @@ module ATFDBHandlers
           @params_equip = ParamsEquip.new()
           @params_control = ParamsControl.new()
           @staf_handle = temp_staf_handle
+		  @image_path = {}
           tcase_attr.each do |tc_attr, val|
             next if tc_attr.to_s.match(/params_{0,1}(Equip|Chan|Control)/i) 
             instance_variable_set("@#{tc_attr}",val)
@@ -103,11 +104,10 @@ module ATFDBHandlers
           additional_parameters.each do |param_name, param_val|
             instance_variable_set("@#{param_name}",param_val)
           end
-          @image_path = {}
           if !img_path && @staf_handle
             staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/sw_assets/kernel") 
             if(staf_req.rc == 0)
-              @image_path['kernel'] = staf_req.result
+              @image_path['kernel']= staf_req.result
             end
           else
             @image_path['kernel'] = img_path 
@@ -126,6 +126,12 @@ module ATFDBHandlers
             super
           end
         end
+		
+		def instance_variable_defined?(sym)
+		  result = super(sym)
+          result = result || (@staf_handle.submit("local","VAR","GET SHARED VAR auto/sw_assets/#{sym.to_s.gsub(/^[:@]+/,'')}")).rc == 0 if @staf_handle
+          result
+		end
         
         def respond_to?(method_sym, include_private = false)
           result = super(method_sym, include_private)
