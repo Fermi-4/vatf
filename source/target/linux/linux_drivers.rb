@@ -1,3 +1,4 @@
+require File.dirname(__FILE__)+'/linux_equipment_driver'
 require File.dirname(__FILE__)+'/dmai/dmai'
 require File.dirname(__FILE__)+'/demo/demo'
 require File.dirname(__FILE__)+'/dvtb/dvtb'

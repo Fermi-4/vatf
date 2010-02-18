@@ -19,6 +19,7 @@ require 'target/targets'
 require 'external_systems/external_systems'
 require 'net/smtp'
 require 'site_info'
+Kernel::require 'serialport'
 
 module Find
   def file(*paths)
@@ -298,7 +299,9 @@ class SessionHandler
       @connection_handler = ConnectionHandler.new(@files_dir)
       @power_handler = PowerHandler.new()
       logs_array = Array.new
-      @test_params = @rtp_db.get_test_parameters(@cli_params['release_assets'])
+      temp_params = @cli_params.clone
+      temp_params.delete('release_assets')
+      @test_params = @rtp_db.get_test_parameters(temp_params.merge(@cli_params['release_assets']))
       @test_params.image_path = @test_params.image_path.merge(@cli_params['release_assets']) if @test_params.image_path
       @test_params.platform = @cli_params['platform'] if @cli_params['platform']
       @test_params.target = @cli_params['release'] if @cli_params['release']

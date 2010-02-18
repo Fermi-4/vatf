@@ -102,6 +102,7 @@ module ATFDBHandlers
             instance_variable_set("@#{tc_attr}",val)
           end
           additional_parameters.each do |param_name, param_val|
+            next if !param_val
             instance_variable_set("@#{param_name}",param_val)
           end
           if !img_path && @staf_handle

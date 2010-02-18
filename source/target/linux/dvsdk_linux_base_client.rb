@@ -1,5 +1,3 @@
-require File.dirname(__FILE__)+'/linux_equipment_driver'
-
 module DvsdkHandlers
   class DvsdkLinuxBaseListener
     attr_reader :match, :cmd, :expect, :response_buffer

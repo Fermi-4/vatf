@@ -15,23 +15,22 @@ module Equipment
     def initialize(platform_info, log_path = nil)
       start_logger(log_path) if log_path
       log_info("Starting target session") if @targetc_log
-      
+      @platform_info = platform_info
       platform_info.instance_variables.each {|var|
         if platform_info.instance_variable_get(var).to_s.size > 0   
           self.class.class_eval {attr_reader *(var.to_s.gsub('@',''))}
           self.instance_variable_set(var, platform_info.instance_variable_get(var))
         end
       }
-      @target = EquipmentConnection.new(platform_info)
-      res = @target.connect
-      log_info("Respond from @target.connect: "+res.to_s)
+      @target = EquipmentConnection.new(@platform_info) 
       rescue Exception => e
         log_info("Initialize: "+e.to_s)
         raise
     end
     
-    def connect
-      @target.connect if @target
+    def connect(params)
+      @target.connect(params)
+      log_info("Connected to #{@platform_info.name} via #{params['type']} ")
     end
 
     def disconnect
@@ -57,6 +56,19 @@ module Equipment
     
     def timeout?
       @target.timeout?
+    end
+    
+    def update_response(type='default')
+      x = case type.to_s.downcase
+      when 'telnet':
+        @target.telnet.update_response
+      when 'serial':
+        @target.serial.update_response
+      else
+        @target.update_response
+      end
+      log_info("Target: \n" + x)
+      x
     end
     
     #Starts the logger for the session. Takes the log file path as parameter.
