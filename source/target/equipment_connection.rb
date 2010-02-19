@@ -1,7 +1,6 @@
 require 'rubygems'
 require File.dirname(__FILE__)+'/telnet_equipment_connection'
 require File.dirname(__FILE__)+'/serial_equipment_connection'
-require File.dirname(__FILE__)+'/wince_telnet_equipment_connection'
 
 class EquipmentConnection
   attr_reader :default, :telnet, :serial
