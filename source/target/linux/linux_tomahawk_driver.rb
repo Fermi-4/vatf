@@ -6,7 +6,7 @@ module Equipment
       super(platform_info, log_path)
       @api_list      = Hash.new('EquipmentDriver')
       @api_list.merge!({
-        'vgdk' =>  'VgdkLinuxClientTomahawk', 
+        'vgdk' =>  'LinuxEquipmentDriver', 
       })
     end
     
