@@ -30,6 +30,7 @@ class EquipmentConnection
     when 'serial':
       if @platform_info.serial_port.to_s.strip != ''
         @serial = SerialEquipmentConnection.new(@platform_info) 
+        @serial.auto_update_response
         @default = @serial if !@default
       else
         @serial = SerialServerConnection.new(@platform_info)

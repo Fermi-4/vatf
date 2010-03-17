@@ -67,7 +67,7 @@ module Equipment
       else
         @target.update_response
       end
-      log_info("Target: \n" + x)
+      #log_info("Target: \n" + x)
       x
     end
     

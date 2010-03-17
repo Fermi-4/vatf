@@ -21,7 +21,7 @@ module Equipment
       puts "Power cycling the board ........\n\n\n"
       @power_handler.reset(@power_port)
       # Call mpc-data executable or call boot staf process. Raise exception if booting fails.                                                                     
-      raise "Failed to boot" if !system("#{File.join(SiteInfo::UTILS_FOLDER, SiteInfo::WINCE_DOWNLOAD_APP)} -i158.218.103.25 -tOMAPL138-28327 #{params['test_params'].kernel}")
+      raise "Failed to boot" if !system("#{File.join(SiteInfo::UTILS_FOLDER, SiteInfo::WINCE_DOWNLOAD_APP)} -i158.218.103.25 -tFREON-CARLOS #{params['test_params'].kernel}")
     end
     
     # stop the bootloader after a reboot

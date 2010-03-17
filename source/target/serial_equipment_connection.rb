@@ -1,9 +1,12 @@
 require 'rubygems'
 require 'timeout'
 Kernel::require 'serialport'
+require 'thread'
+
 
 class SerialEquipmentConnection < SerialPort
-
+  attr_reader :update_thread
+  
   def SerialEquipmentConnection::new(platform_info)
     @port   = platform_info.serial_port
     @params   = platform_info.serial_params
@@ -18,10 +21,14 @@ class SerialEquipmentConnection < SerialPort
   end
 
   def disconnect
+    @update_thread["keep_auto_updating"]=false     # Kills thread that reads serial port
+    @update_thread.join
     close()
   end
 
   def send_cmd(*params)
+    @update_thread["auto_update"]=false  # Stop thread that reads serial port
+    @update_thread["response"] = ''      # Clears response buffer for thread that reads serial port
     command        = params[0]
     expected_match = params[1] ? params[1] : Regexp.new('.*')
     timeout        = params[2] ? params[2] : 30
@@ -74,6 +81,7 @@ class SerialEquipmentConnection < SerialPort
        raise
     end
     ensure
+      @update_thread["auto_update"]=true
       @response = clear_buffer + partial_response
   end
   
@@ -86,15 +94,26 @@ class SerialEquipmentConnection < SerialPort
   end
   
   def update_response
-    last_read = partial_response = ''
-    while !eof?
-      last_read = readpartial(1024)
-      partial_response << last_read
-      Kernel.print last_read
-    end
-    puts "DEBUG: Returning from serial_connection:update_response"
-    @response = partial_response
+    @update_thread["response"]
   end
+  
+  def auto_update_response
+    @update_thread = Thread.new {
+      Thread.current["keep_auto_updating"]=true
+      Thread.current["auto_update"]=true
+      Thread.current["response"]=''
+      while Thread.current["keep_auto_updating"]
+        while Thread.current["auto_update"] and !eof?
+          last_read = readpartial(1024)
+          Thread.current["response"] << last_read
+          Kernel.print last_read
+        end
+        Thread.pass
+      end
+    }
+  end
+  
+  
   
   def regex_character(c)
     [91, 92, 94, 36, 46, 124, 63, 42, 43, 40, 41].include?(c.to_i)
