@@ -4,16 +4,6 @@ require 'fileutils'
 gem 'log4r'
 require 'log4r'
 require 'log4r/outputter/fileoutputter'
-require File.dirname(__FILE__)+'/drvif_cfg'
-include DrvifCfg
-require File.dirname(__FILE__)+'/evm_start'
-include EVMStart
-require File.dirname(__FILE__)+'/xdp_var_set_src_evm'
-include XDPVarSetSrcEVM
-require File.dirname(__FILE__)+'/xdp_var_set_tgt_PC'
-include XDPVarSetTgtPC
-require File.dirname(__FILE__)+'/dsp_glob_cfg'
-include DSPGlobConfig
 module Vgdk
 #include Log4r
 
@@ -22,7 +12,7 @@ module Vgdk
     Logger = Log4r::Logger 
     attr_accessor :host, :port, :waittime
     attr_reader :response, :is_timeout
-    @@start_session = 0 
+    @@session_status = false 
     def initialize(platform_info, log_path = nil)
     begin
       start_logger(log_path) if log_path
@@ -35,7 +25,6 @@ module Vgdk
              self.instance_variable_set(var, platform_info.instance_variable_get(var))
          end
       }
-            
       @target = Net::Telnet::new( "Host" => @telnet_ip,
                                   "Port" => @telnet_port,
                                   "Waittime" => @waittime,
@@ -44,20 +33,25 @@ module Vgdk
                                   "Binmode" => false)
       send_cmd("",/.*/)
       if @telnet_login && @telnet_passwd then
-	 	@target.login(@telnet_login.to_s, @telnet_passwd){ |c| print c }
-	  elsif @telnet_login
-		@target.login(@telnet_login.to_s){ |c| print c }
+        @target.login(@telnet_login.to_s, @telnet_passwd){ |c| print c }
+      elsif @telnet_login
+        @target.login(@telnet_login.to_s){ |c| print c }
       end
-
       rescue Exception => e
        	log_info("Initialize: "+e.to_s)
         raise
       end
-        connect
-        if(@@start_session == 0)
-            send_board_config()
-            @@start_session = 1
+      if(@@session_status == false)
+        send_cmd("shell ps",/dimtestvi/,2)
+        processes = @response
+        processes.each { |line|
+        if(line.match(/dimtestvi/i))
+          dimtest = line.match(/\d+/)[0]
+          send_cmd("shell kill -9 #{dimtest}",/.*/,2)
         end
+        }
+      end
+      connect
     end
     
     def connect
@@ -69,14 +63,7 @@ module Vgdk
 		  @target = nil
     end
     
-    def send_board_config()
-      send_drvif_cfg()
-      send_evm_start()
-      send_xdp_var_set_srm_evm()
-      send_xdp_var_set_tgt_pc()
-      send_dsp_glob_config()
-    end  
-        
+     
     def log_warning(warning)
         @targetc_log.warn(warning) if @targetc_log
     end
@@ -161,7 +148,12 @@ module Vgdk
       @targetc_log_outputter = nil if @targetc_log_outputter
       @targetc_log = nil if @targetc_log
     end
-
+    def get_session_status()
+      @@session_status
+    end
+    def start_session()
+      @@session_status = true
+    end
   end
 end
 

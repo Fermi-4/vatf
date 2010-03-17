@@ -72,7 +72,11 @@ class TelnetEquipmentConnection < Net::Telnet
     status = Timeout::timeout(timeout) {
       if clear_history
         while(!init_buffer.match(/#{command_regex}/m)) do #clearing the read buffer
-          init_buffer << preprocess(readpartial(128)) if !eof?
+          if !eof?
+            current_input = preprocess(readpartial(128))
+            init_buffer << current_input
+            Kernel.print current_input
+          end
         end
         partial_response = init_buffer.scan(/#{command_regex}.*/m)[0]
         index = init_buffer.index(partial_response)
