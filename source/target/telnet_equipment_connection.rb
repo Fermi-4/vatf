@@ -33,7 +33,7 @@ class TelnetEquipmentConnection < Net::Telnet
     elsif @telnet_login
       login(@telnet_login.to_s){ |c| 
         ret = ret + c 
-        break if c.match(/(#{@prompt}/)
+        break if c.match(/#{@prompt}/)
       }
     end
     ret
