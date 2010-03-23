@@ -1,5 +1,5 @@
 require File.dirname(__FILE__)+'/../equipment_driver'
-#require File.dirname(__FILE__)+'/wince_eboot_options'
+require 'socket'
 
 module Equipment
 
@@ -21,7 +21,7 @@ module Equipment
       puts "Power cycling the board ........\n\n\n"
       @power_handler.reset(@power_port)
       # Call mpc-data executable or call boot staf process. Raise exception if booting fails.                                                                     
-      raise "Failed to boot" if !system("#{File.join(SiteInfo::UTILS_FOLDER, SiteInfo::WINCE_DOWNLOAD_APP)} -i158.218.103.25 -tFREON-CARLOS #{params['test_params'].kernel}")
+      raise "Failed to boot. Make sure #{File.join(SiteInfo::UTILS_FOLDER, SiteInfo::WINCE_DOWNLOAD_APP)} exists on your VATF PC" if !system("#{File.join(SiteInfo::UTILS_FOLDER, SiteInfo::WINCE_DOWNLOAD_APP)} -i#{local_ip} -t#{@board_id} #{params['test_params'].kernel}")
     end
     
     # stop the bootloader after a reboot
@@ -46,7 +46,23 @@ module Equipment
       # }	
     # end
     
+    private
     
+    # Implementation taken from stackoverflow.com
+    # The [below] code does NOT make a connection or send any packets (to 64.233.187.99 which is google). 
+    # Since UDP is a stateless protocol connect() merely makes a system call which figures out how to route the packets based on the address
+    # and what interface (and therefore IP address) it should bind to. addr() returns an array containing the family (AF_INET), local port, and local address (which is what we want) of the socket.
+    def local_ip
+      orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true  # turn off reverse DNS resolution temporarily
+
+      UDPSocket.open do |s|
+        s.connect '64.233.187.99', 1
+        s.addr.last                  
+      end
+    ensure
+      Socket.do_not_reverse_lookup = orig
+    end
+
     
   end
 end  
