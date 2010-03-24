@@ -201,7 +201,7 @@ module ATFDBHandlers
       #with the test result (string), failed_at if the test failed and line number is known the line number (string), web_result_file path of the html result file of this result (string),
       #start_time the test's start time (Time), end_time the test completion time (Time), iter_num the iteration number if multiple iterations (number), tester the name of the tester (string),
       #and pltfrm the platform used for the test (string).	  
-      def set_test_result(test_name, result, result_comment, failed_at, html_result_file, start_time, end_time = Time.now, iter_num = 1, tester = "system test", pltfrm = nil, release=nil)
+      def set_test_result(test_name, result, result_comment, perf_data, failed_at, html_result_file, start_time, end_time = Time.now, iter_num = 1, tester = "system test", pltfrm = nil, release=nil)
         @db_ttest_run.save if !@db_ttest_run.testRunID
         @db_ttest_file.save if !@db_ttest_file.testFileID
         @db_tresult.caseID = @db_tcase.caseID
@@ -219,11 +219,11 @@ module ATFDBHandlers
           else
         end
         @db_tcase.TargetDate = Time.now
-		@db_tcase.platform = pltfrm
-    @db_tcase.target = release
-		@db_tcase.Reserve2 = tester
-          @db_tresult.results = result_comment
-		  @db_tcase.comments = result_comment
+        @db_tcase.platform = pltfrm
+        @db_tcase.target = release
+        @db_tcase.Reserve2 = tester
+        @db_tresult.results = result_comment
+        @db_tcase.comments = result_comment
   #        @db_tresult.detailFile = html_result_file
   #        @db_tresult.number = 0 commented out due to change in the db schema
           if /[\\\/]*(\w+)\.*\w*$/ =~ test_name

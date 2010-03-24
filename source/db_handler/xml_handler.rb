@@ -1,5 +1,5 @@
-require 'db_handler/base_atf_xml_handler'
-
+require File.dirname(__FILE__)+'/base_atf_xml_handler'
+require 'activerecord'
 module ATFDBHandlers
 =begin
   Base Database handler class.
@@ -7,6 +7,12 @@ module ATFDBHandlers
   class XMLAtfDbHandler < BaseATFXmlHandler
       
     public
+      
+      def initialize(type = nil, res_file = nil, staf_service_name = nil)
+        super(type, staf_service_name)
+        raise "Results file has not been specified" if !res_file
+        @results_file = res_file
+      end
       
       #Connects to the database, and returns a handle to the connection
       def connect_database(path)
@@ -145,7 +151,7 @@ module ATFDBHandlers
       #with the test result (string), failed_at if the test failed and line number is known the line number (string), web_result_file path of the html result file of this result (string),
       #start_time the test's start time (Time), end_time the test completion time (Time), iter_num the iteration number if multiple iterations (number), tester the name of the tester (string),
       #and pltfrm the platform used for the test (string).	  
-      def set_test_result(test_name, result, result_comment, failed_at, html_result_file, start_time, end_time = Time.now, iter_num = 1, tester = "system test", pltfrm = nil, release=nil)
+      def set_test_result(test_name, result, result_comment, perf_data, failed_at, html_result_file, start_time, end_time = Time.now, iter_num = 1, tester = "system test", pltfrm = nil, release=nil)
         #results hash for this iteration
         @tc_iter_results = {}
         @tc_iter_results["iteration_id"] = iter_num
@@ -161,6 +167,12 @@ module ATFDBHandlers
           @tc_iter_results["comments"] = result_comment
           @tc_iter_results["start_time"] = start_time.strftime("%Y-%m-%d %H:%M:%S")
           @tc_iter_results["end_time"] = end_time.strftime("%Y-%m-%d %H:%M:%S")
+          if perf_data
+            @tc_iter_results["performance"] = []
+            perf_data.each do |current_data|
+              @tc_iter_results["performance"] << PerfData.new(current_data)
+            end
+          end
         ensure
             @db_tresult["test_session"][0]["testcase"] << {"id" => @db_tcase["id"].to_s, "logpath" => nil, "comment" => nil, "start_time" => nil, "end_time" => nil, "status" => nil, "iter_complete" => nil, "test_iteration" => []}
             @db_tresult["test_session"][0]["testcase"].each { |tcase|
@@ -208,8 +220,8 @@ module ATFDBHandlers
         @db_tresult["test_session"][0]["n_skipped"] = num_skipped
         @db_tresult["test_session"][0]["logpath"] = summary_html
         ensure
-        outfile = File.new("C:/VATF/vatf_automation_results.xml",'w')
-        test = decompose_hash(@db_tresult, Hash.new)
+        outfile = File.new(@results_file,'w')
+        # test = decompose_hash(@db_tresult, Hash.new)
         outfile.puts(@db_tresult.to_xml)
       end
       
@@ -237,4 +249,16 @@ end
 class UndefinedSwAsset < Exception
 end
 
+class PerfData < ActiveRecord::Base
+  def initialize(attr)
+    @attributes = attr
+  end
+  
+  def to_xml(options = {})
+      options[:indent] ||= 2
+      xml = options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+      xml.instruct! unless options[:skip_instruct]
+      xml.data(@attributes)
+  end
+end
 end

@@ -1,7 +1,7 @@
 require 'rubygems'
 
 class Converter
-  @@TOOL_ROOT_DIR     = File.dirname(__FILE__).gsub('/','\\')+'\..\..\Utils\Video_tools'
+  @@TOOL_ROOT_DIR     = File.dirname(__FILE__).gsub('/','\\')+'\..\..\..\Utils\Video_tools'
   def initialize(tool_dir = nil)
     if tool_dir
       @@TOOL_ROOT_DIR = tool_dir

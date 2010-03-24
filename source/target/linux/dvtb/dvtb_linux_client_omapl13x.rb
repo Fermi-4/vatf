@@ -85,7 +85,7 @@ module DvtbHandlers
             'jpegextenc' => get_base_parameters(['jpegenc','jpegextenc']),
             'jpegextdec' => get_base_parameters(['jpegdec','jpegextdec']),
           }
-          connect
+          
         end
         
         def translate_value(params)
@@ -209,7 +209,8 @@ module DvtbHandlers
           end 
         end
         
-        def connect
+        def connect(params)
+          super(params)
           send_cmd("cd #{@executable_path}",@prompt)
           send_cmd("./loadmodules.sh", @prompt)   
           send_cmd("./dvtb-r",/$/)

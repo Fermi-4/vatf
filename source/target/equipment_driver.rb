@@ -17,10 +17,8 @@ module Equipment
       log_info("Starting target session") if @targetc_log
       @platform_info = platform_info
       platform_info.instance_variables.each {|var|
-        if platform_info.instance_variable_get(var).to_s.size > 0   
-          self.class.class_eval {attr_reader *(var.to_s.gsub('@',''))}
-          self.instance_variable_set(var, platform_info.instance_variable_get(var))
-        end
+        self.class.class_eval {attr_reader *(var.to_s.gsub('@',''))}
+        self.instance_variable_set(var, platform_info.instance_variable_get(var))
       }
       @target = EquipmentConnection.new(@platform_info) 
       rescue Exception => e
@@ -44,10 +42,10 @@ module Equipment
         puts ">>>> On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s
         log_error("On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s)
       rescue Exception => e
-        log_error("On command "+command.to_s+"\n"+e.to_s+"Target: \n" + response)
+        log_error("On command "+command.to_s+"\n"+e.to_s+"Target: \n" + response.to_s)
         raise
       ensure
-        log_info("Target: \n" + response)
+        log_info("Target: \n" + response.to_s)
     end
     
     def response

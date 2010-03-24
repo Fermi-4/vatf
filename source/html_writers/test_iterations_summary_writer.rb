@@ -51,11 +51,9 @@ module HTMLWriters
       def add_summary_link(summary_link, multi_session_link = nil)
         if multi_session_link
           multi_link = multi_session_link.to_s
-          multi_link = '///'+multi_link if multi_link.match(/^\w/)
           add_paragraph("Multisession Summary",{:size => "6"},{:align => "center"},multi_link)
         end
         sum_link = summary_link
-        sum_link = '///'+summary_link if summary_link.match(/^\w/)
         add_paragraph("Session Summary",{:size => "6"},{:align => "center"},sum_link)
       end
       

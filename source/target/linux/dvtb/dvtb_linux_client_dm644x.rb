@@ -116,7 +116,7 @@ module DvtbHandlers
 					'outbufsize'            =>  'outbufsize',
                 },
             }
-            connect
+            
         end
         
         def translate_value(params)
@@ -190,7 +190,8 @@ module DvtbHandlers
             end 
         end
         
-        def connect
+        def connect(params)
+            super(params)
             send_cmd("cd #{@executable_path}",@prompt)
             send_cmd("./dvtb_loadmodules.sh", @prompt) 	
             send_cmd("./dvtb-r",/$/)

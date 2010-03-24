@@ -56,8 +56,9 @@ module ATFDBHandlers
       end
       
       #Constructor of the class takes 1 or no arguments
-    def initialize (type = nil) 
+    def initialize (type = nil, staf_srv_name = nil) 
       @staf_handle = STAFHandle.new("staf_xml") 
+      @staf_service_name = staf_srv_name
       staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/tee/monitor") 
       if(staf_req.rc == 0)
         @monitor = staf_req.result
@@ -71,7 +72,7 @@ module ATFDBHandlers
     
     def monitor_log(message)
       if(@monitor != nil)
-        @staf_handle.submit("local","#{@monitor}","LOG MESSAGE '#{message}' NAME test_status")
+        @staf_handle.submit("local","#{@monitor}","LOG MESSAGE '#{message}' NAME #{@staf_service_name}_status")
       else
         puts "STAF monitor not set"
       end
@@ -86,6 +87,7 @@ module ATFDBHandlers
       # tcase_attr = @db_tcase
       img_path = get_image_path
       temp_staf_handle = @staf_handle
+      staf_srv_name = @staf_service_name
       test_param_klass.class_eval do
         attr_reader :params_chan, :params_equip, :params_control
         attr_reader *tcase_attr.keys
@@ -106,7 +108,7 @@ module ATFDBHandlers
             instance_variable_set("@#{param_name}",param_val)
           end
           if !img_path && @staf_handle
-            staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/sw_assets/kernel") 
+            staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR #{staf_srv_name ? staf_srv_name+'/' : ''}auto/sw_assets/kernel") 
             if(staf_req.rc == 0)
               @image_path['kernel']= staf_req.result
             end
@@ -117,7 +119,7 @@ module ATFDBHandlers
         
         def method_missing(sym, *args, &block)
           if @staf_handle
-            staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/sw_assets/#{sym}")
+            staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{sym}")
             if (staf_req.rc != 0)
               raise UndefinedSwAsset.new("Undefined sw asset named #{sym}")
             else

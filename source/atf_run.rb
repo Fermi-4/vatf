@@ -23,23 +23,25 @@ def run_session
   options = CmdLineParser.parse(ARGV) #getting the test session's parameters
   frame_id = /Host\s*Name\s*.*:\s(\w+)/.match(`ipconfig /all`)[1]
   session_result_dir = options.results_base_dir+'/'+options.tester+"/"+frame_id+"/"
+  session_result_server = options.results_base_url+'/'+options.tester+"/"+frame_id+"/"
   rtps = TestAreas::get_rtps(options.rtp, options.drive.sub(/(\\|\/)$/,'')+'/GoldenMatrices',options.results_base_dir+'/'+options.tester, options.platform)
   if rtps.length > 1 || options.rtp.values[0]['test_areas'].kind_of?(Array)
     multi_session_start_time = Time.now
   session_result_dir = options.results_base_dir.gsub('\\','/')+'/'+options.tester+"/"+frame_id+"/Multisession_"+multi_session_start_time.strftime("%m_%d_%Y_%H_%M_%S")
+  session_result_server = session_result_dir.sub(options.results_base_dir.gsub('\\','/'),options.results_base_url)
   FileUtils.mkdir_p(session_result_dir)
   multi_session_html = session_result_dir+'/multisession.html'
-    multi_session_html_writer = MultiSessionSummaryHtml.new(multi_session_html, "MultiSession Summary")
+  multi_session_html_writer = MultiSessionSummaryHtml.new(multi_session_html, "MultiSession Summary")
   multi_session_html_writer.add_summary_information_tables(options.tester)
   multi_session_html_writer.add_sessions_info_table
-    multi_session_passed_total = 0
-    multi_session_failed_total = 0
-    multi_session_skip_total = 0  
+  multi_session_passed_total = 0
+  multi_session_failed_total = 0
+  multi_session_skip_total = 0  
   end
   rtps.each do |current_rtp|
     begin
     session_iter_completed = 0
-    session_runner = SessionHandler.new({'rtp_path' => current_rtp.path, 'view_drive' => options.drive, 'bench_path' => options.bench_path, 'results_path' => session_result_dir}, {'target_source_drive' => options.target_source_drive, 'consec_non_pass' => options.num_fails_to_reboot, 'multi_sess_sum' => multi_session_html, 'platform' => options.platform, 'release_assets' => options.release_assets, 'email' => options.email,  'release' => options.release}) #creating a session handler instance
+    session_runner = SessionHandler.new({'rtp_path' => current_rtp.path, 'view_drive' => options.drive, 'bench_path' => options.bench_path, 'results_path' => session_result_dir, 'results_server' => session_result_server}, {'target_source_drive' => options.target_source_drive, 'consec_non_pass' => options.num_fails_to_reboot, 'multi_sess_sum' => multi_session_html, 'platform' => options.platform, 'release_assets' => options.release_assets, 'email' => options.email,  'release' => options.release, 'results_file' => options.results_file, 'staf_service_name' => options.staf_service_name}) #creating a session handler instance
     session_runner.start_session(options.tester.strip.gsub(" ","").downcase) #running the test session
     1.upto(options.session_iterations) do |session_iter| 
     options.tests_to_run.each do |test| # running each test
@@ -93,7 +95,9 @@ def run_session
       send_email('CI Test Results', email_msg, 'VATF@ti.com', email_to_list)
     else
       if(options.browser)
-        system("explorer #{multi_session_html.gsub("//gtsnowball/System_Test/Automation/gtsystst_logs/video","http://gtsystest.telogy.design.ti.com/video").gsub("/","\\")}")
+        sep = "/"
+        sep = "\\" if Config::CONFIG["arch"].match(/win\d{2}/i)
+        system("explorer #{multi_session_html.gsub(options.results_base_dir,options.results_base_url).gsub(/\\|\//,sep)}")
       end
     end
   end

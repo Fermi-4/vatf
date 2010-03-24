@@ -48,7 +48,6 @@ module Equipment
       else
         raise "image #{image_path} does not exist, unable to copy"
       end
-      @target.connect if @target
     end
 
     # stop the bootloader after a reboot

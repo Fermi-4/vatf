@@ -3,6 +3,7 @@ require File.dirname(__FILE__)+'/demo_linux_client'
 module DemoHandlers
     class DemoLinuxClientDM365 < DemoLinuxClient
       def initialize(platform_info, log_path=nil)
+        @load_modules = "loadmodules_hd.sh"
         super(platform_info, log_path) 
         @encode_params = {
               'command_name'      => 'encode',

@@ -94,7 +94,7 @@ module DvtbHandlers
                 'dvrenc'	=> get_base_parameters(['videnc','mpeg4extenc'],['Inst[1]','Inst[2]','Inst[3]','Inst[4]','Inst[5]','Inst[6]','Inst[7]']),
                 'dvrencdec'	=> get_base_parameters(['videnc','mpeg4extenc'],['EncInst[0]','EncInst[1]','EncInst[2]','EncInst[3]']).merge(get_base_parameters(['viddec', 'mpeg4extdec'],['DecInst[0]','DecInst[1]','DecInst[2]','DecInst[3]'])),
             }
-            connect
+            
         end
         
         def translate_value(params)
@@ -164,7 +164,8 @@ module DvtbHandlers
             end 
         end
         
-        def connect
+        def connect(params)
+            super(params)
             send_cmd("cd #{@executable_path}",@prompt)
             send_cmd("./dvtb_loadmodules.sh", @prompt) 	
             send_cmd("./dvtb-r",/$/)

@@ -23,6 +23,7 @@ module TestEquipment
       config_file.puts video_clarity_info.telnet_ip.strip
       config_file.close
       raise 'Unable to reset Video Clarity' if !reset
+      set_video_output
       rescue Exception => e
         log_error(e.to_s)
         raise

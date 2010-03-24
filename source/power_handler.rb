@@ -8,8 +8,8 @@ class PowerHandler
 	def load_power_ports(io_info)
 	  return if !io_info
 		io_info.each_key do |key|
-				if !@power_controllers[key.to_s]
-					@power_controllers[key.to_s] = Object.const_get($equipment_table['power_controller'][key.to_s][0].driver_class_name).new($equipment_table['power_controller'][key.to_s][0])
+				if !@power_controllers[key.to_s.downcase]
+					@power_controllers[key.to_s.downcase] = Object.const_get($equipment_table['power_controller'][key.to_s.downcase][0].driver_class_name).new($equipment_table['power_controller'][key.to_s.downcase][0])
 				end
 		end
 		rescue Exception => e
@@ -22,25 +22,25 @@ class PowerHandler
 	
 	def get_status(power_port)
 		power_port.each {|key,val|
-			@power_controllers[key.to_s].get_status(val)
+			@power_controllers[key.to_s.downcase].get_status(val)
 		}
 	end
 	
 	def switch_on(power_port)
 		power_port.each {|key,val|
-			@power_controllers[key.to_s].switch_on(val)
+			@power_controllers[key.to_s.downcase].switch_on(val)
 		}
 	end
 	
 	def switch_off(power_port)
 		power_port.each {|key,val|
-			@power_controllers[key.to_s].switch_off(val)
+			@power_controllers[key.to_s.downcase].switch_off(val)
 		}
 	end
 	
 	def reset(power_port)
 		power_port.each {|key,val|
-			@power_controllers[key.to_s].reset(val)
+			@power_controllers[key.to_s.downcase].reset(val)
 		}
 	end
 end

@@ -57,8 +57,8 @@ module Elements
     #Sets hyperlink in the cell
       def add_cell_url
         if @cell_url
-          c_url = '///' + @cell_url.gsub("\\","/")
-          c_url = '///' + @cell_url if @cell_url.match(/^\w/) 
+          c_url = @cell_url.gsub("\\","/")
+          c_url = '//' + @cell_url if @cell_url.match(/^\w/)
           e(:a, :href => c_url){add_font_format}
         else
           add_font_format
@@ -153,8 +153,8 @@ module Elements
     #Adds a link in the paragraph to the url specified by @link
     def add_url
       if @link
-        l_url = '///' + @link.gsub("\\","/")
-        l_url = '///' + @link if @link.match(/^\w/)
+        l_url = @link.gsub("\\","/")
+        l_url = '//' + @link if @link.match(/^\w/)
         e(:a, :href => l_url){add_font_format}
       else
         add_font_format

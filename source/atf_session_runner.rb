@@ -53,13 +53,16 @@ class CmdLineParser
       options.tester = `set COMPUTERNAME`.strip.split('=')[1]       # FIXME: It is not Linux friendly
       options.drive = nil
       options.bench_path = "C:/VATF/bench.rb"
-      options.results_base_dir = "//gtsnowball/System_Test/Automation/gtsystst_logs/video"
+      options.results_base_dir = SiteInfo::LOGS_FOLDER
+      options.results_base_url = SiteInfo::LOGS_SERVER
       options.platform = nil
       options.num_fails_to_reboot = nil
       options.target_source_drive = nil
       options.email = nil
       options.release_assets = {}
       options.browser = true
+      options.results_file = "C:/VATF/vatf_automation_results.xml"
+      options.staf_service_name = nil
       
       opts = OptionParser.new do |opts|
         opts.banner = "Usage: atf_run.rb -u <user name> -v <view drive> -r <rtp path or image::level:=areas> [-s <n>] [-d <results directory>] [-b <bench file path>] [-p <platform>] [-x <np for reboot>] [-e <target code sources>] [-k <product version>] [-m <e-mail address>] -t <[tcaseID1,...,tcaseIDn]*n;tcaseIDx;....;tcaseID>"
@@ -161,6 +164,18 @@ class CmdLineParser
           options.num_fails_to_reboot = num_fails.to_i
         end
         
+        opts.on("-f","=OPTIONAL","specifies the path where the results will be saved when working with xml files as test data") do |res_file|
+          options.results_file = res_file
+        end
+        
+        opts.on("-l","=OPTIONAL","specifies the URL where that can be used to access the files specified by -d") do |base_url|
+          options.results_base_url = base_url
+        end
+        
+        opts.on("-w","=OPTIONAL","specifies the name of STAF service that is calling vatf") do |base_url|
+          options.staf_service_name = base_url
+        end
+        
         opts.separator ""
         opts.separator "Common options:"
 
@@ -207,20 +222,22 @@ class SessionHandler
     #                 pltfrm the platform to be used for the test if given (string)
     #                 img path of the image that will be loaded to the board for testing if any (string).
     def initialize(req_params, opt_params)
-      params = {'rtp_path' =>nil, 'view_drive' => nil, 'bench_path' => nil, 'results_path' => nil}.merge(req_params)
+      params = {'rtp_path' =>nil, 'view_drive' => nil, 'bench_path' => nil, 'results_path' => nil, 'results_server' => nil}.merge(req_params)
       raise "Required parameter missing in #{self.class.to_s}::initialize" if params.has_value?(nil)      
-      params = params.merge({'target_source_drive' => nil, 'consec_non_pass' => nil, 'multi_sess_sum' => nil, 'platform' => nil, 'release_assets' => {}}.merge(opt_params))
+      params = params.merge({'target_source_drive' => nil, 'consec_non_pass' => nil, 'multi_sess_sum' => nil, 'platform' => nil, 'release_assets' => {}, 'results_file' => nil, 'staf_service_name' => nil}.merge(opt_params))
       @cli_params = params
       require params['bench_path'].gsub(/\.\w*$/,"")
       @view_drive = params['view_drive']
       @target_source_drive = params['view_drive']
       @target_source_drive = params['target_source_drive'] if params['target_source_drive']
       @session_results_base_directory = params['results_path'].strip.gsub("\\","/").sub(/(\\|\/)$/,'') if params['results_path']
+      @session_results_base_url = @session_results_base_directory
+      @session_results_base_url = params['results_server'].strip.gsub("\\","/").sub(/(\\|\/)$/,'') if params['results_server']
       FileUtils.mkdir_p(@session_results_base_directory) unless File.exists?(@session_results_base_directory)     
       @rtp_path = params['rtp_path']
       case File.extname(@rtp_path)
         when ".xml"
-            @rtp_db = XMLAtfDbHandler.new("xml")
+            @rtp_db = XMLAtfDbHandler.new("xml", params['results_file'], params['staf_service_name'])
             @db_type = "xml"
         when ".mdb"
             @rtp_db = AccessAtfDbHandler.new()
@@ -228,6 +245,8 @@ class SessionHandler
       end
       @rtp_db.connect_database(@rtp_path)
       @multi_session_summary = params['multi_sess_sum']
+      @multi_session_link = @multi_session_summary
+      @multi_session_link = @multi_session_summary.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"") if params['multi_sess_sum']
       @consecutive_non_pass_allowed = params['consec_non_pass']
       @consecutive_non_passed_tests = 0
       @old_keys = '';@new_keys = ''
@@ -239,14 +258,15 @@ class SessionHandler
       @tester = tester
       @session_start_time = Time.now
       @test_sess_sum = [0,0,0]
-      @session_dir = @session_results_base_directory+'/'+tester+@session_start_time.strftime("%m_%d_%Y_%H_%M_%S")     
+      @session_dir = @session_results_base_directory+'/'+tester+@session_start_time.strftime("%m_%d_%Y_%H_%M_%S")  
       FileUtils.mkdir_p(@session_dir) unless File.exists?(@session_dir)
       @session_html_path = @session_dir+"/session.html"
+      @session_html_url = @session_html_path.sub(@session_results_base_directory,@session_results_base_url)
       @target_name = @rtp_db.get_target.to_s
       @target_name = @cli_params['release'] if @cli_params['release']
       @session_html = SessionSummaryHtml.new(@session_html_path," Session "+@session_start_time.strftime("%m_%d_%Y_%H_%M_%S"),@target_name)
       @session_html.add_run_information_tables(@tester)
-      @session_html.add_multisession_summary_link(@multi_session_summary) if @multi_session_summary
+      @session_html.add_multisession_summary_link(@multi_session_link) if @multi_session_summary
       @session_html.add_tests_info_table
     end
     
@@ -264,7 +284,7 @@ class SessionHandler
         @test_iter_summary_html_path = @files_dir+"/iterZummary.html"
         @test_iter_summary_html = TestIterationsHtml.new(@test_iter_summary_html_path,"Test Iterations Summary", @target_name)
         @test_iter_summary_html.add_test_summary_info_tables(test_case_id.to_s)
-        @test_iter_summary_html.add_summary_link(@session_html_path, @multi_session_summary)
+        @test_iter_summary_html.add_summary_link(@session_html_url.sub(/http:\/\//i,""), @multi_session_link)
         @test_iter_summary_html.add_test_iterations_table
         1.upto(num_test_iterations) do |test_iter| #running the number of iterations defined for this test
           puts "\n\nRunning Test #{test_case_id.to_s} test iteration #{test_iter.to_s} session iteration #{@session_iter.to_s}"
@@ -287,12 +307,12 @@ class SessionHandler
     #This function starts the test. Takes iter the test iteration number (number)
     def start_test(iter)
       @test_start_time = Time.now
-      @test_result = [FrameworkConstants::Result[:fail],"This is the default result comment. Use function set_result to set this comment"]
+      @test_result = TestResult.new
       @rtp_db.set_test_tables(@test_id)
       test_result_html_path = @files_dir+"/"+/[\\\/]*(\w+)\.*\w*$/.match(@rtp_db.get_test_script)[1].to_s+"_#{iter.to_s}.html"
       @results_html_file = TestResultHtml.new(test_result_html_path,"Test Result",@target_name.to_s)
       @results_html_file.add_test_information_table(@tester)
-      @results_html_file.add_summaries_links(@session_html_path, @test_iter_summary_html_path, @multi_session_summary)
+      @results_html_file.add_summaries_links(@session_html_url.sub(/http:\/\//i,""), @test_iter_summary_html_path.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,""), @multi_session_link)
       @results_html_file.add_logs_table
       @results_html_file.add_test_result_table  
       @equipment = Hash.new
@@ -376,14 +396,14 @@ class SessionHandler
               end 
               @connection_handler.load_switch_connections(@equipment[test_vars],equip_type,eq_id, i, iter)
               @power_handler.load_power_ports($equipment_table[equip_type][eq_id][i].power_port)
-              logs_array << [test_vars, equip_log] if $equipment_table[equip_type][eq_id][i].driver_class_name && $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
+              logs_array << [test_vars, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if $equipment_table[equip_type][eq_id][i].driver_class_name && $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
             end
           end
         end
         rescue Exception => e
             raise e.to_s+"\n"+e.backtrace.to_s+"\n Unable to assign equipment #{current_etype}, #{eq_id} entry #{current_instance} to #{current_var}. Verify that #{@rtp_db.get_config_script} contains valid bench file entries; that you can communicate with #{current_etype}, #{eq_id} entry #{current_instance}; and that #{current_etype}, #{eq_id} entry #{current_instance} IO information is correct."
       end
-      @connection_handler.media_switches.each{|key,val| logs_array << ["MediaSwitch"+key.to_s, val[1]]}
+      @connection_handler.media_switches.each{|key,val| logs_array << ["MediaSwitch"+key.to_s, val[1].sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")]}
       test_script_found = false
       #require @view_drive+@rtp_db.get_test_script.gsub(".rb","")
       load @view_drive+@rtp_db.get_test_script
@@ -400,7 +420,7 @@ class SessionHandler
       end
       run
       test_script_found = true
-      case(@test_result[0])
+      case(@test_result.result)
         when FrameworkConstants::Result[:pass]
           @test_iter_sum[0] += 1
           @test_sess_sum[0] += 1
@@ -410,7 +430,7 @@ class SessionHandler
           @test_sess_sum[1] += 1
           @consecutive_non_passed_tests += 1
       end
-      html_result = @test_result[1]
+      html_result = @test_result.comment
       rescue Exception => e
         html_result = e.to_s+" "+e.backtrace.to_s.gsub(/\s+/," ")
         puts html_result.to_s
@@ -418,19 +438,19 @@ class SessionHandler
         @test_iter_sum[2] += 1
         @test_sess_sum[2] += 1
         @consecutive_non_passed_tests += 1 if @test_params.auto
-        @test_result[0] = FrameworkConstants::Result[:blk]
-        @test_result[1] = e.to_s.gsub(/[\s<>]+/," ")
+        @test_result.result = FrameworkConstants::Result[:blk]
+        @test_result.comment = e.to_s.gsub(/[\s<>]+/," ")
         raise
       ensure
         @old_keys = @new_keys
         @test_ended = Time.now
         config_file.close if config_file && !is_db_type_xml?(@db_type)
-        @rtp_db.set_test_result(@rtp_db.get_test_script, @test_result[0], @test_result[1],"0",@test_result_html_path, @test_start_time, @test_ended, iter, @tester.to_s, @test_params.platform, @test_params.target) 
+        @rtp_db.set_test_result(@rtp_db.get_test_script, @test_result.result, @test_result.comment, @test_result.perf_data, "0",test_result_html_path, @test_start_time, @test_ended, iter, @tester.to_s, @test_params.platform, @test_params.target) 
         @results_html_file.add_logs(logs_array)
-        @results_html_file.add_test_result(@rtp_db.get_test_description.to_s, @test_result[0], html_result)
+        @results_html_file.add_test_result(@rtp_db.get_test_description.to_s, @test_result.result, html_result)
         @results_html_file.add_test_information(@rtp_db.get_test_id.to_s, @rtp_db.get_test_script.to_s, @rtp_db.get_test_description.to_s, @test_start_time.strftime("%m/%d/%Y  %I:%M%p"), @test_ended.strftime("%m/%d/%Y  %I:%M%p"), @test_ended.strftime("%m/%d/%Y  %I:%M%p"))
         @results_html_file.write_file
-        @test_iter_summary_html.add_iterations_result(["Iteration "+iter.to_s, test_result_html_path, @test_result[0], @test_result[1]])
+        @test_iter_summary_html.add_iterations_result(["Iteration "+iter.to_s, test_result_html_path.sub(@session_results_base_directory,@session_results_base_url).sub("\\","/").sub(/http:\/\//i,""), @test_result.result, @test_result.comment])
         t_clean = Time.now.to_s
         puts "===== Calling "+@rtp_db.get_test_script+"'s clean() at time "+t_clean
         if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
@@ -448,9 +468,10 @@ class SessionHandler
     end
     
     #This function is used inside the test script to set the result for the test. Takes test_result the result of the test (FrameworkConstants::Result), and comment a comment associated with the test result (string) as parameters.
-    def set_result(test_result,comment = nil)
-      @test_result[0] = test_result
-      @test_result[1] = comment if comment
+    def set_result(test_result, comment = nil, perf_data = nil)
+      @test_result.result = test_result
+      @test_result.comment = comment if comment
+      @test_result.perf_data = perf_data if perf_data
     end
     
     #This function saves the results for the multiple iterations ran for a given test.
@@ -460,9 +481,9 @@ class SessionHandler
       @test_iter_summary_html.add_test_iterations_totals(@test_iter_sum[0],@test_iter_sum[1],@test_iter_sum[2])
       @test_iter_summary_html.write_file
       ensure
-        test_iter_summ_html_path = @test_iter_summary_html_path.gsub("/","\\")
+        test_iter_summ_html_path = @test_iter_summary_html_path.sub(@session_results_base_directory,@session_results_base_url).sub("\\","/").sub(/http:\/\//i,"")
         @rtp_db.set_test_iterations_result(@rtp_db.get_test_script,@test_iter_sum[0],@test_iter_sum[1],@test_iter_sum[2],test_iter_summ_html_path,@session_iter,@test_iterations_start_time,@test_iterations_ended)
-        @session_html.add_test_row([@session_iter.to_s,["Case ID: "+@rtp_db.get_test_id.to_s,@test_iter_summary_html_path],@rtp_db.get_test_description,[@rtp_db.get_test_script.split(/[\\\/]/)[-1],"//"+@view_drive.gsub("\\","/")+@rtp_db.get_test_script.gsub("\\","/")],FrameworkConstants::Status[:complete],@test_iter_sum[0],@test_iter_sum[1],@test_iter_sum[2]])
+        @session_html.add_test_row([@session_iter.to_s,["Case ID: "+@rtp_db.get_test_id.to_s,test_iter_summ_html_path],@rtp_db.get_test_description,[@rtp_db.get_test_script.split(/[\\\/]/)[-1],"//"+@view_drive.gsub("\\","/")+@rtp_db.get_test_script.gsub("\\","/")],FrameworkConstants::Status[:complete],@test_iter_sum[0],@test_iter_sum[1],@test_iter_sum[2]])
     end
     
     #This function save the result associated with a session. Takes session_iter_completed the session iteration number completed (number)
@@ -482,7 +503,7 @@ class SessionHandler
       @session_html.add_totals_information(@test_sess_sum[0],@test_sess_sum[1],@test_sess_sum[2])
       @session_html.write_file
       ensure
-        @rtp_db.set_session_result(@tester,@test_sess_sum[0],@test_sess_sum[1],@test_sess_sum[2],@session_html_path,@session_start_time,@session_ended,session_iter_completed,4)
+        @rtp_db.set_session_result(@tester,@test_sess_sum[0],@test_sess_sum[1],@test_sess_sum[2],@session_html_url,@session_start_time,@session_ended,session_iter_completed,4)
         if !is_db_type_xml?(@db_type)
           @rtp_db.remove_connection if @rtp_db.connected?
         end
@@ -491,7 +512,7 @@ class SessionHandler
     
     #This function returns the path of the html page containing the results of the last test session excuted
     def get_session_html
-        @session_html_path.to_s
+        @session_html_url.to_s
     end
     
     #This function returns an array witth all the caseIDs contained in the test matrix
@@ -507,7 +528,16 @@ class SessionHandler
       end
     end
  
-    
+    private 
+    class TestResult
+      attr_accessor :result, :comment, :perf_data
+      
+      def initialize
+        @result = FrameworkConstants::Result[:fail]
+        @comment = "This is the default result comment. Use function set_result to set this comment"
+        @perf_data = nil
+      end
+    end
 
 end 
 

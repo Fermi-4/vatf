@@ -52,10 +52,6 @@ module DvtbHandlers
           send_cmd("exit",@prompt)
           super()
         end
-
-        def connect
-            raise "Method NOT Supported"
-        end
         
         def set_max_number_of_sockets(video_num_sockets,audio_num_sockets,params=nil)
             # Does nothing by default. Only used by DLL DVTB client (Kailash)
@@ -204,6 +200,7 @@ module DvtbHandlers
             when 'gray' : '7'
             when 'rgb'  : '8'
             when '420sp' : '9'
+            when 'na' : '-1'
             else format
         	end
         end
@@ -240,6 +237,30 @@ module DvtbHandlers
                 when 'bottom_field' : '3'   # Interlaced picture, bottom field.
                 else type
             end
+        end
+        
+        def get_video_frame_type(type)
+          case type.strip.downcase
+            when 'na': '-1'
+            when 'i': '0'
+            when 'p': '1'
+            when 'b': '2'
+            when 'idr': '3'
+            when 'ii': '4'
+            when 'ip': '5'
+            when 'ib': '6'
+            when 'pi': '7'
+            when 'pp': '8'
+            when 'pb': '9'
+            when 'bi': '10'
+            when 'bp': '11'
+            when 'bb': '12'
+            when 'mbaff_i': '13'
+            when 'mbaff_p': '14'
+            when 'mbaff_b': '15'
+            when 'mbaff_idr': '16'
+            else type
+          end
         end
         
         def get_audio_type(audio)
@@ -334,6 +355,26 @@ module DvtbHandlers
         	end
         end
         
+        def get_h264_me_algo(algorithm)
+          case algorithm
+            when 'normal_full' : '0'
+            when 'low_power' : '1'
+            when 'hybrid' : '2'
+            else algorithm
+          end
+        end
+        
+        def get_h264_scaling_type(type)
+          case type
+            when 'auto' : '0'
+            when 'low' : '1'
+            when 'moderate' : '2'
+            when 'high' : '3'
+            when 'disable' : '4'
+            else type
+          end
+        end
+        
         def get_mpeg4_rcalgo(algorithm)
             case algorithm
             	when 'disable' : '0'
@@ -347,18 +388,18 @@ module DvtbHandlers
         end
         
         def get_mpeg4_enc_mode(mode)
-            case mode.strip.downcase
-            	when 'h263' : '0'
-            	when 'mpeg4' : '1'
-        	else mode
+          case mode.strip.downcase
+            when 'h263' : '0'
+            when 'mpeg4' : '1'
+            else mode
         	end
         end
         
         def get_h264_entropy_coding(coding)
-            case coding
-            	when 'cavlc' : '0'
-                when 'cabac' : '1'
-                else coding
+          case coding
+            when 'cavlc' : '0'
+            when 'cabac' : '1'
+            else coding
         	end
         end
         
@@ -518,9 +559,9 @@ module DvtbHandlers
         def exec_func(params)
           time_to_wait = params.has_key?("timeout")? params["timeout"].to_i : 180  
           command = "func "+params["function"]
-          FileUtils.cp(params['Source'], "#{@samba_root_path}#{@executable_path.gsub(/\//,'\\')}\\#{params['loc_source']}") if params["Source"]
-          command += " -s #{@executable_path}/#{params['loc_source']}" if (params["Source"] || params["TempSource"])
-          command += " -t #{@executable_path}/#{params['loc_target']}" if (params["Target"] || params["TempTarget"])
+          FileUtils.cp(params['Source'], "#{@samba_root_path}#{@executable_path.gsub(/\//,'\\')}\\dvtb\\#{File.basename(params['Source'])}") if params["Source"] && (File.size(params["Source"]) != File.size?("#{@samba_root_path}#{(@executable_path+'/dvtb').gsub(/\//,'\\')}\\#{File.basename(params['Source'])}"))
+          command += " -s #{@executable_path}/dvtb/#{File.basename(params['Source'])}" if params["Source"]
+          command += " -t #{@executable_path}/dvtb/#{File.basename(params['Target'])}" if params["Target"]
           command += ' ' + params['cmd_tail'] if params['cmd_tail']  
           threadId = params.has_key?("threadId") ? params["threadId"] : '.+'
           t = Thread.new {
@@ -531,8 +572,8 @@ module DvtbHandlers
               send_cmd(command,/<#{threadId}>\s*[cC]losed/m,time_to_wait)
               sleep 5
               if params["Target"] 
-                  FileUtils.cp("#{@samba_root_path}#{@executable_path.gsub(/\//,'\\')}\\#{params['loc_target']}", params["Target"])
-                  FileUtils.rm("#{@samba_root_path}#{@executable_path.gsub(/\//,'\\')}\\#{params['loc_target']}")
+                  FileUtils.cp("#{@samba_root_path}#{@executable_path.gsub(/\//,'\\')}\\dvtb\\#{File.basename(params['Target'])}", params["Target"])
+                  FileUtils.rm("#{@samba_root_path}#{@executable_path.gsub(/\//,'\\')}\\dvtb\\#{File.basename(params['Target'])}")
               end
               Thread.critical = true
               @active_threads -= 1

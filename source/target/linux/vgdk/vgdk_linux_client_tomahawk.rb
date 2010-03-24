@@ -19,11 +19,8 @@ module Vgdk
       log_info("Starting target session") if @targetc_log
       @waittime = 0
       platform_info.instance_variables.each {|var|
-         	#if platform_info.instance_variable_get(var).kind_of?(String) && platform_info.instance_variable_get(var).to_s.size > 0
-        	if platform_info.instance_variable_get(var).to_s.size > 0   
-             self.class.class_eval {attr_reader *(var.to_s.gsub('@',''))}
-             self.instance_variable_set(var, platform_info.instance_variable_get(var))
-         end
+        self.class.class_eval {attr_reader *(var.to_s.gsub('@',''))}
+        self.instance_variable_set(var, platform_info.instance_variable_get(var))
       }
       @target = Net::Telnet::new( "Host" => @telnet_ip,
                                   "Port" => @telnet_port,

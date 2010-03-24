@@ -86,7 +86,7 @@ class SerialEquipmentConnection < SerialPort
   end
   
   def response
-    @response
+    @response.to_s
   end
   
   def timeout?

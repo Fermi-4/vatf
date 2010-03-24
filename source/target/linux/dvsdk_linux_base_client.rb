@@ -34,10 +34,14 @@ module DvsdkHandlers
       @keep_listening = true
       @remaining_data = ''
       super(platform_info, log_path)
-      start_listening
       rescue Exception => e
         log_info("Initialize: "+e.to_s)
         raise
+    end
+    
+    def connect(params)
+      super(params)
+      start_listening
     end
     
     def add_listener(listener)
@@ -59,8 +63,8 @@ module DvsdkHandlers
     def start_listening
       @listen_thread = Thread.new {
         while @keep_listening 
-          if !@target.telnet.eof?
-            last_read = @target.telnet.preprocess(@target.telnet.readpartial(524288))
+          if !@target.default.eof?
+            last_read = @target.default.preprocess(@target.default.readpartial(524288))
             print last_read 
             notify_listeners(last_read)
           end
@@ -75,7 +79,7 @@ module DvsdkHandlers
 
     def send_cmd(command)
       log_info("Host test: " + command)
-      @target.telnet.puts(command)
+      @target.default.puts(command)
     end
 
     def disconnect

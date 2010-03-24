@@ -2,6 +2,8 @@ module SiteInfo
  SITE_MAIL_SERVER               = 'smtp.mail.ti.com'    # e-mail server to use to send test results e-mail notifications
  NETWORK_REFERENCE_FILES_FOLDER = '//10.218.111.203/VISA/'      # TODO: Make sure this is the right place
  LOCAL_FILES_FOLDER             = 'C:/Video_tools/'
+ LOGS_FOLDER                    = "//gtsnowball/System_Test/Automation/gtsystst_logs/video"
+ LOGS_SERVER                    = "http://gtsystest.telogy.design.ti.com/video"
  UTILS_FOLDER                   = 'C:/vatf/bin/'
  WINCE_DOWNLOAD_APP             = 'cedownload.exe'
  WINCE_TEMP_FOLDER              = 'C:/vatf/data/wince/temp'

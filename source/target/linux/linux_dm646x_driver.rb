@@ -9,6 +9,7 @@ module Equipment
       @api_list.merge!({
         'dvtb' =>  'DvtbLinuxClientDM646x', 
         'demo' =>  'DemoLinuxClientDM646x',
+        'dmai' =>  'DmaiLinuxClientDM646x',
       })
     end
     

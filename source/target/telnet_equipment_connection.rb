@@ -5,13 +5,15 @@ require 'timeout'
 
 class TelnetEquipmentConnection < Net::Telnet
   attr_reader :telnet
-  def initialize(platform_info)
-    @telnet_ip   = platform_info.telnet_ip
-    @telnet_port = platform_info.telnet_port
-    @prompt      = platform_info.prompt
-    @boot_prompt = platform_info.boot_prompt
-    @telnet_login = platform_info.telnet_login
-    @telnet_passwd = platform_info.telnet_passwd
+  def initialize(platform_info = nil)
+    if platform_info
+      @telnet_ip   = platform_info.telnet_ip
+      @telnet_port = platform_info.telnet_port
+      @prompt      = platform_info.prompt
+      @boot_prompt = platform_info.boot_prompt
+      @telnet_login = platform_info.telnet_login
+      @telnet_passwd = platform_info.telnet_passwd
+    end
     super( "Host" => @telnet_ip,
             "Port" => @telnet_port,
             "Waittime" => 0,
@@ -104,7 +106,7 @@ class TelnetEquipmentConnection < Net::Telnet
   end
 
   def response
-    @response
+    @response.to_s
   end
   
   def timeout?
@@ -137,12 +139,7 @@ class SerialServerConnection < TelnetEquipmentConnection
     @boot_prompt = platform_info.boot_prompt
     @telnet_login = platform_info.telnet_login
     @telnet_passwd = platform_info.telnet_passwd
-    super( "Host" => @telnet_ip,
-            "Port" => @telnet_port,
-            "Waittime" => 0,
-            "Prompt" => @prompt,
-            "Telnetmode" => true,
-            "Binmode" => false)
+    super()
     rescue Exception => e
       raise
   end

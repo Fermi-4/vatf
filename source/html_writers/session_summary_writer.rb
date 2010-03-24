@@ -108,7 +108,6 @@ module HTMLWriters
       #This function adds a multissession summary link to the session Summary page
       def add_multisession_summary_link(multi_session_link)
         multi_link = multi_session_link.to_s
-        multi_link = '///'+multi_link if multi_link.match(/^\w/)
         add_paragraph("Multisession Summary",{:size => "6"},{:align => "center"},multi_link)
       end
   end

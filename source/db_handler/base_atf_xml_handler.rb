@@ -1,6 +1,6 @@
 require 'rexml/document'
 require 'framework_constants'
-require 'db_handler/ruby_staf_handler'
+require File.dirname(__FILE__)+'/ruby_staf_handler'
 require File.dirname(__FILE__)+'/base_handler'
 
 module ATFDBHandlers
