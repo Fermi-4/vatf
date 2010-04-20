@@ -120,10 +120,13 @@ module ATFDBHandlers
         def method_missing(sym, *args, &block)
           if @staf_handle
             staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{sym}")
-            if (staf_req.rc != 0)
-              raise UndefinedSwAsset.new("Undefined sw asset named #{sym}")
-            else
+            staf_req2 = @staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{sym}")
+            if (staf_req.rc == 0)
               staf_req.result
+            elsif(staf_req2.rc == 0)
+              staf_req2.result
+            else 
+              raise UndefinedSwAsset.new("Undefined sw asset named #{sym}")
             end
           else
             super
