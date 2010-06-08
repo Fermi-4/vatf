@@ -6,6 +6,7 @@ module SiteInfo
  LOGS_SERVER                    = "http://gtsystest.telogy.design.ti.com/video"
  UTILS_FOLDER                   = 'C:/vatf/bin/'
  WINCE_DOWNLOAD_APP             = 'cedownload.exe'
+ WINCE_PERFTOCSV_APP            = 'perftocsv.exe'
  WINCE_TEMP_FOLDER              = 'C:/vatf/data/wince/temp'
 
  Bootargs        = {
