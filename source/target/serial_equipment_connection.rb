@@ -21,8 +21,10 @@ class SerialEquipmentConnection < SerialPort
   end
 
   def disconnect
-    @update_thread["keep_auto_updating"]=false     # Kills thread that reads serial port
-    @update_thread.join
+    if @update_thread.alive?
+      @update_thread["keep_auto_updating"]=false     # Kills thread that reads serial port
+      @update_thread.join 
+    end
     close()
   end
 
