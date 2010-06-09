@@ -8,6 +8,8 @@ module SiteInfo
  WINCE_DOWNLOAD_APP             = 'cedownload.exe'
  WINCE_PERFTOCSV_APP            = 'perftocsv.exe'
  WINCE_TEMP_FOLDER              = 'C:/vatf/data/wince/temp'
+ VGDK_INPUT_CLIPS				= "//gtsnowball/System_Test/Automation/gtsystst/video_files/VGDK_logs/input"
+ VGDK_OUTPUT_CLIPS				= "//10.218.100.223/video_files/VGDK_logs/output"
 
  Bootargs        = {
                 'dm6467' => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=80M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',
