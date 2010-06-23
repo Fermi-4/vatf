@@ -22,7 +22,8 @@ module Equipment
       tftp_ip    = params['server'].telnet_ip
       samba_path = params['samba_path'] 
 			nfs_path   = params['nfs_path']
-			nfs_root	=params['nfs_root']
+			nfs_root	=params['nfs_root']      
+      
       boot_args = SiteInfo::Bootargs[params['platform'].downcase.strip]
       boot_args = params['bootargs'] if params['bootargs']
       tmp_path = "#{params['tester'].downcase.strip}/#{params['target'].downcase.strip}/#{params['platform'].downcase.strip}"
@@ -33,7 +34,7 @@ module Equipment
         send_cmd("setenv bootcmd 'dhcp;bootm'",@boot_prompt, 10)
         send_cmd("setenv bootfile #{tmp_path}/#{File.basename(image_path)}",@boot_prompt, 10)
         raise 'Unable to set bootfile' if timeout?
-        send_cmd("setenv nfs_root_path #{params['server'].telnet_ip}:#{nfs_root}",@boot_prompt, 10)
+        send_cmd("setenv nfs_root_path #{nfs_root}",@boot_prompt, 10)
         raise 'Unable to set nfs root path' if timeout?
         send_cmd("setenv bootargs #{boot_args}",@boot_prompt, 10)
         raise 'Unable to set bootargs' if timeout?
