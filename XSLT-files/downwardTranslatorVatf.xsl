@@ -23,8 +23,13 @@
 		<xsl:variable name="tcaseID"> 
 			<xsl:value-of select="@internalid"/>
 		</xsl:variable> 
+		<xsl:variable name="tcaseextID"> 
+			<xsl:value-of select="externalid"/>
+		</xsl:variable> 
 		<xsl:element name="testcase">
 			<xsl:element name="id"><xsl:value-of select="$tcaseID"/>
+			</xsl:element>
+			<xsl:element name="extid"><xsl:value-of select="$tcaseextID"/>
 			</xsl:element>
 			<xsl:for-each select="custom_fields/custom_field">
 			<xsl:variable name="elementName">
