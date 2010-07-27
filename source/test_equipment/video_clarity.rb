@@ -1,5 +1,5 @@
 require 'net/telnet'
-require 'ftools'
+require 'fileUtils'
 require File.dirname(__FILE__)+'\video_tester'
 
 module TestEquipment

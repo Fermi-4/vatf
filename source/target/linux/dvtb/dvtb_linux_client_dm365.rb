@@ -88,110 +88,110 @@ module DvtbHandlers
         
         def translate_value(params)
           case params['Class']
-            when 'audio': 
+            when 'audio'
               case params['Param'].strip.downcase
-                when 'device' : 'plughw:0,0'
-                when 'channels': '2' #get_audio_channels(params['Value'].to_s.downcase)
-                when 'format': get_audio_alsa_data_dormat(params['Value'].strip.downcase)
-                when 'type' : get_audio_device_mode(params['Value'].to_s)
+                when 'device' then 'plughw:0,0'
+                when 'channels' then '2' #get_audio_channels(params['Value'].to_s.downcase)
+                when 'format' then get_audio_alsa_data_dormat(params['Value'].strip.downcase)
+                when 'type' then get_audio_device_mode(params['Value'].to_s)
                 else params['Value']
               end
-            when 'vpfe': 
+            when 'vpfe'
               case params['Param']
-                when 'device' : '/dev/video0'
-                #when 'standard' : '4'
-                when 'format' : get_driver_chroma_format(params['Value'].strip.downcase)
-                when 'input'  : get_vpfe_iface_type(params['Value'].to_s)
-                when 'height' : get_video_format_height(params['Value'].to_s)
-                when 'width'  : get_video_format_width(params['Value'].to_s).to_s
+                when 'device' then '/dev/video0'
+                #when 'standard' then '4'
+                when 'format' then get_driver_chroma_format(params['Value'].strip.downcase)
+                when 'input'  then get_vpfe_iface_type(params['Value'].to_s)
+                when 'height' then get_video_format_height(params['Value'].to_s)
+                when 'width'  then get_video_format_width(params['Value'].to_s).to_s
                 else params['Value']
               end
-            when 'vpbe': 
+            when 'vpbe' 
               case params['Param']
-                when 'device' : '/dev/video2'
-                when 'standard' : get_vpbe_standard(params['Value'].to_s)
-                when 'format' : get_driver_chroma_format(params['Value'].strip.downcase)
-                #when 'output' : get_vpbe_iface_type(params['Value'].to_s)
+                when 'device' then '/dev/video2'
+                when 'standard' then get_vpbe_standard(params['Value'].to_s)
+                when 'format' then get_driver_chroma_format(params['Value'].strip.downcase)
+                #when 'output' then get_vpbe_iface_type(params['Value'].to_s)
                 else params['Value']
               end
-            when 'engine': 
+            when 'engine' 
               case params['Param']
-                when 'name' : 'encodedecode'
+                when 'name' then 'encodedecode'
                 else params['Value']
               end     
             when /vid[end]+c/   
               case params['Param']
-                when 'codec' : get_codec_type(params['Value'].strip.downcase)
-                when /ChromaFormat/i : get_xdm_chroma_format(params['Value'].strip.downcase)
-                when /endianness/i : get_xdm_data_format(params['Value'].strip.downcase)
-                when 'frameSkipMode' : get_skip_mode(params['Value'].strip.downcase)
-                when 'frameOrder' : get_video_display_order(params['Value'].to_s)
-                when /contenttype/i :  get_video_content_type(params['Value'].downcase.strip)
-                when 'encodingPreset' :  get_encoder_preset(params['Value'].downcase.strip)
-                when 'rateControlPreset' : get_rate_control_preset(params['Value'].downcase.strip)
-                when 'forceIFrame' : '0'
+                when 'codec' then get_codec_type(params['Value'].strip.downcase)
+                when /ChromaFormat/i then get_xdm_chroma_format(params['Value'].strip.downcase)
+                when /endianness/i then get_xdm_data_format(params['Value'].strip.downcase)
+                when 'frameSkipMode' then get_skip_mode(params['Value'].strip.downcase)
+                when 'frameOrder' then get_video_display_order(params['Value'].to_s)
+                when /contenttype/i then  get_video_content_type(params['Value'].downcase.strip)
+                when 'encodingPreset' then  get_encoder_preset(params['Value'].downcase.strip)
+                when 'rateControlPreset' then get_rate_control_preset(params['Value'].downcase.strip)
+                when 'forceIFrame' then '0'
                 else params['Value']
               end
             when /mpeg4ext[end]+c/ 
               case params['Param']
-                when 'codec' : get_codec_type(params['Value'].strip.downcase)
-                when /ChromaFormat/i : get_xdm_chroma_format(params['Value'].strip.downcase)
-                when /endianness/i : get_xdm_data_format(params['Value'].strip.downcase)
-                when 'frameSkipMode' : get_skip_mode(params['Value'].strip.downcase)
-                when 'frameOrder' : get_video_display_order(params['Value'].to_s)
-                when /contenttype/i : get_video_content_type(params['Value'].downcase.strip)
-                when /encodingPreset/i : get_encoder_preset(params['Value'].downcase.strip)
-                when /rateControlPreset/i : get_rate_control_preset(params['Value'].downcase.strip)  
-                when /meAlgo/i : get_mpeg4_me_algo(params['Value'].downcase.strip)
-                when /skipMBAlgo/i : get_mb_skip_algo(params['Value'].downcase.strip)
-                when /encodeMode/i : get_mpeg4_enc_mode(params['Value'].downcase.strip)
-                when /IntraAlgo/i : get_intra_algo(params['Value'].downcase.strip)
-                when 'forceFrame' : get_video_frame_type(params['Value'].downcase.strip)
-                when /qchange$/i : get_q_change(params['Value'].downcase.strip)
-                when /rotation/i : get_video_rotation(params['Value'].downcase.strip)
-                when 'EncQuality_mode':get_mpeg4_enc_quality(params['Value'].downcase.strip)
-                when 'levelIdc' : get_mpeg4_level(params['Value'].to_s)
-                when 'profileIdc' : get_mpeg4_profile(params['Value'].to_s)
-                when 'aspectRatio' : get_mpeg4_aspect_ratio(params['Value'].to_s)
-                when 'pixelRange' : get_mpeg4_pel_range(params['Value'].to_s)
-                when 'rcAlgo' : get_mpeg4_rcalgo(params['Value'].to_s)
-                when 'maxInterFrameInterval' : (params['Value'].to_i+1).to_s
-                when 'displayWidth' : (params['Value'].to_i*2).to_s
+                when 'codec' then get_codec_type(params['Value'].strip.downcase)
+                when /ChromaFormat/i then get_xdm_chroma_format(params['Value'].strip.downcase)
+                when /endianness/i then get_xdm_data_format(params['Value'].strip.downcase)
+                when 'frameSkipMode' then get_skip_mode(params['Value'].strip.downcase)
+                when 'frameOrder' then get_video_display_order(params['Value'].to_s)
+                when /contenttype/i then get_video_content_type(params['Value'].downcase.strip)
+                when /encodingPreset/i then get_encoder_preset(params['Value'].downcase.strip)
+                when /rateControlPreset/i then get_rate_control_preset(params['Value'].downcase.strip)  
+                when /meAlgo/i then get_mpeg4_me_algo(params['Value'].downcase.strip)
+                when /skipMBAlgo/i then get_mb_skip_algo(params['Value'].downcase.strip)
+                when /encodeMode/i then get_mpeg4_enc_mode(params['Value'].downcase.strip)
+                when /IntraAlgo/i then get_intra_algo(params['Value'].downcase.strip)
+                when 'forceFrame' then get_video_frame_type(params['Value'].downcase.strip)
+                when /qchange$/i then get_q_change(params['Value'].downcase.strip)
+                when /rotation/i then get_video_rotation(params['Value'].downcase.strip)
+                when 'EncQuality_mode' then get_mpeg4_enc_quality(params['Value'].downcase.strip)
+                when 'levelIdc' then get_mpeg4_level(params['Value'].to_s)
+                when 'profileIdc' then get_mpeg4_profile(params['Value'].to_s)
+                when 'aspectRatio' then get_mpeg4_aspect_ratio(params['Value'].to_s)
+                when 'pixelRange' then get_mpeg4_pel_range(params['Value'].to_s)
+                when 'rcAlgo' then get_mpeg4_rcalgo(params['Value'].to_s)
+                when 'maxInterFrameInterval' then (params['Value'].to_i+1).to_s
+                when 'displayWidth' then (params['Value'].to_i*2).to_s
                 else params['Value']
               end
             when 'h264extenc', 'h264extdec' 
               case params['Param']
-                when 'codec' : get_codec_type(params['Value'].strip.downcase)
-                when /ChromaFormat/i : get_xdm_chroma_format(params['Value'].strip.downcase)
-                when /endianness/i : get_xdm_data_format(params['Value'].strip.downcase)
-                when 'frameSkipMode' : get_skip_mode(params['Value'].strip.downcase)
-                when 'frameOrder' : get_video_display_order(params['Value'].to_s)
-                when /contenttype/i :  get_video_content_type(params['Value'].downcase.strip)
-                when 'encodingPreset' :  get_encoder_preset(params['Value'].downcase.strip)
-                when 'rateControlPreset' : get_rate_control_preset(params['Value'].downcase.strip)
-                when 'profileIdc' : get_h264_profile(params['Value'].downcase.strip)
-                when 'entropyCodingMode' : get_h264_entropy_coding(params['Value'].downcase.strip)
-                when /maxBytesPerSlice/i : (params['Value'].strip.to_i*8).to_s
-                when /seqScalingFlag/i : get_seq_scaling(params['Value'].strip)
-                when /rcalgo/i : get_rc_algo(params['Value'])
-                when /meAlgo/i : get_h264_me_algo(params['Value'])
-                when /encQuality/i : get_h264_enc_quality(params['Value'])
-                when 'forceFrame' : get_video_frame_type(params['Value'].downcase.strip)
-                when 'displayWidth' : (params['Value'].to_i*2).to_s
+                when 'codec' then get_codec_type(params['Value'].strip.downcase)
+                when /ChromaFormat/i then get_xdm_chroma_format(params['Value'].strip.downcase)
+                when /endianness/i then get_xdm_data_format(params['Value'].strip.downcase)
+                when 'frameSkipMode' then get_skip_mode(params['Value'].strip.downcase)
+                when 'frameOrder' then get_video_display_order(params['Value'].to_s)
+                when /contenttype/i then  get_video_content_type(params['Value'].downcase.strip)
+                when 'encodingPreset' then  get_encoder_preset(params['Value'].downcase.strip)
+                when 'rateControlPreset' then get_rate_control_preset(params['Value'].downcase.strip)
+                when 'profileIdc' then get_h264_profile(params['Value'].downcase.strip)
+                when 'entropyCodingMode' then get_h264_entropy_coding(params['Value'].downcase.strip)
+                when /maxBytesPerSlice/i then (params['Value'].strip.to_i*8).to_s
+                when /seqScalingFlag/i then get_seq_scaling(params['Value'].strip)
+                when /rcalgo/i then get_rc_algo(params['Value'])
+                when /meAlgo/i then get_h264_me_algo(params['Value'])
+                when /encQuality/i then get_h264_enc_quality(params['Value'])
+                when 'forceFrame' then get_video_frame_type(params['Value'].downcase.strip)
+                when 'displayWidth' then (params['Value'].to_i*2).to_s
                 else params['Value']
               end  
-            when /sph[end]+c/: 
+            when /sph[end]+c/ 
               case params['Param']
-                when 'numframes' : (params['Value'].to_i/8).to_s
-                when /companding/i : get_speech_companding(params['Value'].strip.downcase)
-                when 'codec' : params['Value']+'1'
+                when 'numframes' then (params['Value'].to_i/8).to_s
+                when /companding/i then get_speech_companding(params['Value'].strip.downcase)
+                when 'codec' then params['Value']+'1'
                 else params['Value']
               end
             when /jpeg[endxt]+c/   
               case params['Param']
-                when 'codec' : get_codec_type(params['Value'].strip.downcase)
-                when /ChromaFormat/ : get_xdm_chroma_format(params['Value'].strip.downcase)
-                when /endianness/i : get_xdm_data_format(params['Value'].strip.downcase)
+                when 'codec' then get_codec_type(params['Value'].strip.downcase)
+                when /ChromaFormat/ then get_xdm_chroma_format(params['Value'].strip.downcase)
+                when /endianness/i then get_xdm_data_format(params['Value'].strip.downcase)
                 else params['Value']
               end  
             else params['Value']
@@ -285,16 +285,16 @@ module DvtbHandlers
         
         def get_file_ext(threadId)
           case threadId
-            when /264/ : '.264'
+            when /264/ then '.264'
             else '.mpeg4'
           end
         end
         
         def get_vpbe_standard(signal_format)
           case signal_format.strip.downcase
-            when '625' : '2'
-            when '525' : '1'
-            when '720p60' : '0'
+            when '625' then '2'
+            when '525' then '1'
+            when '720p60' then '0'
             else signal_format 
           end
         end
@@ -487,221 +487,221 @@ module DvtbHandlers
         
         def get_vpfe_iface_type(io_type)
           case io_type.strip.downcase
-            when 'composite' : '0'
-            when 'svideo' : '1'
-            when 'component' : '2'
+            when 'composite' then '0'
+            when 'svideo' then '1'
+            when 'component' then '2'
             else io_type 
           end
         end
         
         def get_vpbe_iface_type(io_type)
           case io_type.strip.downcase
-            when 'composite' : '1'
-            #when 'svideo' : '2'
-            when 'component' : '0'
+            when 'composite' then '1'
+            #when 'svideo' then '2'
+            when 'component' then '0'
             else io_type 
           end
         end
         
         def get_codec_type(codec)
           case codec.strip.downcase
-            when /h264(ext){0,1}enc/i : 'h264enc1'
-            when /h264(ext){0,1}dec/i : 'h264dec2'
-            when /mpeg4(ext){0,1}enc/i : 'mpeg4enc1'
-            when /mpeg4(ext){0,1}dec/i : 'mpeg4dec2'
-            when /jpeg(ext){0,1}enc/i : 'jpegenc1'
-            when /jpeg(ext){0,1}dec/i : 'jpegdec1'
-            when /mpeg2(ext){0,1}enc/i : 'mpeg2enc1'
-            when /mpeg2(ext){0,1}dec/i : 'mpeg2dec2'
+            when /h264(ext){0,1}enc/i then 'h264enc1'
+            when /h264(ext){0,1}dec/i then 'h264dec2'
+            when /mpeg4(ext){0,1}enc/i then 'mpeg4enc1'
+            when /mpeg4(ext){0,1}dec/i then 'mpeg4dec2'
+            when /jpeg(ext){0,1}enc/i then 'jpegenc1'
+            when /jpeg(ext){0,1}dec/i then 'jpegdec1'
+            when /mpeg2(ext){0,1}enc/i then 'mpeg2enc1'
+            when /mpeg2(ext){0,1}dec/i then 'mpeg2dec2'
             else codec 
           end
         end
         
         def get_driver_chroma_format(format)
           case format.strip.downcase
-            when '422i' : '1'
-            when '420sp' : '0'
+            when '422i' then '1'
+            when '420sp' then '0'
             else format
           end
         end
         
         def get_seq_scaling(scaling)
           case scaling.strip.downcase
-            when 'disable' : '0'
-            when 'auto' : '1'
-            when 'low' : '2'
-            when 'moderate' : '3'
-            when 'high' : '4'
+            when 'disable' then '0'
+            when 'auto' then '1'
+            when 'low' then '2'
+            when 'moderate' then '3'
+            when 'high' then '4'
             else scaling
           end
         end
         
         def get_rc_algo(algo)
           case algo.strip.downcase
-            when 'cbr' : '0'
-            when 'vbr' : '1'
-            when 'fixed_qp' : '2'
+            when 'cbr' then '0'
+            when 'vbr' then '1'
+            when 'fixed_qp' then '2'
             else algo
           end
         end
         
         def get_h264_me_algo(algo)
           case algo.strip.downcase
-            when 'normal_full' : '0'
-            when 'low_power' : '1'
+            when 'normal_full' then '0'
+            when 'low_power' then '1'
             else algo
           end
         end
         
         def get_mpeg4_me_algo(algo)
           case algo.downcase.strip
-            when 'me_lq_hp' : '3'
-            when 'me_mq_mp' : '0'
-            when 'me_hq_mp' : '1'
-            when 'me_hq_lp' : '2'
+            when 'me_lq_hp' then '3'
+            when 'me_mq_mp' then '0'
+            when 'me_hq_mp' then '1'
+            when 'me_hq_lp' then '2'
             else algo
           end
         end
         
         def get_h264_enc_quality(quality)
           case quality.strip.downcase
-            when 'high' : '1'
-            when 'standard' : '0'
+            when 'high' then '1'
+            when 'standard' then '0'
             else quality
           end
         end
         
         def get_intra_algo(algo)
           case algo.downcase.strip
-            when 'ii_lq_hp' : '0'
-            when 'ii_hq_lp' : '1'
+            when 'ii_lq_hp' then '0'
+            when 'ii_hq_lp' then '1'
             else algo
           end
         end
         
         def get_q_change(q_change)
           case q_change.downcase.strip
-            when 'mb' : '0'
-            when 'picture' : '1'
+            when 'mb' then '0'
+            when 'picture' then '1'
             else q_change
           end
         end
         
         def get_me_algo(algo)
           case algo.downcase.strip
-            when 'me_lq_hp' : '3'
-            when 'me_mq_mp' : '0'
-            when 'me_hq_mp' : '1'
-            when 'me_hq_lp' : '2'
+            when 'me_lq_hp' then '3'
+            when 'me_mq_mp' then '0'
+            when 'me_hq_mp' then '1'
+            when 'me_hq_lp' then '2'
             else algo
           end
         end
         
         def get_mb_skip_algo(algo)
           case algo.downcase.strip
-            when 'mb_lq_hp' : '0'
-            when 'mb_hq_lp' : '1'
+            when 'mb_lq_hp' then '0'
+            when 'mb_hq_lp' then '1'
             else algo
           end
         end
         
         def get_blk_size(blk_size)
           case blk_size.strip.downcase
-            when 'blk_lq_hp' : '0'
-            when 'blk_hq_lp' : '1'
+            when 'blk_lq_hp' then '0'
+            when 'blk_hq_lp' then '1'
             else blk_size
           end
         end
         
         def get_mpeg4_enc_mode(mode)
           case mode.strip.downcase
-            when 'svh' : '0'
-            when 'mpeg4' : '1'
+            when 'svh' then '0'
+            when 'mpeg4' then '1'
             else mode
           end
         end
         
         def get_video_rotation(rotation)
           case rotation.strip.to_i
-            when 0 : '0'
-            when 90 : '1'
-            when 180 : '2'
-            when 270 : '3'
+            when 0 then '0'
+            when 90 then '1'
+            when 180 then '2'
+            when 270 then '3'
             else rotation
           end
         end
         
         def get_jpeg_scale_factor(factor)
           case factor.strip.to_i
-            when 1 : '3'
-            when 2 : '2'
-            when 3 : '4'
-            when 4 : '1'
-            when 5 : '5'
-            when 6 : '6'
-            when 7 : '7'
+            when 1 then '3'
+            when 2 then '2'
+            when 3 then '4'
+            when 4 then '1'
+            when 5 then '5'
+            when 6 then '6'
+            when 7 then '7'
             else '0'
           end
         end
         
         def get_mpeg4_enc_quality(qual)
           case qual.strip.downcase
-            when 'high':'0'
-            when 'std':'1'
+            when 'high' then ' 0'
+            when 'std' then ' 1'
             else qual
           end
         end
         
         def get_mpeg4_aspect_ratio(ratio)
           case ratio.strip.downcase
-            when '1:1':'1'
-            when '12:11':'2'
-            when '10:11':'3'
-            when '16:11':'4'
-            when '40:33':'5'
+            when '1:1' then ' 1'
+            when '12:11' then ' 2'
+            when '10:11' then ' 3'
+            when '16:11' then ' 4'
+            when '40:33' then ' 5'
             else ratio
           end
         end
         
         def get_mpeg4_pel_range(range)
           case range.strip.downcase
-            when '16_235':'0'
-            when '0_255':'1'
+            when '16_235' then ' 0'
+            when '0_255' then ' 1'
             else range
           end
         end
         
         def get_mpeg4_level(level)
           case level.strip.downcase
-            when 'mpeg4_0': '0'
-            when 'mpeg4_1': '1'
-            when 'mpeg4_2': '2'
-            when 'mpeg4_3': '3'
-            when 'mpeg4_4': '4'
-            when 'mpeg4_5': '5'
-            when 'mpeg4_0b': '9'
-            when 'h263_10': '10'
-            when 'h263_20': '20'
-            when 'h263_30': '30'
-            when 'h263_40': '40'
-            when 'h263_45': '45'
+            when 'mpeg4_0' then ' 0'
+            when 'mpeg4_1' then ' 1'
+            when 'mpeg4_2' then ' 2'
+            when 'mpeg4_3' then ' 3'
+            when 'mpeg4_4' then ' 4'
+            when 'mpeg4_5' then ' 5'
+            when 'mpeg4_0b' then ' 9'
+            when 'h263_10' then ' 10'
+            when 'h263_20' then ' 20'
+            when 'h263_30' then ' 30'
+            when 'h263_40' then ' 40'
+            when 'h263_45' then ' 45'
             else level
           end
         end
         
         def get_mpeg4_profile(prof)
           case prof.strip.downcase
-            when 'sp': '0'
-            when 'asp': '1'
+            when 'sp' then ' 0'
+            when 'asp' then ' 1'
             else prof
           end
         end
         
         def get_mpeg4_rcalgo(algorithm)
             case algorithm
-            	when 'none' : '0'
-            	when 'cbr' : '4'
-            	when 'vbr'  : '8'
+            	when 'none' then '0'
+            	when 'cbr' then '4'
+            	when 'vbr'  then '8'
             else algorithm
         	end
         end

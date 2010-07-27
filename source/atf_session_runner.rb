@@ -10,16 +10,15 @@ require 'connection_handler'
 require 'power_handler'
 require 'media_equipment/media_equipment'
 require 'test_equipment/test_equipment'
-require 'rubyclr'
+# require 'rubyclr'
 require 'file_converters/file_converters'
-require 'win_forms/win_forms'
+# require 'win_forms/win_forms'
 require 'find'
 require 'facets'
 require 'target/targets'
 require 'external_systems/external_systems'
 require 'net/smtp'
 require 'site_info'
-Kernel::require 'serialport'
 
 module Find
   def file(*paths)
@@ -458,10 +457,10 @@ class SessionHandler
         end
         clean if test_script_found
         @connection_handler.media_switches.each {|key,val| val[0].stop_logger} if @connection_handler
-        @equipment.each_value do |val| 
+        @equipment.each_value do |val|
+          # puts val.class.to_s+" = "+ObjectSpace.each_object(val.class){}.to_s  # DEBUG: Uncomment this line to get a print out of the number of test equipment objects
           val.stop_logger if val.respond_to?(:stop_logger)
           val.disconnect if val.respond_to?(:disconnect) && val.respond_to?(:stop_logger)
-#          puts val.class.to_s+" = "+ObjectSpace.each_object(val.class){}.to_s  # DEBUG: Uncomment this line to get a print out of the number of test equipment objects
         end
         @connection_handler.disconnect if @connection_handler
 

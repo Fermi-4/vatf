@@ -28,16 +28,17 @@ module Equipment
     
     def connect(params)
       @target.connect(params)
-      log_info("Connected to #{@platform_info.name} via #{params['type']} ")
+	  log_info("Connected to #{@platform_info.name} via #{params['type']} ")
     end
 
     def disconnect
       @target.disconnect if @target
     end
     
-    def send_cmd(command, expected_match=/.*/, timeout=10, clear_history=true)
+    def send_cmd(command, expected_match=/.*/, timeout=10, check_cmd_echo=true)
+	  #puts "\n\n==============\nequipment_driver: #{command}, #{expected_match}, #{timeout}, #{check_cmd_echo}" # TODO REMOVE DEBUG PRINT
       log_info("Host: " + command)
-      @target.send_cmd(command, expected_match, timeout, clear_history)
+      @target.send_cmd(command, expected_match, timeout, check_cmd_echo)
       rescue Timeout::Error => e
         puts ">>>> On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s
         log_error("On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s)
@@ -58,9 +59,9 @@ module Equipment
     
     def update_response(type='default')
       x = case type.to_s.downcase
-      when 'telnet':
+      when 'telnet'
         @target.telnet.update_response
-      when 'serial':
+      when 'serial'
         @target.serial.update_response
       else
         @target.update_response

@@ -22,8 +22,7 @@ module Equipment
       tftp_ip    = params['server'].telnet_ip
       samba_path = params['samba_path'] 
 			nfs_path   = params['nfs_path']
-			nfs_root	=params['nfs_root']      
-      
+			nfs_root	=params['nfs_root']
       boot_args = SiteInfo::Bootargs[params['platform'].downcase.strip]
       boot_args = params['bootargs'] if params['bootargs']
       tmp_path = "#{params['tester'].downcase.strip}/#{params['target'].downcase.strip}/#{params['platform'].downcase.strip}"
@@ -42,7 +41,7 @@ module Equipment
         raise 'Unable save environment' if timeout?
         send_cmd("printenv", @boot_prompt, 20)
         send_cmd('boot', /login/, 120)
-        raise 'Unable to boot platform' if timeout?
+        raise 'Unable to boot platform or platform took more than 2 minutes to boot' if timeout?
         # command prompt context commands
         send_cmd(@login, @prompt, 10) # login to the unit
         raise 'Unable to login' if timeout?

@@ -116,7 +116,7 @@ module ATFDBHandlers
             @image_path['kernel'] = img_path 
           end
         end
-        
+	          
         def method_missing(sym, *args, &block)
           if @staf_handle
             staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{sym}")
@@ -136,12 +136,14 @@ module ATFDBHandlers
 		def instance_variable_defined?(sym)
 		  result = super(sym)
           result = result || (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{sym.to_s.gsub(/^[:@]+/,'')}")).rc == 0 if @staf_handle
+		  result = result || (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{sym.to_s.gsub(/^[:@]+/,'')}")).rc == 0 if @staf_handle
           result
 		end
         
         def respond_to?(method_sym, include_private = false)
           result = super(method_sym, include_private)
           result = result || (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{method_sym}")).rc == 0 if @staf_handle
+		  result = result || (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{method_sym}")).rc == 0 if @staf_handle
           result
         end
         

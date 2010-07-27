@@ -3,6 +3,7 @@
 	version="1.0" >
 	<xsl:output method="xml" indent="yes" encoding="utf-8"
 		omit-xml-declaration="no" cdata-section-elements="id description name notes execute params"/>
+	<xsl:param name="teeStafInstance"/>
 	<xsl:variable name="CDATABegin" select="'&lt;![CDATA['" />
 	<xsl:variable name="CDATAEnd" select="']]&gt;'" />
 	<xsl:variable name="buildInfo"> 
@@ -58,7 +59,7 @@
 	<xsl:element name="command">
 	<xsl:element name="execute">process
 	</xsl:element>
-	<xsl:element name="params">start shell command "ruby -C {vatf@vgdk_engg/staf/tee/test_framework_root} atf_run.rb -v {vatf@vgdk_engg/auto/tee/test_scripts_root} -r {vatf@vgdk_engg/STAF/TEE/inFile} -w vatf@vgdk_engg -f C:/VATF/vatf_automation_results.xml" wait
+	<xsl:element name="params">start shell command "ruby -C {<xsl:value-of select="$teeStafInstance"/>/staf/tee/test_framework_root} atf_run.rb -v {<xsl:value-of select="$teeStafInstance"/>/auto/tee/test_scripts_root} -r {<xsl:value-of select="$teeStafInstance"/>/STAF/TEE/inFile} -w <xsl:value-of select="$teeStafInstance"/> -f C:/VATF/vatf_automation_results.xml -o" wait
 	</xsl:element>
 	</xsl:element>
 	</xsl:element>

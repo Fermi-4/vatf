@@ -121,49 +121,49 @@ module DvtbHandlers
         
         def translate_value(params)
             case params['Class']
-                when 'audio': 
+                when 'audio' 
                     case params['Param'].strip.downcase
-                    when 'device' : 'plughw:0,0'
-                    when 'channels': '2' #get_audio_channels(params['Value'].to_s.downcase)
+                    when 'device' then 'plughw:0,0'
+                    when 'channels' then '2' #get_audio_channels(params['Value'].to_s.downcase)
                     when 'format'
                         get_audio_alsa_data_dormat(params['Value'].strip.downcase)
-                    when 'type' : get_audio_device_mode(params['Value'].to_s)
+                    when 'type' then get_audio_device_mode(params['Value'].to_s)
                     else params['Value']
                     end
-                when 'vpfe': 
+                when 'vpfe' 
                     case params['Param']
-                    when 'device' : '/dev/video0' #'/dev/v4l/video0'
-                    when 'standard' : get_vpfe_standard(params['Value'].to_s)
-                    when 'format' : get_video_driver_data_format(params['Value'].to_s)
-                    when 'input'  : get_vpfe_iface_type(params['Value'].to_s)
-                    when 'height' : get_video_format_height(params['Value'].to_s)
-                    when 'width'  : get_video_format_width(params['Value'].to_s)
+                    when 'device' then '/dev/video0' #'/dev/v4l/video0'
+                    when 'standard' then get_vpfe_standard(params['Value'].to_s)
+                    when 'format' then get_video_driver_data_format(params['Value'].to_s)
+                    when 'input'  then get_vpfe_iface_type(params['Value'].to_s)
+                    when 'height' then get_video_format_height(params['Value'].to_s)
+                    when 'width'  then get_video_format_width(params['Value'].to_s)
                     else params['Value']
                     end
-                when 'vpbe': 
+                when 'vpbe' 
                     case params['Param']
-                    when 'device' : '/dev/video2'
-                    when 'standard' : get_vpbe_standard(params['Value'].to_s)
-                    when 'output' : get_vpbe_iface_type(params['Value'].to_s)
-                    when 'height' : get_video_format_height(params['Value'].to_s)
-                    when 'width'  : get_video_format_width(params['Value'].to_s)
+                    when 'device' then '/dev/video2'
+                    when 'standard' then get_vpbe_standard(params['Value'].to_s)
+                    when 'output' then get_vpbe_iface_type(params['Value'].to_s)
+                    when 'height' then get_video_format_height(params['Value'].to_s)
+                    when 'width'  then get_video_format_width(params['Value'].to_s)
                     else params['Value']
                     end
-                when 'engine': 
+                when 'engine' 
                     case params['Param']
-                    when 'name' : params['Value'] == 'encdec'? 'loopback' :  params['Value']
+                    when 'name' then params['Value'] == 'encdec'? 'loopback' :  params['Value']
                     else params['Value']
                     end     
                 when /vid[end]+c/   
                     case params['Param']
-                    when /reconChromaFormat/i : '-1'
+                    when /reconChromaFormat/i then '-1'
                     when /ChromaFormat/i
                         get_xdm_chroma_format(params['Value'].strip.downcase)
                     when /endianness/i
                         get_xdm_data_format(params['Value'].strip.downcase)
                     when 'frameSkipMode'
                        	get_skip_mode(params['Value'].strip.downcase)
-                    when 'frameOrder' :  get_video_display_order(params['Value'].to_s)
+                    when 'frameOrder' then  get_video_display_order(params['Value'].to_s)
                     when /contenttype/i 
                         get_video_content_type(params['Value'].downcase.strip)
                     when /encodingPreset/i
@@ -172,18 +172,18 @@ module DvtbHandlers
                         get_rate_control_preset(params['Value'].downcase.strip) 
                     else params['Value']
                     end  
-                when /sph[end]+c/: 
+                when /sph[end]+c/ 
                     case params['Param']
-                        when 'numframes' : (params['Value'].to_i/8).to_s
+                        when 'numframes' then (params['Value'].to_i/8).to_s
                         when /companding/i
                             get_speech_companding(params['Value'].strip.downcase)
                         else params['Value']
                     end
                 when /aud[end]+c/
                     case params['Param']
-                      when 'codec' : params['Value'].strip.downcase.include?('aac') ? params['Value'].sub('aac','aache') : params['Value'].to_s
-                      when 'pcmFormat' : get_audio_data_format(params['Value'].to_s)
-                      when /endianness/i : get_xdm_data_format(params['Value'].strip.downcase)
+                      when 'codec' then params['Value'].strip.downcase.include?('aac') ? params['Value'].sub('aac','aache') : params['Value'].to_s
+                      when 'pcmFormat' then get_audio_data_format(params['Value'].to_s)
+                      when /endianness/i then get_xdm_data_format(params['Value'].strip.downcase)
                     else params['Value']
                     end
         	else params['Value']
@@ -245,7 +245,7 @@ module DvtbHandlers
         private  
         def get_file_ext(threadId)
             case threadId
-            when /264/ : '.264'
+            when /264/ then '.264'
             else '.mpeg4'
             end
         end

@@ -99,63 +99,63 @@ module DvtbHandlers
         
         def translate_value(params)
             case params['Class']
-                when 'audio': 
+                when 'audio' 
                     case params['Param'].strip.downcase
-                    when 'device' : 'plughw:0,0' #'/dev/dsp'
-                    when 'channels': '2' #get_audio_channels(params['Value'].to_s.downcase)
+                    when 'device' then 'plughw:0,0' #'/dev/dsp'
+                    when 'channels' then '2' #get_audio_channels(params['Value'].to_s.downcase)
                     when 'format'
                         get_audio_alsa_data_dormat(params['Value'].strip.downcase)
-                    when 'type' : get_audio_device_mode(params['Value'].to_s)
+                    when 'type' then get_audio_device_mode(params['Value'].to_s)
                     else params['Value']
                     end
-                when 'vpfe': 
+                when 'vpfe' 
                     case params['Param']
-                    when 'device' : '/dev/video0' #'/dev/v4l/video0'
-                    when 'standard' : get_vpfe_standard(params['Value'].to_s)
-                    when 'format' : get_video_driver_data_format(params['Value'].to_s)
-                    when 'input'  : get_vpfe_iface_type(params['Value'].to_s)
+                    when 'device' then '/dev/video0' #'/dev/v4l/video0'
+                    when 'standard' then get_vpfe_standard(params['Value'].to_s)
+                    when 'format' then get_video_driver_data_format(params['Value'].to_s)
+                    when 'input'  then get_vpfe_iface_type(params['Value'].to_s)
                     else params['Value']
                     end
-                when 'vpbe': 
+                when 'vpbe' 
                     case params['Param']
-                    when 'device' : '/dev/video2'
-                    when 'standard' : get_vpbe_standard(params['Value'].to_s)
-                    when 'output' : get_vpbe_iface_type(params['Value'].to_s)    
+                    when 'device' then '/dev/video2'
+                    when 'standard' then get_vpbe_standard(params['Value'].to_s)
+                    when 'output' then get_vpbe_iface_type(params['Value'].to_s)    
                     else params['Value']
                     end
-                when 'engine': 
+                when 'engine' 
                     case params['Param']
-                    when 'name' : params['Value'] == 'encdec'? 'loopback' :  params['Value']
+                    when 'name' then params['Value'] == 'encdec'? 'loopback' :  params['Value']
                     else params['Value']
                     end     
                 when /vid[end]+c/, /mpeg4ext[end]+c/   
                     case params['Param']
-                    when /ChromaFormat/i : get_xdm_chroma_format(params['Value'].strip.downcase)
-                    when /endianness/i : get_xdm_data_format(params['Value'].strip.downcase)
-                    when 'frameSkipMode' : get_skip_mode(params['Value'].strip.downcase)
-                    when 'frameOrder' : get_video_display_order(params['Value'].to_s)
-                    when /contenttype/i : get_video_content_type(params['Value'].downcase.strip)
-                    when /encodingPreset/i : get_encoder_preset(params['Value'].downcase.strip)
-                    when /rateControlPreset/i : get_rate_control_preset(params['Value'].downcase.strip)  
-                    when /meAlgo/i : get_me_algo(params['Value'].downcase.strip)
-                    when /skipMBAlgo/i : get_mb_skip_algo(params['Value'].downcase.strip)
-                    when /encodeMode/i : get_mpeg4_enc_mode(params['Value'].downcase.strip)
-                    when /IntraAlgo/i : get_intra_algo(params['Value'].downcase.strip)
-                    when /iidc/i : get_blk_size(params['Value'].downcase.strip)
-                    when /qchange$/i : get_q_change(params['Value'].downcase.strip)
-                    when /rotation/i : get_video_rotation(params['Value'].downcase.strip)
+                    when /ChromaFormat/i then get_xdm_chroma_format(params['Value'].strip.downcase)
+                    when /endianness/i then get_xdm_data_format(params['Value'].strip.downcase)
+                    when 'frameSkipMode' then get_skip_mode(params['Value'].strip.downcase)
+                    when 'frameOrder' then get_video_display_order(params['Value'].to_s)
+                    when /contenttype/i then get_video_content_type(params['Value'].downcase.strip)
+                    when /encodingPreset/i then get_encoder_preset(params['Value'].downcase.strip)
+                    when /rateControlPreset/i then get_rate_control_preset(params['Value'].downcase.strip)  
+                    when /meAlgo/i then get_me_algo(params['Value'].downcase.strip)
+                    when /skipMBAlgo/i then get_mb_skip_algo(params['Value'].downcase.strip)
+                    when /encodeMode/i then get_mpeg4_enc_mode(params['Value'].downcase.strip)
+                    when /IntraAlgo/i then get_intra_algo(params['Value'].downcase.strip)
+                    when /iidc/i then get_blk_size(params['Value'].downcase.strip)
+                    when /qchange$/i then get_q_change(params['Value'].downcase.strip)
+                    when /rotation/i then get_video_rotation(params['Value'].downcase.strip)
                     else params['Value']
                     end  
                 when /jpeg[endxt]+c/   
                     case params['Param']
-                    when /ChromaFormat/ : get_xdm_chroma_format(params['Value'].strip.downcase)
-                    when /endianness/i : get_xdm_data_format(params['Value'].strip.downcase)
-                    when /resize/i : get_jpeg_scale_factor(params['Value'].strip.downcase)
+                    when /ChromaFormat/ then get_xdm_chroma_format(params['Value'].strip.downcase)
+                    when /endianness/i then get_xdm_data_format(params['Value'].strip.downcase)
+                    when /resize/i then get_jpeg_scale_factor(params['Value'].strip.downcase)
                     else params['Value']
                     end  
-                when 'sphdec': 
+                when 'sphdec' 
                     case params['Param']
-                        when 'numframes' : (params['Value'].to_i/8).to_s
+                        when 'numframes' then (params['Value'].to_i/8).to_s
                         when /companding/i
                             get_speech_companding(params['Value'].strip.downcase)
                         else params['Value']
@@ -241,7 +241,7 @@ module DvtbHandlers
         private 
         def get_file_ext(threadId)
             case threadId
-            when /264/ : '.264'
+            when /264/ then '.264'
             else '.mpeg4'
             end
         end
@@ -394,73 +394,73 @@ module DvtbHandlers
         
         def get_intra_algo(algo)
             case algo.downcase.strip
-            	when 'ii_lq_hp' : '0'
-                when 'ii_hq_lp' : '1'
+            	when 'ii_lq_hp' then '0'
+                when 'ii_hq_lp' then '1'
         		else algo
         	end
         end
         
         def get_q_change(q_change)
             case q_change.downcase.strip
-            	when 'mb' : '0'
-                when 'picture' : '1'
+            	when 'mb' then '0'
+                when 'picture' then '1'
         		else q_change
         	end
         end
         
         def get_me_algo(algo)
             case algo.downcase.strip
-            	when 'me_lq_hp' : '3'
-                when 'me_mq_mp' : '0'
-                when 'me_hq_mp' : '1'
-                when 'me_hq_lp' : '2'
+            	when 'me_lq_hp' then '3'
+                when 'me_mq_mp' then '0'
+                when 'me_hq_mp' then '1'
+                when 'me_hq_lp' then '2'
         		else algo
         	end
         end
         
         def get_mb_skip_algo(algo)
             case algo.downcase.strip
-            	when 'mb_lq_hp' : '0'
-                when 'mb_hq_lp' : '1'
+            	when 'mb_lq_hp' then '0'
+                when 'mb_hq_lp' then '1'
         		else algo
         	end
         end
         
         def get_blk_size(blk_size)
             case blk_size.strip.downcase
-            	when 'blk_lq_hp' : '0'
-            	when 'blk_hq_lp' : '1'
+            	when 'blk_lq_hp' then '0'
+            	when 'blk_hq_lp' then '1'
         		else blk_size
         	end
         end
         
         def get_mpeg4_enc_mode(mode)
             case mode.strip.downcase
-            	when 'svh' : '1'
-            	when 'mpeg4' : '0'
+            	when 'svh' then '1'
+            	when 'mpeg4' then '0'
         		else mode
         	end
         end
         
         def get_video_rotation(rotation)
             case rotation.strip.to_i
-            	when 0 : '0'
-            	when 90 : '1'
-            	when 180 : '2'
-            	when 270 : '3'
+            	when 0 then '0'
+            	when 90 then '1'
+            	when 180 then '2'
+            	when 270 then '3'
             	else rotation
             end
         end
         
         def get_jpeg_scale_factor(factor)
             case factor.strip.to_i
-            	when 1 : '3'
-            	when 2 : '2'
-            	when 3 : '4'
-            	when 4 : '1'
-            	when 5 : '5'
-            	when 6 : '6'
-            	when 7 : '7'
+            	when 1 then '3'
+            	when 2 then '2'
+            	when 3 then '4'
+            	when 4 then '1'
+            	when 5 then '5'
+            	when 6 then '6'
+            	when 7 then '7'
                 else '0'
         	end
         end

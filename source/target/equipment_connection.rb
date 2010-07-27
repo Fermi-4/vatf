@@ -14,28 +14,26 @@ class EquipmentConnection
 
   def connect(params)
     case params['type'].to_s.downcase.strip
-    when 'telnet':
+    when 'telnet'
       @telnet = TelnetEquipmentConnection.new(@platform_info) 
       if @platform_info.driver_class_name.to_s.downcase.include?("wince")
         @telnet.connect
         @telnet.waitfor({'Match' => />/, 'Timeout'=> 10})
-        #send_cmd("")
         sleep 1
       else
         @telnet.connect
       end
-      
+	  @telnet.start_listening
       @default = @telnet
     
-    when 'serial':
+    when 'serial'
       if @platform_info.serial_port.to_s.strip != ''
         @serial = SerialEquipmentConnection.new(@platform_info) 
-        @serial.auto_update_response
-        @default = @serial if !@default
       else
         @serial = SerialServerConnection.new(@platform_info)
-        @default = @serial if !@default
       end
+	  @serial.start_listening
+      @default = @serial if !@default
     else
       raise "Unknown connection type: #{params['type'].to_s}"
     end
@@ -47,8 +45,14 @@ class EquipmentConnection
   end
 
   def send_cmd(*params)
-    @default.send_cmd(*params)
-  end
+    # command        = params[0]
+    # expected_match = params[1] #? params[1] : Regexp.new('.*')
+    # timeout        = params[2] #? params[2] : 30
+	# check_cmd_echo = params[3] #? params[3] : true
+    # puts "equipment_connection: #{command}, #{expected_match}, #{timeout}, #{check_cmd_echo}" # TODO REMOVE DEBUG PRINT
+    
+	@default.send_cmd(*params)
+	end
   
   def response
     @default.response

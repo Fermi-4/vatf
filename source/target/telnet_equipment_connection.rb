@@ -1,25 +1,12 @@
 require 'net/telnet'
 require 'rubygems'
 require 'timeout'
+require File.dirname(__FILE__)+'/base_listener'
 
-
-class TelnetEquipmentConnection < Net::Telnet
+class TelnetEquipmentConnection < TelnetBaseListenerClient
   attr_reader :telnet
-  def initialize(platform_info = nil)
-    if platform_info
-      @telnet_ip   = platform_info.telnet_ip
-      @telnet_port = platform_info.telnet_port
-      @prompt      = platform_info.prompt
-      @boot_prompt = platform_info.boot_prompt
-      @telnet_login = platform_info.telnet_login
-      @telnet_passwd = platform_info.telnet_passwd
-    end
-    super( "Host" => @telnet_ip,
-            "Port" => @telnet_port,
-            "Waittime" => 0,
-            "Prompt" => @prompt,
-            "Telnetmode" => true,
-            "Binmode" => false)
+  def initialize(platform_info,serial_server=false)
+    super(platform_info,serial_server)
     rescue Exception => e
       raise
   end
@@ -46,63 +33,32 @@ class TelnetEquipmentConnection < Net::Telnet
   end
 
   def send_cmd(*params)
-    command        = params[0]
-    expected_match = params[1] ? params[1] : Regexp.new('.*')
-    timeout        = params[2] ? params[2] : 30
-    clear_history  = params[3]==nil ? true : params[3]
+	command        = params[0]
+    expected_match = params[1] #? params[1] : Regexp.new('.*')
+    timeout        = params[2] #? params[2] : 30
+	check_cmd_echo = params[3] #? params[3] : true
+    #Kernel.puts "telnet_equipment_connection: #{command}, #{expected_match}, #{timeout}, #{check_cmd_echo}" # TODO REMOVE DEBUG PRINT
     @is_timeout = false
-    begin
-    @response = ""
-    clear_buffer = ''
-    init_buffer = ''
-    command_regex =''
-    puts(command)
-    if clear_history
-      i = 0
-      partial_command = command[0,8]
-      partial_command.each_byte {|c| 
-        if c.to_i < 32 
-        command_regex << '.'   
-        elsif regex_character(c)
-        command_regex << sprintf("\\%c",c)  
-        else
-        command_regex << sprintf("%c",c)  
-        end
-      }
-    end
-    partial_response = ''
+    listener = BaseListener.new(command, expected_match, check_cmd_echo)
+    add_listener(listener)
+    super(command)
     status = Timeout::timeout(timeout) {
-      if clear_history
-        while(!init_buffer.match(/#{command_regex}/m)) do #clearing the read buffer
-          if !eof?
-            current_input = preprocess(readpartial(128))
-            init_buffer << current_input
-            Kernel.print current_input
-          end
+        while (!listener.match) 
+            sleep 0.05
         end
-        partial_response = init_buffer.scan(/#{command_regex}.*/m)[0]
-        index = init_buffer.index(partial_response)
-        clear_buffer = init_buffer[0,[index-1,0].max]
-        partial_response = init_buffer[index..-1]
-      end
-      while(!partial_response.match(expected_match))
-        if !eof?
-          last_read = preprocess(readpartial(1024)) 
-          partial_response << last_read
-          Kernel.print last_read
-        end
-      end
-      raise Timeout::Error.new("Error while sending #{command} to #{@telnet_ip}") if !partial_response.match(expected_match)
     }
     rescue Timeout::Error => e
       @is_timeout = true
-      raise
+	  raise
     rescue Exception => e
        Kernel.print e.to_s+"\n"+e.backtrace.to_s
        raise
-    end
     ensure
-      @response = clear_buffer + partial_response
+      @response = listener.response
+      remove_listener(listener)
+      #@is_timeout = true
+      #raise
+  
   end
 
   def response
@@ -114,13 +70,14 @@ class TelnetEquipmentConnection < Net::Telnet
   end
   
   def update_response
-    last_read = partial_response = ''
-    while !eof?
-      last_read = preprocess(readpartial(1024)) 
-      partial_response << last_read
-      Kernel.print last_read
-    end
-    @response = partial_response
+    # last_read = partial_response = ''
+    # while !eof?
+      # last_read = preprocess(readpartial(1024)) 
+      # partial_response << last_read
+      # Kernel.print last_read
+    # end
+    # @response = partial_response
+	@session_data
   end
 
   # Return true if c is a special regex character.
@@ -133,13 +90,7 @@ end
 
 class SerialServerConnection < TelnetEquipmentConnection
   def initialize(platform_info)
-    @telnet_ip   = platform_info.serial_server_ip
-    @telnet_port = platform_info.serial_server_port
-    @prompt      = platform_info.prompt
-    @boot_prompt = platform_info.boot_prompt
-    @telnet_login = platform_info.telnet_login
-    @telnet_passwd = platform_info.telnet_passwd
-    super()
+    super(platform_info,true)
     rescue Exception => e
       raise
   end

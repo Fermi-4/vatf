@@ -124,40 +124,40 @@ module DvtbHandlers
         
         def translate_value(params)
             case params['Class']
-                when 'audio': 
+                when 'audio'  
                     case params['Param']
-                    when 'device' : '/dev/dsp'
+                    when 'device' then '/dev/dsp'
                     else params['Value']
                     end
-                when 'vpfe': 
+                when 'vpfe'  
                     case params['Param']
-                    when 'device' : '/dev/v4l/video0'
-                    when 'standard' : params['Value'].to_s.include?('625') ? '2' : '0'
+                    when 'device' then '/dev/v4l/video0'
+                    when 'standard' then params['Value'].to_s.include?('625') ? '2' : '0'
                     else params['Value']
                     end
-                when 'vpbe': 
+                when 'vpbe'  
                     case params['Param']
-                    when 'device' : '/dev/fb/3'
+                    when 'device' then '/dev/fb/3'
                     else params['Value']
                     end
-                when 'engine': 
+                when 'engine'  
                     case params['Param']
-                    when 'name' : params['Value'] == 'encdec'? 'loopback' :  params['Value']
+                    when 'name' then params['Value'] == 'encdec'? 'loopback' :  params['Value']
                     else params['Value']
                     end     
                 when /vid[end]+c/   
                     case params['Param']
-                    when /ChromaFormat/ : params['Value'].to_s.include?('p') ? '1' : '4'
+                    when /ChromaFormat/ then params['Value'].to_s.include?('p') ? '1' : '4'
                     else params['Value']
                     end  
                 when /jpeg[end]+c/   
                     case params['Param']
-                    when /ChromaFormat/ : params['Value'].to_s.include?('p') ? '2' : '4'
+                    when /ChromaFormat/ then params['Value'].to_s.include?('p') ? '2' : '4'
                     else params['Value']
                     end  
-                when 'sphdec': 
+                when 'sphdec' 
                     case params['Param']
-                    when 'numframes' : (params['Value'].to_i/8).to_s
+                    when 'numframes' then (params['Value'].to_i/8).to_s
                     else params['Value']
                     end
         	    else params['Value']
@@ -225,7 +225,7 @@ module DvtbHandlers
         private  
         def get_file_ext(threadId)
             case threadId
-            when /264/ : '.264'
+            when /264/ then '.264'
             else '.mpeg4'
             end
         end

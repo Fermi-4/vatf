@@ -16,6 +16,6 @@ module Equipment
         raise e.backtrace.to_s+"\n Unable to start #{iface_type} interface with #{@platform_info.name} #{@platform_info.id}. Verify communication channel and settings"
     end
         
-  end
+end
 
 end
