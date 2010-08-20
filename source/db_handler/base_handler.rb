@@ -139,6 +139,16 @@ module ATFDBHandlers
 		  result = result || (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{sym.to_s.gsub(/^[:@]+/,'')}")).rc == 0 if @staf_handle
           result
 		end
+    
+    def instance_variable_get(sym)
+		  result = super(sym)
+      if !result
+        instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{sym.to_s.gsub(/^[:@]+/,'')}")) if @staf_handle
+        instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{sym.to_s.gsub(/^[:@]+/,'')}")) if @staf_handle && instance_result.rc != 0
+        result = instance_result.result if instance_result.rc == 0
+      end
+      result
+		end
         
         def respond_to?(method_sym, include_private = false)
           result = super(method_sym, include_private)
