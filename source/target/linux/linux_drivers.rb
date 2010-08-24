@@ -9,5 +9,6 @@ require File.dirname(__FILE__)+'/linux_dm644x_driver'
 require File.dirname(__FILE__)+'/linux_dm646x_driver'
 require File.dirname(__FILE__)+'/linux_omap13x_driver'
 require File.dirname(__FILE__)+'/linux_tomahawk_driver'
+require File.dirname(__FILE__)+'/linux_c6x_driver'
 
 include Equipment
