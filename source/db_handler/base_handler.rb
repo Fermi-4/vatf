@@ -142,9 +142,9 @@ module ATFDBHandlers
     
     def instance_variable_get(sym)
 		  result = super(sym)
-      if !result
-        instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{sym.to_s.gsub(/^[:@]+/,'')}")) if @staf_handle
-        instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{sym.to_s.gsub(/^[:@]+/,'')}")) if @staf_handle && instance_result.rc != 0
+      if (!result && @staf_handle)
+        instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{sym.to_s.gsub(/^[:@]+/,'')}")) 
+        instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{sym.to_s.gsub(/^[:@]+/,'')}")) if instance_result.rc != 0
         result = instance_result.result if instance_result.rc == 0
       end
       result

@@ -35,32 +35,31 @@ module ATFDBHandlers
       def get_tcase_tables(tcase_id = nil, ttest_file_id = nil, ttest_run_id = nil, tresult_id = nil, tfile_id = nil, tfileset_id = nil)
         if(@test_data["test_session"]["testcase"].is_a? Array)
             @test_data["test_session"]["testcase"].length.times { |i|
-                if (@test_data["test_session"]["testcase"][i]["extid"].to_i == tcase_id)
+                if (@test_data["test_session"]["testcase"][i]["id"].to_i == tcase_id)
                     @db_tcase = @test_data["test_session"]["testcase"][i]
                     @db_tcase["caseID"] = tcase_id
                 end
             }
         else
-            if (@test_data["test_session"]["testcase"]["extid"].to_i == tcase_id)
+            if (@test_data["test_session"]["testcase"]["id"].to_i == tcase_id)
                 @db_tcase = @test_data["test_session"]["testcase"]
                 @db_tcase["caseID"] = tcase_id
             end
         end
       end 
       
-      def get_testcase_id()
-      end
+
       
       def test_exists(test_id)
         if(@test_data["test_session"]["testcase"].is_a? Array)
             @test_data["test_session"]["testcase"].each { |elem|
-            if (elem["extid"].to_i == test_id.to_i)
+            if (elem["id"].to_i == test_id.to_i)
                 return true
             end
             }
             return false
         else
-            if (@test_data["test_session"]["testcase"]["extid"].to_i == test_id.to_i)
+            if (@test_data["test_session"]["testcase"]["id"].to_i == test_id.to_i)
                 return true
             else 
                 return false
@@ -78,12 +77,16 @@ module ATFDBHandlers
       
       #Returns the test script used to run the current test case
       def get_test_script
-        @db_tcase["scripts"]
+        @db_tcase["scripts"].strip
       end
       
       #Returns the test id of the current test
       def get_test_id
+      if (@db_tcase.has_key?("extid"))
         @db_tcase["extid"].to_i
+      else
+        @db_tcase["id"].to_i
+      end
       end
       
       #Returns the testplan id for the current test session
@@ -92,9 +95,9 @@ module ATFDBHandlers
       end
       
       #Returns the testcase id of the current test
-      def get_testcase_id
-        @db_tcase["extid"].to_i
-      end
+      # def get_testcase_id
+        # @db_tcase["extid"].to_i
+      # end
       
       #Returns the configurations script of the current test
       def get_config_script
@@ -133,10 +136,10 @@ module ATFDBHandlers
       def get_tcases_ids
          result = []
          if(@test_data["test_session"]["testcase"].is_a? Hash)
-            result << @test_data["test_session"]["testcase"]["extid"].to_i  
+          result << @test_data["test_session"]["testcase"]["id"].to_i  
          else
-             @test_data["test_session"]["testcase"].each {|test_case| 
-             result << test_case["extid"].to_i         
+           @test_data["test_session"]["testcase"].each {|test_case| 
+             result << test_case["id"].to_i 
             }
          end
          result
