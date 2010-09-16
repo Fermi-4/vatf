@@ -1,6 +1,6 @@
 require 'net/telnet'
-require 'fileUtils'
-require File.dirname(__FILE__)+'\video_tester'
+require 'fileutils'
+require File.dirname(__FILE__)+'/video_tester'
 
 module TestEquipment
    

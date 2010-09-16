@@ -34,6 +34,16 @@ module Find
   module_function :files
 end
 
+module OsFunctions
+  def self.is_windows?
+    RUBY_PLATFORM.downcase.include?("mswin")
+  end
+
+  def self.is_linux?
+    RUBY_PLATFORM.downcase.include?("linux")
+  end
+end
+
 =begin
   This class is used to parse the command line and store the session parameter
 =end
@@ -41,6 +51,8 @@ class CmdLineParser
     #
     # Return a structure describing the options.
     #
+    include OsFunctions
+    
     def self.parse(args)
       # The options specified on the command line will be collected in *options*.
       # We set default values here.
@@ -48,8 +60,13 @@ class CmdLineParser
       options.rtp = nil
       options.session_iterations = 1
       options.tests_to_run = [['all', 1]]
-      #options.tester = 'testlink'
-      options.tester = `set COMPUTERNAME`.strip.split('=')[1]       # FIXME: It is not Linux friendly
+      if OsFunctions::is_windows?
+        options.tester = `set COMPUTERNAME`.strip.split('=')[1]
+      elsif OsFunctions::is_linux?       
+        options.tester = `hostname`
+      else
+        options.tester = 'hostname'
+      end
       options.drive = nil
       options.bench_path = "C:/VATF/bench.rb"
       options.results_base_dir = SiteInfo::LOGS_FOLDER
@@ -202,6 +219,7 @@ class CmdLineParser
      options
 
     end
+
 end
 
 
