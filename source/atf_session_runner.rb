@@ -61,9 +61,9 @@ class CmdLineParser
       options.session_iterations = 1
       options.tests_to_run = [['all', 1]]
       if OsFunctions::is_windows?
-        options.tester = `set COMPUTERNAME`.strip.split('=')[1]
+        options.tester = `set COMPUTERNAME`.strip.split('=')[1].strip
       elsif OsFunctions::is_linux?       
-        options.tester = `hostname`
+        options.tester = `hostname`.strip
       else
         options.tester = 'hostname'
       end
