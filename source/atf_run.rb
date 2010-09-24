@@ -24,9 +24,10 @@ def run_session
   frame_id = 'hostname'
   if OsFunctions::is_windows?
     frame_id = `set COMPUTERNAME`.strip.split('=')[1].strip
-  elsif OsFunctions::is_linux?       
+  elsif OsFunctions::is_linux?
     frame_id = `hostname`.strip
   end
+
   session_result_dir = options.results_base_dir+'/'+options.tester+"/"+frame_id+"/"
   session_result_server = options.results_base_url+'/'+options.tester+"/"+frame_id+"/"
   rtps = TestAreas::get_rtps(options.rtp, options.drive.sub(/(\\|\/)$/,'')+'/GoldenMatrices',options.results_base_dir+'/'+options.tester, options.platform)
@@ -104,8 +105,8 @@ def run_session
         sep = "\\" if Config::CONFIG["arch"].match(/win\d{2}/i)
         if OsFunctions::is_windows?
           system("explorer #{multi_session_html.gsub(options.results_base_dir,options.results_base_url).gsub(/\\|\//,sep)}")
-        elsif OsFunctions::is_linux?       
-          system("firefox #{multi_session_html.gsub(options.results_base_dir,options.results_base_url).gsub(/\\|\//,sep)}")
+        elsif OsFunctions::is_linux?
+          system("firefox #{multi_session_html.gsub(options.results_base_dir,options.results_base_url).gsub(/\\|\//,sep)} &")
         end
       end
     end

@@ -7,7 +7,7 @@ module SiteInfo
  UTILS_FOLDER                   = 'C:/vatf/bin/'
  WINCE_DOWNLOAD_APP             = 'cedownload.exe'
  WINCE_PERFTOCSV_APP            = 'perftocsv.exe'
- WINCE_DATA_FOLDER              = 'C:/vatf/data/wince'
+ WINCE_TEMP_FOLDER              = 'C:/vatf/data/wince/temp'
  LINUX_TEMP_FOLDER              = 'C:/vatf/data/linux/temp'
  VGDK_INPUT_CLIPS				= "//gtsnowball/System_Test/Automation/gtsystst/video_files/VGDK_logs/input"
  VGDK_OUTPUT_CLIPS				= "//10.218.100.223/video_files/VGDK_logs/output"
