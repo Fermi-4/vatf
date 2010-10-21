@@ -36,7 +36,8 @@ end
 
 module OsFunctions
   def self.is_windows?
-    RUBY_PLATFORM.downcase.include?("mswin")
+    puts RUBY_PLATFORM
+    RUBY_PLATFORM.downcase.include?("mswin") || RUBY_PLATFORM.downcase.include?("mingw")
   end
 
   def self.is_linux?
@@ -290,8 +291,8 @@ class SessionHandler
     #This function initializes the iterations variables and iterations result counter for a test. Takes test_case_id the caseID of the test that will be run (number),
     #session_iter the session iteration number (number), and num_test_iterations the number of iterations to be run for this test (number).
     def init_test_iterations(test_case_id, session_iter, num_test_iterations)
-        if @rtp_db.test_exists(test_case_id)
         @non_existent_tests = Hash.new
+		if @rtp_db.test_exists(test_case_id)
         @session_iter = session_iter
         @test_id = test_case_id
         @test_iterations_start_time = Time.now

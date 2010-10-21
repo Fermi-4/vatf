@@ -10,7 +10,7 @@ class BaseListener
       first_cmd_word[i] = '.'  if c.to_i < 32
       i+=1
     }
-    @cmd = Regexp.new(first_cmd_word)
+    @cmd = Regexp.new(Regexp.escape(first_cmd_word))
 	#@cmd = /#{first_cmd_word}.+?#{expect}/m
     @expect = /#{expect}/m
 	@check_cmd_echo = check_cmd_echo

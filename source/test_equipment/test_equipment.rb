@@ -3,6 +3,7 @@
 require 'test_equipment/spectra_lab_cli'
 require 'test_equipment/apc_power_controller'
 require 'test_equipment/video_clarity'
+require 'test_equipment/multimeter_equipment_driver'
 
 
 
