@@ -36,7 +36,6 @@ end
 
 module OsFunctions
   def self.is_windows?
-    puts RUBY_PLATFORM
     RUBY_PLATFORM.downcase.include?("mswin") || RUBY_PLATFORM.downcase.include?("mingw")
   end
 

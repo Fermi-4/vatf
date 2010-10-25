@@ -44,26 +44,26 @@ module Equipment
         send_cmd('boot', "enabling adb", 120)
         raise 'Unable to boot platform or platform took more than 2 minutes to boot' if timeout?
         sleep(4)
-        send_with_log("adb kill-server")
-        send_with_log("adb start-server")
-        dev_resp = send_with_log("adb devices")
+        send_host_cmd("adb kill-server")
+        send_host_cmd("adb start-server")
+        dev_resp = send_host_cmd("adb devices")
         current_devs = dev_resp.scan(/(\S+)\s+device$/)
         if !current_devs.flatten.include?(@board_id.strip)
           if @usb_ip
             send_cmd("ifconfig usb0 #{@telnet_ip} netmask 255.255.255.224 up", @prompt, 10)
             raise 'Unable to configure usb connection to platform' if timeout?
-            send_with_log("ifconfig usb0 #{@usb_ip} netmask 255.255.255.224 up", params['server'].telnet_passwd)
-            send_with_log("route add #{@usb_ip} dev usb0", params['server'].telnet_passwd)
-            send_with_log("export ADBHOST=#{@usb_ip}; adb kill-server; adb start-server" )
+            send_host_cmd("ifconfig usb0 #{@usb_ip} netmask 255.255.255.224 up", params['server'].telnet_passwd)
+            send_host_cmd("route add #{@usb_ip} dev usb0", params['server'].telnet_passwd)
+            send_host_cmd("export ADBHOST=#{@usb_ip}; adb kill-server; adb start-server" )
           elsif @telnet_ip
             send_cmd("setprop service.adb.tcp.port 5555")
             send_cmd("stop adbd")
             send_cmd("start adbd")
-            send_with_log("export ADBHOST=#{@telnet_ip};adb kill-server;adb start-server")
+            send_host_cmd("export ADBHOST=#{@telnet_ip};adb kill-server;adb start-server")
           end
           begin
             Timeout::timeout(5) do
-              send("wait-for-device")
+              send_adb_cmd("wait-for-device")
             end
             rescue Timeout::Error => e
               raise "Unable to connect to device #{@name} id #{@board_id}\n"+e.backtrace.to_s
@@ -127,17 +127,14 @@ module Equipment
     end
 
     # Send command to an android device
-    def send (cmd)  
-      log_info("Cmd: adb -s #{@board_id} #{cmd} 2>&1")
-      response = `adb -s #{@board_id} #{cmd} 2>&1`
-      log_info('Target: '+response)
-      response
+    def send_adb_cmd (cmd)  
+      send_host_cmd("adb -s #{@board_id} #{cmd}", 'ADB')
     end
     
-    def send_with_log(cmd)
-      log_info("Cmd: #{cmd}")
+    def send_host_cmd(cmd, endpoint='Host')
+      log_info("#{endpoint}-Cmd: #{cmd} 2>&1")
       response = `#{cmd} 2>&1`
-      log_info('Target: '+response)
+      log_info("#{endpoint}-Response: "+response)
       response
     end
       
