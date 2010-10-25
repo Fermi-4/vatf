@@ -33,8 +33,8 @@ module Equipment
     def send_sudo_cmd(cmd, expected_match=/.*/ ,password=@telnet_passwd, timeout=30)
       log_info('Cmd: '+cmd.to_s)
       @response = `sudo -E -S #{cmd} << EOF
-         #{password}
-         #{'EOF'} 2>&1` 
+#{password}
+EOF` 
       log_info('Response: '+@response)		
       @timeout = @response.match(expected_match) != nil
     end
