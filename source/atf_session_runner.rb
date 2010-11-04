@@ -488,7 +488,7 @@ class SessionHandler
     def set_result(test_result, comment = nil, perf_data = nil)
       @test_result.result = test_result
       @test_result.comment = comment if comment
-      @test_result.perf_data = perf_data if perf_data
+      @test_result.set_perf_data(perf_data)
     end
     
     #This function saves the results for the multiple iterations ran for a given test.
@@ -554,6 +554,46 @@ class SessionHandler
         @comment = "This is the default result comment. Use function set_result to set this comment"
         @perf_data = nil
       end
+      
+      def set_perf_data(data_vector=nil)
+        if data_vector
+          work_vector = data_vector
+          work_vector = [work_vector] if !work_vector.kind_of?(Array)
+          @perf_data = []
+          work_vector.each do |current_data|
+            if current_data.kind_of?(Hash)
+               current_hash = {}
+               current_data.each { |key, val|
+                  if key.match(/^value/i)
+                    current_hash.merge!(get_stat_values(val))
+                  else
+                    current_hash[key]=val
+                  end
+               }
+               @perf_data << current_hash if current_hash['s2']  
+            end
+          end
+          @perf_data = nil if @perf_data.empty?
+        end
+      end
+      
+      def get_stat_values(data)
+        work_data = data
+        work_data = [work_data] if !data.kind_of?(Array)
+        work_data.collect! do |current_item|
+          return {} if !current_item.to_s.match(/[\d\.\+\-Ee]+/)
+          current_item.to_f
+        end
+        s0 = work_data.length
+        s1 = 0
+        s2 = 0
+        work_data.each do |current_item|
+          s1+=current_item
+          s2+=current_item**2
+        end
+        {'min' => work_data.min, 'max' => work_data.max, 's0' => s0, 's1' => s1, 's2' => s2}
+      end
+      
     end
 
 end 
