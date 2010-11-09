@@ -1,6 +1,6 @@
 module SiteInfo
  SITE_MAIL_SERVER               = 'smtp.mail.ti.com'    # e-mail server to use to send test results e-mail notifications
- NETWORK_REFERENCE_FILES_FOLDER = '//10.218.111.203/VISA/'      # TODO: Make sure this is the right place
+ # NETWORK_REFERENCE_FILES_FOLDER = '//10.218.111.203/VISA/'      # TODO: Make sure this is the right place
  LOCAL_FILES_FOLDER             = 'C:/Video_tools/'
  LOGS_FOLDER                    = "//gtsnowball/System_Test/Automation/gtsystst_logs/video"
  LOGS_SERVER                    = "http://gtsystest.telogy.design.ti.com/video"
@@ -12,6 +12,12 @@ module SiteInfo
  VGDK_INPUT_CLIPS				= "//gtsnowball/System_Test/Automation/gtsystst/video_files/VGDK_logs/input"
  VGDK_OUTPUT_CLIPS				= "//10.218.100.223/video_files/VGDK_logs/output"
  LTP_TEMP_FOLDER                = '//gtsnowball/System_Test/Automation/gtsystst/LTP'
+ if OsFunctions::is_linux?       
+   FILE_SERVER                  = '/mnt/gtautoftp'
+ else
+   FILE_SERVER                  = '//gtautoftp/tftpboot/anonymous'
+ end
+ 
  Bootargs        = {
                 'dm6467' => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=80M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',
                 'dm6467t' => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=80M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',

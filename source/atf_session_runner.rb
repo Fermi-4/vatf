@@ -1,5 +1,6 @@
 require 'db_handler/db_handlers'
 require 'equipment_info'
+require 'os_func'
 require 'html_writers/html_writers'
 require 'optparse'
 require 'ostruct'
@@ -32,16 +33,6 @@ module Find
     result
   end
   module_function :files
-end
-
-module OsFunctions
-  def self.is_windows?
-    RUBY_PLATFORM.downcase.include?("mswin") || RUBY_PLATFORM.downcase.include?("mingw")
-  end
-
-  def self.is_linux?
-    RUBY_PLATFORM.downcase.include?("linux")
-  end
 end
 
 =begin

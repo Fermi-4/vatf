@@ -57,18 +57,18 @@ class ConnectionHandler
     io_info.instance_variables.each do |iface_type|
       io_info.instance_variable_get(iface_type).each do |key,val|
         switch_direction = '_outputs'
-        switch_direction = '_inputs' if iface_type.include?('output')
+        switch_direction = '_inputs' if iface_type.to_s.include?('output')
         switch_log = @files_dir+"/switch"+iter.to_s+"_"+key.to_s+"_log.txt"
         if !@media_switches[key]
           @media_switches[key] = [Object.const_get($equipment_table['media_switch'][key.to_s][0].driver_class_name).new($equipment_table['media_switch'][key.to_s][0], switch_log),switch_log]
         end
-        current_iface_type = iface_type.sub('@','').sub(/_.*$/,switch_direction)
+        current_iface_type = iface_type.to_s.sub('@','').sub(/_.*$/,switch_direction)
         @equipment_switch_connections[var] = Hash.new if !@equipment_switch_connections[var]
         @equipment_switch_connections[var][io_type] = Hash.new if !@equipment_switch_connections[var][io_type]
         @equipment_switch_connections[var][io_type][current_iface_type] = Array.new if !@equipment_switch_connections[var][io_type][current_iface_type]
         @equipment_switch_connections[var][io_type][current_iface_type] = @equipment_switch_connections[var][io_type][current_iface_type] | get_io_array(key,val)
-        @media_switches[key][0].disconnect_video(val) if io_info.kind_of?(VideoIOInfo) && iface_type.include?('input')
-        @media_switches[key][0].disconnect_audio(val) if io_info.kind_of?(AudioIOInfo) && iface_type.include?('input')
+        @media_switches[key][0].disconnect_video(val) if io_info.kind_of?(VideoIOInfo) && iface_type.to_s.include?('input')
+        @media_switches[key][0].disconnect_audio(val) if io_info.kind_of?(AudioIOInfo) && iface_type.to_s.include?('input')
       end
     end
     rescue Exception => e

@@ -16,12 +16,35 @@ module Equipment
       super(platform_info, log_path)
     end
     
+	def get_local_addr()
+	  addr_info = Socket.getaddrinfo(Socket.gethostname,'')
+	  local_addr = addr_info[0][4]
+	  best_match = 0
+	  addr_info.each do |current_info|
+	    matches = 0
+		current_nets = current_info[3].strip.split('.')
+		board_nets = @telnet_ip.split('.')
+		0.upto(3) do |i|
+		  if(current_nets[i].strip==board_nets[i].strip)
+		    matches +=1
+		  else
+		    break
+		  end
+		end
+		if matches > best_match
+		  local_addr = current_info[3].strip
+		  best_match = matches
+		end
+	  end
+	  local_addr
+    end
+  
     def boot (params)
       @power_handler = params['power_handler'] if !@power_handler
       puts "Power cycling the board ........\n\n\n"
       @power_handler.reset(@power_port)
       # Call mpc-data executable or call boot staf process. Raise exception if booting fails.                                                                     
-      raise "Failed to boot. Make sure #{File.join(SiteInfo::UTILS_FOLDER, SiteInfo::WINCE_DOWNLOAD_APP)} exists on your VATF PC" if !system("#{File.join(SiteInfo::UTILS_FOLDER, SiteInfo::WINCE_DOWNLOAD_APP)} -i#{local_ip} -t#{@board_id} #{params['test_params'].kernel}")
+      raise "Failed to boot. Make sure #{File.join(SiteInfo::UTILS_FOLDER, SiteInfo::WINCE_DOWNLOAD_APP)} exists on your VATF PC" if !system("#{File.join(SiteInfo::UTILS_FOLDER, SiteInfo::WINCE_DOWNLOAD_APP)} -i#{get_local_addr} -t#{@board_id} #{params['test_params'].kernel}")
     end
     
     # stop the bootloader after a reboot
