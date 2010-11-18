@@ -56,11 +56,7 @@
 			<xsl:element name="description"><xsl:value-of select="$desc"/></xsl:element>
 		</xsl:element>
 	</xsl:for-each>
-	<xsl:element name="command">
-	<xsl:element name="execute">process
-	</xsl:element>
-	<xsl:element name="params">start shell command "ruby -C {<xsl:value-of select="$teeStafInstance"/>/staf/tee/test_framework_root} atf_run.rb -v {<xsl:value-of select="$teeStafInstance"/>/auto/tee/test_scripts_root} -r {<xsl:value-of select="$teeStafInstance"/>/STAF/TEE/inFile} -w <xsl:value-of select="$teeStafInstance"/> -f C:/VATF/vatf_automation_results.xml -o" wait
-	</xsl:element>
+		<xsl:element name="command">ruby -C {<xsl:value-of select="$teeStafInstance"/>/staf/tee/test_framework_root} atf_run.rb -v {<xsl:value-of select="$teeStafInstance"/>/auto/tee/test_scripts_root} -r {<xsl:value-of select="$teeStafInstance"/>/STAF/TEE/inFile} -w <xsl:value-of select="$teeStafInstance"/> -f C:/VATF/<xsl:value-of select="$teeStafInstance"/>_automation_results.xml -o
 	</xsl:element>
 	</xsl:element>
 	</xsl:template>
