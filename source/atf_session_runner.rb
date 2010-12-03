@@ -266,9 +266,9 @@ class SessionHandler
       @tester = tester
       @session_start_time = Time.now
       @test_sess_sum = [0,0,0]
-      @session_dir = @session_results_base_directory+'/'+tester+@session_start_time.strftime("%m_%d_%Y_%H_%M_%S")  
+      @session_dir = File.join(@session_results_base_directory,tester+@session_start_time.strftime("%m_%d_%Y_%H_%M_%S"))  
       FileUtils.mkdir_p(@session_dir) unless File.exists?(@session_dir)
-      @session_html_path = @session_dir+"/session.html"
+      @session_html_path = File.join(@session_dir,"session.html")
       @session_html_url = @session_html_path.sub(@session_results_base_directory,@session_results_base_url)
       @target_name = @rtp_db.get_target.to_s
       @target_name = @cli_params['release'] if @cli_params['release']
@@ -287,9 +287,9 @@ class SessionHandler
         @test_id = test_case_id
         @test_iterations_start_time = Time.now
         @test_iter_sum = [0,0,0]
-        @files_dir = @session_dir+"/files/session_iteration_"+@session_iter.to_s+"/test_"+test_case_id.to_s
+        @files_dir = File.join(@session_dir,"files/session_iteration_"+@session_iter.to_s+"/test_"+test_case_id.to_s)
         FileUtils.mkdir_p(@files_dir) unless File.exists?(@files_dir)
-        @test_iter_summary_html_path = @files_dir+"/iterZummary.html"
+        @test_iter_summary_html_path = File.join(@files_dir,"iterZummary.html")
         @test_iter_summary_html = TestIterationsHtml.new(@test_iter_summary_html_path,"Test Iterations Summary", @target_name)
         @test_iter_summary_html.add_test_summary_info_tables(test_case_id.to_s)
         @test_iter_summary_html.add_summary_link(@session_html_url.sub(/http:\/\//i,""), @multi_session_link)
@@ -317,7 +317,7 @@ class SessionHandler
       @test_start_time = Time.now
       @test_result = TestResult.new
       @rtp_db.set_test_tables(@test_id)
-      test_result_html_path = @files_dir+"/"+/[\\\/]*(\w+)\.*\w*$/.match(@rtp_db.get_test_script)[1].to_s+"_#{iter.to_s}.html"
+      test_result_html_path = File.join(@files_dir,/[\\\/]*(\w+)\.*\w*$/.match(@rtp_db.get_test_script)[1].to_s+"_#{iter.to_s}.html")
       @results_html_file = TestResultHtml.new(test_result_html_path,"Test Result",@target_name.to_s)
       @results_html_file.add_test_information_table(@tester)
       @results_html_file.add_summaries_links(@session_html_url.sub(/http:\/\//i,""), @test_iter_summary_html_path.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,""), @multi_session_link)
@@ -382,7 +382,7 @@ class SessionHandler
             equip_info[req_caps].each_with_index do |test_vars, i|
               current_var = test_vars
               current_instance = i
-              equip_log = @files_dir+"/"+test_vars.strip+"_"+iter.to_s+"_log.txt"
+              equip_log = File.join(@files_dir,test_vars.strip+"_"+iter.to_s+"_log.txt")
               eq_id = req_caps
               if !$equipment_table[equip_type][eq_id] || !$equipment_table[equip_type][eq_id][i]
                 assets_caps.each do |current_asset_caps|
@@ -414,7 +414,7 @@ class SessionHandler
       @connection_handler.media_switches.each{|key,val| logs_array << ["MediaSwitch"+key.to_s, val[1].sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")]}
       test_script_found = false
       #require @view_drive+@rtp_db.get_test_script.gsub(".rb","")
-      load @view_drive+@rtp_db.get_test_script
+      load File.join(@view_drive,@rtp_db.get_test_script)
       t_setup = Time.now.to_s
       puts "\n===== Calling "+@rtp_db.get_test_script+"'s setup() at time "+t_setup
       if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
