@@ -2,9 +2,13 @@ require File.dirname(__FILE__)+'/../equipment_driver'
 require File.dirname(__FILE__)+'/build_client'
 module Equipment
   class LinuxEquipmentDriver < EquipmentDriver
-        
+ 
+		@@boot_info = {'dm355'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=116M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE'
+                   'dm365' => 'init=/init console=ttyS0,115200n8 noinitd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4'}
+    
     def initialize(platform_info, log_path)
       super(platform_info, log_path)
+      @boot_args = @@boot_info[@name]
     end
     
     # Copy an image from the build server to the tftp server
@@ -20,13 +24,15 @@ module Equipment
       puts "\n\n====== uImage is at #{image_path} =========="
       tftp_path  = params['server'].tftp_path
       tftp_ip    = params['server'].telnet_ip
-      samba_path = params['samba_path'] 
-			nfs_path   = params['nfs_path']
+      #samba_path = params['samba_path'] 
+			#nfs_path   = params['nfs_path']
 			nfs_root	=params['nfs_root']
-      boot_args = SiteInfo::Bootargs[params['platform'].downcase.strip]
-      boot_args = params['bootargs'] if params['bootargs']
-      tmp_path = "#{params['tester'].downcase.strip}/#{params['target'].downcase.strip}/#{params['platform'].downcase.strip}"
-      if image_path != nil && File.exists?(image_path) && get_image(image_path, samba_path, params['server'], tmp_path, nfs_path) then
+      #boot_args = SiteInfo::Bootargs[params['platform'].downcase.strip]
+      @boot_args = params['bootargs'] if params['bootargs']
+			tmp_path = File.join(params['tester'].downcase.strip,params['target'].downcase.strip,params['platform'].downcase.strip)
+      #tmp_path = "#{params['tester'].downcase.strip}/#{params['target'].downcase.strip}/#{params['platform'].downcase.strip}"
+		
+      if image_path != nil && File.exists?(image_path) && get_image(image_path, params['server'], tmp_path) then
         boot_to_bootloader()
         #set bootloader env vars and tftp the image to the unit -- Note: add more commands here if you need to change the environment further
         send_cmd("setenv serverip #{tftp_ip}",@boot_prompt, 10)
@@ -35,7 +41,7 @@ module Equipment
         raise 'Unable to set bootfile' if timeout?
         send_cmd("setenv nfs_root_path #{nfs_root}",@boot_prompt, 10)
         raise 'Unable to set nfs root path' if timeout?
-        send_cmd("setenv bootargs #{boot_args}",@boot_prompt, 10)
+        send_cmd("setenv bootargs #{@boot_args}",@boot_prompt, 10)
         raise 'Unable to set bootargs' if timeout?
         send_cmd("saveenv",@boot_prompt, 10)
         raise 'Unable save environment' if timeout?
@@ -86,9 +92,24 @@ module Equipment
         send_cmd('reboot', /Hit any key to stop autoboot:/, 30)
       end
     end
-    
+  
     # Copy the image files and module.ko files from the build directory into the ftp directory
-    def get_image(src_win, dst_folder_win, server, dst_linux, nfs_path)
+    def get_image(src_folder, server, tmp_path)
+      dst_path = File.join(server.tftp_path, tmp_path)
+      if src_folder != dst_path
+        raise "Please specify TFTP path like /tftproot in Linux server in bench file." if server.tftp_path.to_s == ''
+        server.send_sudo_cmd("mkdir -p -m 777 #{dst_path}") if !File.exists?(dst_path)
+        if File.file?(src_folder)
+          FileUtils.cp(src_folder, dst_path)
+        else 
+          FileUtils.cp_r(File.join(src_folder,'.'), dst_path)
+        end
+      end
+      true 
+    end
+  
+    # Copy the image files and module.ko files from the build directory into the ftp directory
+    def get_image2(src_win, dst_folder_win, server, dst_linux, nfs_path)
       # Copy images and modules (.ko) tftp server
       @build_files = Array.new
       src_folder = File.dirname(src_win)
