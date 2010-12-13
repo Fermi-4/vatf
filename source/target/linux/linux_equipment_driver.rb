@@ -3,7 +3,7 @@ require File.dirname(__FILE__)+'/build_client'
 module Equipment
   class LinuxEquipmentDriver < EquipmentDriver
  
-		@@boot_info = {'dm355'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=116M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE'
+		@@boot_info = {'dm355'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=116M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',
                    'dm365' => 'init=/init console=ttyS0,115200n8 noinitd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4'}
     
     def initialize(platform_info, log_path)
