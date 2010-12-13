@@ -12,14 +12,19 @@ class SerialEquipmentConnection < SerialBaseListenerClient
 
   def send_cmd(*params)
     command        = params[0]
-    expected_match = params[1] ? params[1] : Regexp.new('.*')
-    timeout        = params[2] ? params[2] : 30
-    check_cmd_echo = params[3] ? params[3] : true
+    expected_match = params[1]  #? params[1] : Regexp.new('.*')
+    timeout        = params[2]  #? params[2] : 30
+    check_cmd_echo = params[3]  #? params[3] : true
+    append_linefeed = params[4] #? params[4] : true
 	
     @is_timeout = false
     listener = BaseListener.new(command, expected_match, check_cmd_echo)
     add_listener(listener)
-    super(command)
+    if append_linefeed
+      super(command)
+    else
+      write(command)
+    end
     status = Timeout::timeout(timeout) {
         while (!listener.match) 
             sleep 0.5

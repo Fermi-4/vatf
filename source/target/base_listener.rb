@@ -39,7 +39,11 @@ class SerialBaseListenerClient < SerialPort
     @params   = platform_info.serial_params
     @prompt      = platform_info.prompt
     @boot_prompt = platform_info.boot_prompt
-    super(@port.to_i,@params)
+    if /^\s*\d+/.match(@port.to_s)
+      super(@port.to_i,@params)
+    else
+      super(@port,@params)
+    end
   end
   
   def add_listener(listener)
@@ -81,6 +85,10 @@ class SerialBaseListenerClient < SerialPort
 
   def send_cmd(command)
     puts(command)
+  end
+  
+  def write_cmd(command)
+    write(command)
   end
 
   def disconnect
@@ -152,6 +160,10 @@ class TelnetBaseListenerClient < Net::Telnet
 
   def send_cmd(command)
     puts(command)
+  end
+  
+  def write_cmd(command)
+    write(command)
   end
 
   def disconnect

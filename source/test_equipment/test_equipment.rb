@@ -5,6 +5,7 @@ require 'test_equipment/apc_power_controller'
 require 'test_equipment/staf_apc_power_controller'
 require 'test_equipment/video_clarity'
 require 'test_equipment/multimeter_equipment_driver'
+require 'test_equipment/usb_switch_controller'
 
 
 

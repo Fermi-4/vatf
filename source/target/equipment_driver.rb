@@ -35,10 +35,10 @@ module Equipment
       @target.disconnect if @target
     end
     
-    def send_cmd(command, expected_match=/.*/, timeout=10, check_cmd_echo=true)
+    def send_cmd(command, expected_match=/.*/, timeout=10, check_cmd_echo=true, append_linefeed=true)
 	  #puts "\n\n==============\nequipment_driver: #{command}, #{expected_match}, #{timeout}, #{check_cmd_echo}" # TODO REMOVE DEBUG PRINT
       log_info("Host: " + command)
-      @target.send_cmd(command, expected_match, timeout, check_cmd_echo)
+      @target.send_cmd(command, expected_match, timeout, check_cmd_echo, append_linefeed)
       rescue Timeout::Error => e
         puts ">>>> On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s
         log_error("On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s)
