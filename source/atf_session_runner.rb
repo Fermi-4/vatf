@@ -160,10 +160,10 @@ class CmdLineParser
         end
         
         opts.on("-a","=OPTIONAL","Specifies the information regarding any asset(s) required to run a test. The sytanx used is a semicolon separated set of <asset name>=<asset information> pairs") do |assets|
-          assets_array = assets.split(';')
+          assets_array = assets.split(/(?<!\\)[;]/)
           assets_array.each do |current_asset|
-            asset_info = current_asset.split(/(?<!\\)[;=]/)
-            options.release_assets[asset_info[0].strip] = asset_info[1].strip.sub(/(?<=\\)[=;]/,"")
+            asset_info = current_asset.split(/(?<!\\)[=]/)
+            options.release_assets[asset_info[0].strip] = asset_info[1].strip.gsub(/\\(?=[=:;,])/,"")
           end
         end
         
