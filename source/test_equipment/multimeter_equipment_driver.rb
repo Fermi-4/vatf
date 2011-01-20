@@ -11,7 +11,7 @@ module TestEquipment
      
       
 	  #this function configures the multimeter for five channel reading 
-	  def configure_multimter(sample_count)
+	  def configure_multimeter(sample_count)
 		send_cmd("*RST", ".*", 1, false)
 		send_cmd("*CLS", ".*", 1, false)
 		send_cmd(":TRAC:CLE", ".*", 1, false)

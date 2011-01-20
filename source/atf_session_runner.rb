@@ -59,7 +59,7 @@ class CmdLineParser
         options.tester = 'hostname'
       end
       options.drive = nil
-      options.bench_path = "C:/VATF/bench.rb"
+      options.bench_path = SiteInfo::BENCH_FILE
       options.results_base_dir = SiteInfo::LOGS_FOLDER
       options.results_base_url = SiteInfo::LOGS_SERVER
       options.platform = nil
@@ -68,7 +68,7 @@ class CmdLineParser
       options.email = nil
       options.release_assets = {}
       options.browser = true
-      options.results_file = "C:/VATF/vatf_automation_results.xml"
+      options.results_file = SiteInfo::RESULTS_FILE
       options.staf_service_name = nil
       
       opts = OptionParser.new do |opts|
