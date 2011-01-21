@@ -29,7 +29,7 @@
 				<xsl:value-of select="$CDATABegin" disable-output-escaping="yes" />
 				<xsl:value-of select="test-iteration/test-iteration/comments"/>
 				<xsl:text disable-output-escaping="yes">
-					<![CDATA[<p><a href="]]></xsl:text><xsl:value-of select="../../logpath"/>
+					<![CDATA[<p><a href="]]></xsl:text><xsl:value-of select="logpath"/>
 					<xsl:text disable-output-escaping="yes"><![CDATA[" target="_blank">LOG PATH</a></p>]]>
 				</xsl:text><xsl:value-of select="$CDATAEnd" disable-output-escaping="yes" />
 			</xsl:element>

@@ -453,7 +453,7 @@ class SessionHandler
         @old_keys = @new_keys
         @test_ended = Time.now
         config_file.close if config_file && !is_db_type_xml?(@db_type)
-        @rtp_db.set_test_result(@rtp_db.get_test_script, @test_result.result, @test_result.comment, @test_result.perf_data, "0",test_result_html_path, @test_start_time, @test_ended, iter, @tester.to_s, @test_params.platform, @test_params.target) 
+        @rtp_db.set_test_result(@rtp_db.get_test_script, @test_result.result, @test_result.comment, @test_result.perf_data, "0",test_result_html_path.sub(@session_results_base_directory,@session_results_base_url), @test_start_time, @test_ended, iter, @tester.to_s, @test_params.platform, @test_params.target) 
         @results_html_file.add_logs(logs_array)
         @results_html_file.add_test_result(@rtp_db.get_test_description.to_s, @test_result.result, html_result)
         @results_html_file.add_test_information(@rtp_db.get_test_id.to_s, @rtp_db.get_test_script.to_s, @rtp_db.get_test_description.to_s, @test_start_time.strftime("%m/%d/%Y  %I:%M%p"), @test_ended.strftime("%m/%d/%Y  %I:%M%p"), @test_ended.strftime("%m/%d/%Y  %I:%M%p"))

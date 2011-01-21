@@ -177,7 +177,7 @@ module ATFDBHandlers
             end
           end
         ensure
-            @db_tresult["test_session"][0]["testcase"] << {"id" => @db_tcase["id"].to_s, "logpath" => nil, "comment" => nil, "start_time" => nil, "end_time" => nil, "status" => nil, "iter_complete" => nil, "test_iteration" => []}
+            @db_tresult["test_session"][0]["testcase"] << {"id" => @db_tcase["id"].to_s, "logpath" => html_result_file, "comment" => nil, "start_time" => nil, "end_time" => nil, "status" => nil, "iter_complete" => nil, "test_iteration" => []}
             @db_tresult["test_session"][0]["testcase"].each { |tcase|
             if(tcase["id"] == @db_tcase["id"].to_s)
                 tcase["test_iteration"] << @tc_iter_results      
