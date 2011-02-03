@@ -62,7 +62,7 @@ class SerialBaseListenerClient < SerialPort
   end
   
   def start_listening
-    @read_timeout = 125
+    self.read_timeout = 125
     @listeners = Array.new
     @session_data = ''
     @keep_listening = true
