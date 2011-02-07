@@ -113,6 +113,7 @@ class TelnetBaseListenerClient < Net::Telnet
     @boot_prompt = platform_info.boot_prompt
     @telnet_login = platform_info.telnet_login
     @telnet_passwd = platform_info.telnet_passwd
+		@login_prompt  = platform_info.login_prompt if platform_info.respond_to?:login_prompt
 	
 	super( "Host" => @telnet_ip,
            "Port" => @telnet_port,

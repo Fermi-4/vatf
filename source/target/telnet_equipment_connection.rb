@@ -14,17 +14,26 @@ class TelnetEquipmentConnection < TelnetBaseListenerClient
   def connect
     send_cmd("",/.*/)  if @telnet_port.to_s.strip != '23'
     ret = ''
-    if @telnet_login && @telnet_passwd then
-      login(@telnet_login.to_s, @telnet_passwd){ |c| 
-        ret = ret + c 
-        break if c.match(/#{@prompt}/)
-      }
-    elsif @telnet_login
-      login(@telnet_login.to_s){ |c| 
-        ret = ret + c 
-        break if c.match(/#{@prompt}/)
-      }
-    end
+    options = {}
+    options["Name"] = @telnet_login.to_s
+		options["Password"] = @telnet_passwd if @telnet_passwd
+    options["LoginPrompt"] = @login_prompt if @login_prompt
+    login(options){ |c| 
+    	ret = ret + c 
+		  break if c.match(/#{@prompt}/)
+		}
+ 
+		#if @telnet_login && @telnet_passwd then
+    #  login(@telnet_login.to_s, @telnet_passwd){ |c| 
+    #    ret = ret + c 
+    #    break if c.match(/#{@prompt}/)
+    #  }
+    #elsif @telnet_login
+    #  login(@telnet_login.to_s){ |c| 
+    #    ret = ret + c 
+    #    break if c.match(/#{@prompt}/)
+    #  }
+    #end
     ret
   end
 
