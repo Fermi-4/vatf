@@ -22,9 +22,9 @@ class TelnetEquipmentConnection < TelnetBaseListenerClient
       login(options){ |c| 
         ret = ret + c 
         break if c.match(/#{@prompt}/)
-    end
 		}
- 
+    end
+
 		#if @telnet_login && @telnet_passwd then
     #  login(@telnet_login.to_s, @telnet_passwd){ |c| 
     #    ret = ret + c 
