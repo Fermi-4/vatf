@@ -18,9 +18,11 @@ class TelnetEquipmentConnection < TelnetBaseListenerClient
     options["Name"] = @telnet_login.to_s
 		options["Password"] = @telnet_passwd if @telnet_passwd
     options["LoginPrompt"] = @login_prompt if @login_prompt
-    login(options){ |c| 
-    	ret = ret + c 
-		  break if c.match(/#{@prompt}/)
+    if !options.empty?
+      login(options){ |c| 
+        ret = ret + c 
+        break if c.match(/#{@prompt}/)
+    end
 		}
  
 		#if @telnet_login && @telnet_passwd then
