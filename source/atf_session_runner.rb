@@ -535,6 +535,20 @@ class SessionHandler
         return false
       end
     end
+	
+	#This function uploads a file to the server and returns an array with the path of the file and the url of the file if successful, else return nil
+    def upload_file(file_path)
+      result = nil
+      if File.exists?(file_path)
+        server_dir = File.dirname(@files_dir)
+        fpath = File.join(server_dir,File.basename(file_path))
+		puts "FPath is #{fpath}\n"
+		puts "file_path is #{file_path}\n"
+        FileUtils.cp(file_path,fpath)
+		result = [fpath, fpath.sub(@session_results_base_directory,@session_results_base_url).sub("\\","/").sub(/http:\/\//i,"")]
+      end
+      result
+    end
  
     private 
     class TestResult
