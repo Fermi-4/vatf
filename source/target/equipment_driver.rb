@@ -49,6 +49,10 @@ module Equipment
         log_info("Target: \n" + response.to_s)
     end
     
+    def wait_for(expected_match=/.*/, timeout=10)
+      @target.wait_for(expected_match,timeout)
+    end
+    
     def response
       @target.response
     end

@@ -41,6 +41,28 @@ class SerialEquipmentConnection < SerialBaseListenerClient
       remove_listener(listener)
   end
   
+  def wait_for(*params)
+    expected_match = params[0] #? params[1] : Regexp.new('.*')
+    timeout        = params[1] #? params[2] : 30
+    @is_timeout = false
+    listener = BaseListener.new('', expected_match, false)
+    add_listener(listener)
+    status = Timeout::timeout(timeout) {
+        while (!listener.match) 
+            sleep 0.05
+        end
+    }
+    rescue Timeout::Error => e
+      @is_timeout = true
+	    raise
+    rescue Exception => e
+       Kernel.print e.to_s+"\n"+e.backtrace.to_s
+       raise
+    ensure
+      @response = listener.response
+      remove_listener(listener)
+  end
+  
   def response
     @response.to_s
   end

@@ -54,6 +54,10 @@ class EquipmentConnection
 	@default.send_cmd(*params)
 	end
   
+  def wait_for(*params)
+    @default.wait_for(*params)
+  end
+  
   def response
     @default.response
   end
