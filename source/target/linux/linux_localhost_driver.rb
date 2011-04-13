@@ -30,10 +30,10 @@ module Equipment
     def disconnect
     end
 
-    def send_sudo_cmd(cmd, expected_match=/.*/ ,password=@telnet_passwd, timeout=30)
+    def send_sudo_cmd(cmd, expected_match=/.*/ ,timeout=30)
       log_info("Cmd: sudo -E -S #{cmd}")
       @response = `sudo -E -S #{cmd} << EOF
-#{password}
+#{@telnet_passwd}
 EOF` 
       log_info('Response: '+@response)		
       @timeout = @response.match(expected_match) != nil

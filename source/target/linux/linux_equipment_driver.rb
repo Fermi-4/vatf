@@ -3,11 +3,26 @@ require File.dirname(__FILE__)+'/build_client'
 module Equipment
   class LinuxEquipmentDriver < EquipmentDriver
  
-		@@boot_info = {'dm355'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=116M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',
-                   'dm365'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
-                   'am3730' => 'console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-                   'dm3730' => 'console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-                   'am1808'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp mem=32M root=/dev/nfs rw nfsroot=${nfs_root_path},nolock'}
+    @@boot_info = Hash.new('console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock').merge(
+    {
+     'dm355'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=116M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',
+     'dm355-evm'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=116M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',
+     'dm365'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
+     'dm365-evm'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
+     'dm368-evm'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
+     'am3730' => 'console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'am37x-evm' => 'console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'dm3730' => 'console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'dm373x-evm' => 'console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'am1808'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp mem=32M root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
+     'am180x-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp mem=32M root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
+     'da850-omapl138-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp mem=32M root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
+     'am3517-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
+     'dm814x-evm' => 'console=ttyS2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'dm816x-evm' => 'console=ttyS2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'am387x-evm' => 'console=ttyS2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'am389x-evm' => 'console=ttyS2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     })
     
     def initialize(platform_info, log_path)
       super(platform_info, log_path)
