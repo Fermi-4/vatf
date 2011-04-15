@@ -4,7 +4,7 @@ require File.dirname(__FILE__)+'/serial_equipment_connection'
 
 class EquipmentConnection
   attr_reader :default, :telnet, :serial
-
+  attr_accessor :platform_info
   def initialize(platform_info)
     @platform_info = platform_info
     @default = nil
