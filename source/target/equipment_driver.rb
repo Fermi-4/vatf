@@ -51,6 +51,23 @@ module Equipment
     
     def wait_for(expected_match=/.*/, timeout=10)
       @target.wait_for(expected_match,timeout)
+      rescue Timeout::Error => e
+        puts ">>>>  waiting for "+expected_match.to_s+" >>> error: "+e.to_s
+        log_error("waiting for "+expected_match.to_s+" >>> error: "+e.to_s)
+      rescue Exception => e
+        log_error("Target: \n" + response.to_s)
+        raise
+      ensure
+        log_info("Target: \n" + response.to_s)
+    end
+    
+    def read_for(time)
+      @target.read_for(time)
+      rescue Exception => e
+        log_error("Target: \n" + response.to_s)
+        raise
+      ensure
+        log_info("Target: \n" + response.to_s)
     end
     
     def response

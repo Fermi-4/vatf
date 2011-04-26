@@ -66,7 +66,7 @@ class TelnetEquipmentConnection < TelnetBaseListenerClient
   
   end
   
-    def wait_for(*params)
+  def wait_for(*params)
     expected_match = params[0] #? params[1] : Regexp.new('.*')
     timeout        = params[1] #? params[2] : 30
     @is_timeout = false
@@ -80,6 +80,19 @@ class TelnetEquipmentConnection < TelnetBaseListenerClient
     rescue Timeout::Error => e
       @is_timeout = true
 	    raise
+    rescue Exception => e
+       Kernel.print e.to_s+"\n"+e.backtrace.to_s
+       raise
+    ensure
+      @response = listener.response
+      remove_listener(listener)
+  end
+  
+  def read_for(*params)
+    time        = params[0] #? params[2] : 30
+    listener = BaseListener.new('', expected_match, false)
+    add_listener(listener)
+    sleep time
     rescue Exception => e
        Kernel.print e.to_s+"\n"+e.backtrace.to_s
        raise

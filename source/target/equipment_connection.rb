@@ -58,6 +58,10 @@ class EquipmentConnection
     @default.wait_for(*params)
   end
   
+  def read_for(*params)
+    @default.read_for(*params)
+  end
+  
   def response
     @default.response
   end
