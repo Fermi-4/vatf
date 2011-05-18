@@ -10,18 +10,18 @@ module Equipment
      'dm365'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
      'dm365-evm'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
      'dm368-evm'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
-     'am3730' => 'console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'am37x-evm' => 'console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'dm3730' => 'console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'dm373x-evm' => 'console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'am1808'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp mem=32M root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
-     'am180x-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp mem=32M root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
+     'am3730' => 'console=ttyO0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'am37x-evm' => 'console=ttyO0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'dm3730' => 'console=ttyO0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'dm373x-evm' => 'console=ttyO0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'am1808'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
+     'am180x-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
      'da850-omapl138-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp mem=32M root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
-     'am3517-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
-     'dm814x-evm' => 'console=ttyS2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'dm816x-evm' => 'console=ttyS2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'am387x-evm' => 'console=ttyS2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'am389x-evm' => 'console=ttyS2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'am3517-evm'  => 'console=ttyO2,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
+     'dm814x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'dm816x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'am387x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'am389x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
      })
     
     def initialize(platform_info, log_path)
@@ -50,7 +50,7 @@ module Equipment
         boot_to_bootloader()
         #set bootloader env vars and tftp the image to the unit -- Note: add more commands here if you need to change the environment further
         send_cmd("setenv serverip #{tftp_ip}",@boot_prompt, 10)
-        send_cmd("setenv bootcmd 'dhcp;bootm'",@boot_prompt, 10)
+        send_cmd("setenv bootcmd 'dhcp;tftp;bootm'",@boot_prompt, 10)
         send_cmd("setenv bootfile #{tmp_path}/#{File.basename(image_path)}",@boot_prompt, 10)
         raise 'Unable to set bootfile' if timeout?
         send_cmd("setenv nfs_root_path #{nfs_root}",@boot_prompt, 10)
