@@ -28,9 +28,9 @@ class TelnetEquipmentConnection < TelnetBaseListenerClient
     ret
   end
 
-  def disconnect
-		close 
-  end
+#  def disconnect
+#		close 
+#  end
 
   def send_cmd(*params)
 	command        = params[0]

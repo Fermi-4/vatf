@@ -73,13 +73,14 @@ class SerialBaseListenerClient < SerialPort
           last_read = read_nonblock(1024) 
           notify_listeners(last_read)
           Kernel.print last_read
-        end
+       end
       end
     }	
   end
   
   def stop_listening
     @keep_listening = false
+    @listen_thread.kill
     @listen_thread.join(5)
   end
 
@@ -145,8 +146,8 @@ class TelnetBaseListenerClient < Net::Telnet
     @listen_thread = Thread.new {
       while @keep_listening
         if !eof?
-          last_read = readpartial(1024) 
-          #last_read = read_nonblock(1024) 
+          #last_read = readpartial(1024) 
+          last_read = read_nonblock(1024) 
           notify_listeners(last_read)
           Kernel.print last_read
         end
@@ -156,6 +157,7 @@ class TelnetBaseListenerClient < Net::Telnet
   
   def stop_listening
     @keep_listening = false
+    @listen_thread.kill
     @listen_thread.join(5)
   end
 
