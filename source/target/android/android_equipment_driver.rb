@@ -4,7 +4,8 @@ module Equipment
 
   class AndroidEquipmentDriver < EquipmentDriver
     
-    @@boot_info = {'am3517' => 'init=/init console=ttyS2,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=256M noinitrd androidboot.console=ttyS2 ip=dhcp omap_vout_vid1_static_vrfb_alloc=y'}    
+    @@boot_info = {'am3517-evm' => 'console=ttyO2,115200n8 androidboot.console=ttyO2 mem=256M rootfstype=ext3 rootdelay=1 init=/init ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mpurate=600 omap_vout.vid1_static_vrfb_alloc=y vram="8M" omapfb.vram=0:8M',
+                   'am37x-evm' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M rootfstype=ext3 rootdelay=1 init=/init ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mpurate=1000 omap_vout.vid1_static_vrfb_alloc=y vram="8M" omapfb.vram=0:8M'}    
 
     def initialize(platform_info, log_path)
       super(platform_info, log_path)
@@ -71,6 +72,17 @@ module Equipment
         end
       else
         raise "image #{image_path} does not exist, unable to copy"
+      end
+      begin
+        Timeout::timeout(600) do
+          response = send_adb_cmd("logcat -d")
+          while(!response.match(/bootCompleted/m)) do
+            response = send_adb_cmd("logcat -d")
+            sleep(1)
+          end
+        end
+        rescue Timeout::Error => e
+          raise "device #{@name} id #{@board_id} has not finished booting after 600 sec\n"+e.backtrace.to_s
       end
     end
 
