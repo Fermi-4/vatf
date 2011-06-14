@@ -78,7 +78,8 @@ module Equipment
     end
     
     # Reboot the unit to the bootloader prompt
-    def boot_to_bootloader()
+    def boot_to_bootloader(power_hdler=nil)
+      @power_handler = power_hdler if power_hdler 
       puts 'rebooting DUT'
 			if @power_port !=nil
         puts 'Resetting @using power switch'
