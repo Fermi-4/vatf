@@ -36,14 +36,21 @@ module Equipment
 #{@telnet_passwd}
 EOF` 
       log_info('Response: '+@response)		
-      @timeout = @response.match(expected_match) != nil
+      @timeout = @response.match(expected_match) == nil
     end
     
     def send_cmd(command, expected_match=/.*/, timeout=10, check_cmd_echo=true)
       log_info('Cmd: '+command.to_s)
       @response = `#{command} 2>&1` 
       log_info('Response: '+@response)		
-      @timeout = @response.match(expected_match) != nil
+      @timeout = @response.match(expected_match) == nil
+    end
+    
+    def send_cmd_nonblock(command, expected_match=/.*/, timeout=10, check_cmd_echo=true)
+      Thread.new(command, expected_match, timeout, check_cmd_echo) do |a,b,c,d|
+        send_cmd(a,b,c,d)
+      end
+      sleep 1   # Make sure the new thread starts before returning to calling thread
     end
     
     def response
