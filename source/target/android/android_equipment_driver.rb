@@ -5,7 +5,9 @@ module Equipment
   class AndroidEquipmentDriver < EquipmentDriver
     
     @@boot_info = {'am3517-evm' => 'console=ttyO2,115200n8 androidboot.console=ttyO2 mem=256M rootfstype=ext3 rootdelay=1 init=/init ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mpurate=600 omap_vout.vid1_static_vrfb_alloc=y vram="8M" omapfb.vram=0:8M',
-                   'am37x-evm' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M rootfstype=ext3 rootdelay=1 init=/init ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mpurate=1000 omap_vout.vid1_static_vrfb_alloc=y vram="8M" omapfb.vram=0:8M'}    
+                   'am37x-evm' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M rootfstype=ext3 rootdelay=1 init=/init ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mpurate=1000 omap_vout.vid1_static_vrfb_alloc=y vram="8M" omapfb.vram=0:8M',
+                   'ti816x-evm' => 'mem=166M@0x80000000 mem=768M@0x90000000 console=ttyO2,115200n8 androidboot.console=ttyO2 noinitrd ip=dhcp rw init=/init root=/dev/nfs nfsroot=${nfs_root_path},nolock rootwait',
+		   'ti814x-evm' => 'mem=128M console=ttyO0,115200n8 noinitrd ip=dhcp rw init=/init root=/dev/nfs nfsroot=${nfs_root_path} rootwait vram=50M'}   
 
     def initialize(platform_info, log_path)
       super(platform_info, log_path)
@@ -32,7 +34,7 @@ module Equipment
         boot_to_bootloader()
         #set bootloader env vars and tftp the image to the unit -- Note: add more commands here if you need to change the environment further
         send_cmd("setenv serverip #{tftp_ip}",@boot_prompt, 10)
-        send_cmd("setenv bootcmd 'dhcp;bootm'",@boot_prompt, 10)
+        send_cmd("setenv bootcmd 'dhcp;tftp;bootm'",@boot_prompt, 10)
         send_cmd("setenv bootfile #{tmp_path}/#{File.basename(image_path)}",@boot_prompt, 10)
         raise 'Unable to set bootfile' if timeout?
         send_cmd("setenv nfs_root_path #{nfs_root}",@boot_prompt, 10)
@@ -42,7 +44,7 @@ module Equipment
         send_cmd("saveenv",@boot_prompt, 10)
         raise 'Unable save environment' if timeout?
         send_cmd("printenv", @boot_prompt, 20)
-        send_cmd('boot', "enabling adb", 120)
+        send_cmd('boot', "zygote", 120)
         raise 'Unable to boot platform or platform took more than 2 minutes to boot' if timeout?
         sleep(4)
         send_host_cmd("adb kill-server")
@@ -57,6 +59,33 @@ module Equipment
             send_host_cmd("route add #{@usb_ip} dev usb0", params['server'].telnet_passwd)
             send_host_cmd("export ADBHOST=#{@usb_ip}; adb kill-server; adb start-server" )
           elsif @telnet_ip
+            send_cmd("netcfg", @prompt, 1)
+            ip_candidates = response.scan(/(eth\d+)\s+(?:UP|DOWN)\s+([\d\.]{7,15})\s+[\d\.]{7,15}.*/)
+            if ip_candidates.length < 1
+              raise "No ethernet interface detected for this device, adb connection will not be possible"
+            end
+            eth_enabled = false
+            ip_candidates.each do |current_iface|
+              if current_iface[1] != '0.0.0.0'
+                @telnet_ip = current_ip
+                eth_enabled = true
+                break
+              end
+            end
+            if !eth_enabled 
+              ip_candidates.each do |current_iface|
+                send_cmd("netcfg #{current_iface[0]} up", /Link\s+is\s+Up/i, 5)
+                send_cmd("\n", @prompt, 3)
+                send_cmd("netcfg #{current_iface[0]} dhcp", @prompt, 5)
+                send_cmd("\n", @prompt, 3)
+                send_cmd("netcfg", @prompt, 1)
+                iface_ip = response.match(/#{current_iface[0]}\s+(?:UP|DOWN)\s+([\d\.]{7,15})\s+[\d\.]{7,15}.*/).captures[0]
+                if iface_ip != '0.0.0.0'
+                  @telnet_ip = iface_ip 
+                  break
+                end
+              end
+            end
             send_cmd("setprop service.adb.tcp.port 5555")
             send_cmd("stop adbd")
             send_cmd("start adbd")
