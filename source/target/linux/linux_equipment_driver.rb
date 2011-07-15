@@ -18,9 +18,9 @@ module Equipment
      'am180x-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
      'da850-omapl138-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp mem=32M root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
      'am3517-evm'  => 'console=ttyO2,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
-     'dm814x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'dm814x-evm' => 'console=ttyO0,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
      'dm816x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'am387x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'am387x-evm' => 'console=ttyO0,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
      'am389x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
      'beagleboard' => 'console=ttyO2,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
      })
@@ -86,7 +86,7 @@ module Equipment
 			if @power_port !=nil
         puts 'Resetting @using power switch'
         @power_handler.reset(@power_port)
-        send_cmd("\e", /(U-Boot)|(#{@boot_prompt})/, 3)
+        send_cmd("\e", /(U-Boot)|(#{@boot_prompt})/, 10)
       else
         send_cmd('reboot', /U-Boot/, 40)
       end
