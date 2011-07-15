@@ -22,6 +22,7 @@ module Equipment
      'dm816x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
      'am387x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
      'am389x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'beagleboard' => 'console=ttyO2,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
      })
     
     def initialize(platform_info, log_path)
@@ -60,6 +61,7 @@ module Equipment
         send_cmd("saveenv",@boot_prompt, 10)
         raise 'Unable save environment' if timeout?
         send_cmd("printenv", @boot_prompt, 20)
+        send_cmd("usb start", @boot_prompt, 30) if @name.match(/beagle/)
         send_cmd('boot', /login/, 600)
         raise 'Unable to boot platform or platform took more than 10 minutes to boot' if timeout?
         # command prompt context commands
