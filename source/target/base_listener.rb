@@ -121,7 +121,7 @@ class TelnetBaseListenerClient < Net::Telnet
            "Waittime" => 0,
            "Prompt" => @prompt,
            "Telnetmode" => true,
-           "Binmode" => false )
+           "Binmode" => true )
   end
   
   def add_listener(listener)
