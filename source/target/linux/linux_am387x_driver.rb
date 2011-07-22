@@ -1,17 +1,3 @@
-#require File.dirname(__FILE__)+'/../base_driver'
-
-#module Equipment
-#  class LinuxAm387xDriver < BaseDriver
-  
-#    def initialize(platform_info, log_path)
-#      super(platform_info, log_path)
-#      @api_list = Hash.new('LinuxAm387xBaseDriver')
-#    end
-
-#  end
-#end
-
-
 require File.dirname(__FILE__)+'/linux_equipment_driver'
 require File.dirname(__FILE__)+'/build_client'
 

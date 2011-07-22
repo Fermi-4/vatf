@@ -86,12 +86,12 @@ module Equipment
 			if @power_port !=nil
         puts 'Resetting @using power switch'
         @power_handler.reset(@power_port)
-        send_cmd("\e", /(U-Boot)|(#{@boot_prompt})/, 10)
+        send_cmd("\e", /(U-Boot)|(#{@boot_prompt})/, 3)
       else
         send_cmd('reboot', /U-Boot/, 40)
       end
       # stop the autobooter from autobooting the box
-      0.upto 5 do
+      0.upto 10 do
         send_cmd("\n", @boot_prompt, 1)
         puts 'Sending esc character'
         sleep 1
