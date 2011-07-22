@@ -585,6 +585,7 @@ class SessionHandler
       def get_stat_values(data)
         work_data = data
         work_data = [work_data] if !data.kind_of?(Array)
+        return {} if work_data.empty?
         work_data.collect! do |current_item|
           return {} if !current_item.to_s.match(/[\d\.\+\-Ee]+/)
           current_item.to_f
