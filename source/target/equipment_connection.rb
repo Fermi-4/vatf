@@ -42,6 +42,9 @@ class EquipmentConnection
   def disconnect
     @telnet.disconnect if @telnet
     @serial.disconnect if @serial
+    @default = nil
+    @telnet = nil
+    @serial = nil
   end
 
   def send_cmd(*params)
