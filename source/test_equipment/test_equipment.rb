@@ -1,6 +1,7 @@
 # require 'test_equipment/q_master'
 # require 'test_equipment/q_master_dll'
 require 'test_equipment/spectra_lab_cli'
+require 'test_equipment/ti_power_controller'
 require 'test_equipment/apc_power_controller'
 require 'test_equipment/staf_apc_power_controller'
 require 'test_equipment/video_clarity'
