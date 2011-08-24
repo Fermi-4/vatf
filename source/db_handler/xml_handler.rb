@@ -162,9 +162,15 @@ module ATFDBHandlers
           when FrameworkConstants::Result[:pass]
             @tc_iter_results["passed"] = true
             @tc_iter_results["skipped"] = false
+            @tc_iter_results["ns"] = false
           when FrameworkConstants::Result[:fail]
             @tc_iter_results["passed"] = false
             @tc_iter_results["skipped"] = false
+            @tc_iter_results["ns"] = false
+          when FrameworkConstants::Result[:ns]
+            @tc_iter_results["passed"] = false
+            @tc_iter_results["skipped"] = false
+            @tc_iter_results["ns"] = true
           else
         end
           @tc_iter_results["comments"] = result_comment

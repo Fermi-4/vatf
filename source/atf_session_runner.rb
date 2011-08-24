@@ -437,6 +437,9 @@ class SessionHandler
           @test_iter_sum[1] += 1
           @test_sess_sum[1] += 1
           @consecutive_non_passed_tests += 1
+        when FrameworkConstants::Result[:ns]
+          @test_iter_sum[2] += 1
+          @test_sess_sum[2] += 1
       end
       html_result = @test_result.comment
       rescue Exception => e
