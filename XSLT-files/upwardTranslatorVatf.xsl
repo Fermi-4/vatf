@@ -19,9 +19,13 @@
 			<xsl:variable name="testpass">
 					<xsl:value-of select="test-iteration/test-iteration/passed"/>
 			</xsl:variable>
+      <xsl:variable name="testns">
+          <xsl:value-of select="test-iteration/test-iteration/ns"/>
+      </xsl:variable>
 			<xsl:element name="result">
 				<xsl:choose>
 				<xsl:when test="$testpass = 'true'">p</xsl:when>
+				<xsl:when test="$testns = 'true'">x</xsl:when>
 				<xsl:otherwise>f</xsl:otherwise>
 				</xsl:choose>
 			</xsl:element>
