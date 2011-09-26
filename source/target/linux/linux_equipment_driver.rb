@@ -23,6 +23,7 @@ module Equipment
      'am387x-evm' => 'console=ttyO0,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
      'am389x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
      'beagleboard' => 'console=ttyO2,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'am335x-evm' => 'console=ttyO0,115200n8 ip=dhcp rw mem=128M earlyprink root=/dev/nfs nfsroot=${nfs_root_path},nolock',
      })
     
     def initialize(platform_info, log_path)
