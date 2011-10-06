@@ -80,8 +80,10 @@ class SerialBaseListenerClient < SerialPort
   
   def stop_listening
     @keep_listening = false
-    @listen_thread.kill
-    @listen_thread.join(5)
+    if @listen_thread
+      @listen_thread.kill 
+      @listen_thread.join(5)
+    end
   end
 
   def send_cmd(command)
@@ -157,8 +159,10 @@ class TelnetBaseListenerClient < Net::Telnet
   
   def stop_listening
     @keep_listening = false
-    @listen_thread.kill
-    @listen_thread.join(5)
+    if @listen_thread
+      @listen_thread.kill 
+      @listen_thread.join(5)
+    end
   end
 
   def send_cmd(command)
