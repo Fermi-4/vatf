@@ -8,26 +8,21 @@ module Equipment
     end
 
     # Reboot the unit to the bootloader prompt
-    def boot_to_bootloader(power_hdler=nil)
-      @power_handler = power_hdler if power_hdler 
-      puts 'rebooting DUT am335x'
-      if @power_port !=nil
-        puts 'Resetting @using power switch'
-        @power_handler.reset(@power_port)
-        wait_for(/cpsw/, 10)
+    def boot_to_bootloader(params=nil)
+      # Make the code backward compatible, previous API used optional power_handler object as first parameter 
+      @power_handler = params if (params and params.respond_to?(:reset) and params.respond_to?(:switch_on))  
+    
+      if params.instance_of? Hash and params['primary_bootloader'] and params['secondary_bootloader']
+        load_bootloader_from_uart(params)
+        
       else
-        puts "Soft reboot..."
-        send_cmd('reboot', /cpsw/, 40)        
+        power_cycle()
+        wait_for(/cpsw/, 10)
+        send_cmd("\e", /#{@boot_prompt}/, 10)
+        
       end
-      send_cmd("\e", /#{@boot_prompt}/, 10)     
-      # stop the autobooter from autobooting the box
-      0.upto 5 do
-        send_cmd("\n", @boot_prompt, 1)
-        puts 'Sending newline character'
-        sleep 1
-        break if !timeout?
-      end
-      # now in the uboot prompt
+      
     end
+     
   end
 end

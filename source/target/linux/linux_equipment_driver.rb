@@ -49,7 +49,10 @@ module Equipment
 			tmp_path = File.join(params['tester'].downcase.strip,params['target'].downcase.strip,params['platform'].downcase.strip)
       
       if image_path != nil && File.exists?(image_path) && get_image(image_path, params['server'], tmp_path) then
-        boot_to_bootloader()
+        boot_to_bootloader(params)
+        connect({'type'=>'serial'}) # Connect to serial console to send uboot commands
+        send_cmd("",@boot_prompt, 5)
+        raise 'Bootloader was not loaded properly. Failed to get bootloader prompt' if timeout?
         #set bootloader env vars and tftp the image to the unit -- Note: add more commands here if you need to change the environment further
         send_cmd("setenv serverip #{tftp_ip}",@boot_prompt, 10)
         send_cmd("setenv bootcmd 'dhcp;tftp;bootm'",@boot_prompt, 10)
@@ -81,8 +84,9 @@ module Equipment
     end
     
     # Reboot the unit to the bootloader prompt
-    def boot_to_bootloader(power_hdler=nil)
-      @power_handler = power_hdler if power_hdler 
+    def boot_to_bootloader(params=nil)
+      # Make the code backward compatible. Previous API used optional power_handler object as first parameter 
+      @power_handler = params if (params and params.respond_to?(:reset) and params.respond_to?(:switch_on))
       puts 'rebooting DUT'
 			if @power_port !=nil
         puts 'Resetting @using power switch'
@@ -134,6 +138,53 @@ module Equipment
       end
     end
 
+    def power_cycle
+      if @power_port !=nil
+        puts 'Resetting @using power switch'
+        @power_handler.reset(@power_port)
+      else
+        puts "Soft reboot..."
+        send_cmd('reboot', /Rebooting/, 40)        
+      end
+    end
+    
+    def create_minicom_uart_script(params)
+      File.open(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['minicom_script_name']), "w") do |file|
+        sleep 1  
+        file.puts "timeout 180"
+        file.puts "verbose on"
+        file.puts "! /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']}"
+        file.puts "expect {"
+        file.puts "    \"stop autoboot\""
+        file.puts "}"
+        file.puts "send \"\""
+        file.puts "send \"loady #{@boot_load_address}\""
+        file.puts "! /usr/bin/sb -v  --ymodem #{params['secondary_bootloader']}"
+        file.puts "expect {"
+        file.puts "    \"#{@first_boot_prompt.source}\""
+        file.puts "}"
+        file.puts "send \"go #{@boot_load_address}\""
+        file.puts "expect {"
+        file.puts "    \"stop autoboot\""
+        file.puts "}"
+        file.puts "send \"\""
+        file.puts "expect {"
+        file.puts "    \"#{@boot_prompt.source}\""
+        file.puts "}"
+        file.puts "print \"\\nDone loading u-boot\\n\""
+        file.puts "! killall -s SIGHUP minicom"
+      end
+    end
+    
+    def load_bootloader_from_uart(params)
+      server = params['server']
+      power_cycle()
+      params['minicom_script_name'] = 'uart-boot.minicom'
+      puts "\nCreating minicom script\n" # Debug info
+      create_minicom_uart_script(params)
+      puts "\nStarting minicom script\n" # Debug info
+      server.send_cmd("cd #{File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'])}; minicom -D #{@serial_port} -b 115200 -S #{params['minicom_script_name']}", server.prompt, 90)
+    end
       
   end
   
