@@ -227,8 +227,8 @@ module TestEquipment
       src_clip = "\\\\#{@telnet_ip}\\#{params['lib_path'].sub(/^[\w:]+/,'')}\\#{clip_base_name}"
       seq_name = params['seq_name']
       delete_video_sequence({'lib_path' => params['lib_path'], 'seq_name' => seq_name})
-      File.delete(src_clip) if File.exists?(src_clip) && params['lib_path'] == @vc_test_dir
-      File.copy(params['src_clip'],src_clip) if File.exists?(params['src_clip']) && File.size?(src_clip) != File.size(params['src_clip'])
+      FileUtils.rm(src_clip) if File.exists?(src_clip) && params['lib_path'] == @vc_test_dir
+      FileUtils.cp(params['src_clip'],src_clip) if File.exists?(params['src_clip']) && File.size?(src_clip) != File.size(params['src_clip'])
       if params['data_format'] && params['video_height'] && params['video_width'] && params['type'] && params['frame_rate']
           info_file = File.new(File.dirname(src_clip)+'\default.hdr','w+')
           file_content = [   '% Color Format (YUV420, YUV422, YUV422P, YUV422_10, RGB, RGBA)',
@@ -254,7 +254,7 @@ module TestEquipment
           info_file.close
       end
       if !vc_exec('import', "\"#{params['lib_path']+'\\'+clip_base_name}\"", "\"#{seq_name}\"", params['to_disk'])
-        File.delete(src_clip) if File.exists?(src_clip)
+        FileUtils.rm(src_clip) if File.exists?(src_clip)
         raise 'Unable to import file '+params['src_clip']
       end 
       seq_name
@@ -284,7 +284,7 @@ module TestEquipment
       pattern_seq = import_video({'src_clip' => params['pattern_file'], 'seq_name' => 'vc_pattern_sequence'})
       seq_name = 'ref_sequence'
       temp_seq = 'intermediate_'+seq_name
-      File.delete("\\\\#{@telnet_ip}\\Source\\#{temp_seq}.cvp") if File.exists?("\\\\#{@telnet_ip}\\Source\\#{temp_seq}.cvp")
+      FileUtils.rm("\\\\#{@telnet_ip}\\Source\\#{temp_seq}.cvp") if File.exists?("\\\\#{@telnet_ip}\\Source\\#{temp_seq}.cvp")
       playlist = File.new("\\\\#{@telnet_ip}\\Source\\#{temp_seq}.cvp",'w+')
       playlist.puts(pattern_seq+"\t-1\t-1\t1")
       playlist.puts(source_seq+"\t-1\t-1\t1")
@@ -333,7 +333,7 @@ module TestEquipment
           load_video({'port' => 'B','video' => current_seq})
           set_first_frame({'port' => 'A', 'frame' => first_frame})
           set_first_frame({'port' => 'B', 'frame' => first_frame})
-          File.delete(res_path) if File.exists?(res_path)         
+          FileUtils.rm(res_path) if File.exists?(res_path)         
           if vc_exec('temporal', "\"#{@vc_test_dir+"\\"+current_seq+'.temporal'}\"", params['y_thresh'], params['cb_thresh'], params['cr_thresh'], params['no_ref'], params['use_spatial'], params['normalize']) 
 			temp_results << [get_temp_vals(res_path), first_frame]
 		  else
@@ -538,7 +538,7 @@ module TestEquipment
       get_dmos_results({'res_path' => @vc_test_dir+'\\'+'dmos_results.mos'}) if result
       result = result && stop_video 
       export_video_file({'dst_file' => test_clip+'_exp.avi', 'seq_name' => test_seq, 'first_frame' => 0, 'last_frame' => params['num_frames'].to_i - 1, 'type' => 'AVI' , 'frame_rate' => params['frame_rate']}) 
-      File.copy(@vc_res_dir+test_seq+'_exp.avi', params['test_clip']) if File.exists?(@vc_res_dir+test_seq+'_exp.avi') 
+      FileUtils.cp(@vc_res_dir+test_seq+'_exp.avi', params['test_clip']) if File.exists?(@vc_res_dir+test_seq+'_exp.avi') 
       result
     end
     
@@ -587,7 +587,7 @@ module TestEquipment
       dummy_test_seq, test_seq_ref, dummy_test_clip, ref_result = get_ref_file(params)
       test_seq =  'current_test'
       test_clip = @vc_test_dir+'\\'+test_seq
-      File.delete(@vc_res_dir+test_seq+'_exp.avi') if File.exists?(@vc_res_dir+test_seq+'_exp.avi')
+      FileUtils.rm(@vc_res_dir+test_seq+'_exp.avi') if File.exists?(@vc_res_dir+test_seq+'_exp.avi')
       result = result && ref_result && activate_lib({'lib_path' => @vc_test_dir}) && set_video_input({'rec_mode' => params['rec_mode']})  
       yield
       sleep [params['rec_delay'].to_f,0.1].max
@@ -602,7 +602,7 @@ module TestEquipment
       get_jnd_results({'res_path' => @vc_test_dir+'\\'+'jnd_results.jnd'}) if result
       get_dmos_results({'res_path' => @vc_test_dir+'\\'+'dmos_results.mos'}) if result
       result = result && stop_video
-      File.copy(@vc_res_dir+test_seq+'_exp.avi', params['test_clip']) if File.exists?(@vc_res_dir+test_seq+'_exp.avi') && result 
+      FileUtils.cp(@vc_res_dir+test_seq+'_exp.avi', params['test_clip']) if File.exists?(@vc_res_dir+test_seq+'_exp.avi') && result 
       result     
     end
     
@@ -793,7 +793,7 @@ module TestEquipment
                     }, 
               }
       res_path = @vc_res_dir+File.basename(params['res_path'])
-      File.delete(res_path) if File.exists?(res_path)
+      FileUtils.rm(res_path) if File.exists?(res_path)
       if yield params
         result_file = File.new(res_path,'r')
         result_lines = result_file.readlines
@@ -844,7 +844,7 @@ module TestEquipment
                    }, 
               }
       res_path = @vc_res_dir+File.basename(params['res_path'])
-      File.delete(res_path) if File.exists?(res_path)         
+      FileUtils.rm(res_path) if File.exists?(res_path)         
       if vc_exec('psnr', "\"#{params['res_path']}\"", params['y_thresh'], params['cb_thresh'], params['cr_thresh'], params['no_ref'], params['use_spatial'], params['normalize']) 
         psnr_file = File.new(res_path,'r')
         psnr_lines = psnr_file.readlines
