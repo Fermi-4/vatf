@@ -50,7 +50,7 @@ module Equipment
       
       if image_path != nil && File.exists?(image_path) && get_image(image_path, params['server'], tmp_path) then
         boot_to_bootloader(params)
-        connect({'type'=>'serial'}) # Connect to serial console to send uboot commands
+        connect({'type'=>'serial'}) if !@target.serial
         send_cmd("",@boot_prompt, 5)
         raise 'Bootloader was not loaded properly. Failed to get bootloader prompt' if timeout?
         #set bootloader env vars and tftp the image to the unit -- Note: add more commands here if you need to change the environment further
@@ -85,6 +85,7 @@ module Equipment
     
     # Reboot the unit to the bootloader prompt
     def boot_to_bootloader(params=nil)
+      connect({'type'=>'serial'}) if !@target.serial
       # Make the code backward compatible. Previous API used optional power_handler object as first parameter 
       @power_handler = params if (params and params.respond_to?(:reset) and params.respond_to?(:switch_on))
       puts 'rebooting DUT'
