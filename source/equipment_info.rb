@@ -39,7 +39,7 @@ class EquipmentInfo
     attr_reader :name, :id
     attr_accessor :telnet_ip, :telnet_port, :driver_class_name, :audio_hardware_info, :telnet_login, 
             :telnet_passwd, :prompt, :first_boot_prompt, :boot_prompt, :executable_path, :nfs_root_path, :samba_root_path, \
-            :login, :login_prompt, :power_port, :tftp_path, :tftp_ip, :video_io_info, :audio_io_info, :usb_ip, \
+            :login, :login_prompt, :login_passwd, :power_port, :tftp_path, :tftp_ip, :video_io_info, :audio_io_info, :usb_ip, \
             :serial_server_ip, :serial_server_port, :serial_port, :serial_params, :board_id, :boot_load_address, :params
             
     #Constructor of the class            
