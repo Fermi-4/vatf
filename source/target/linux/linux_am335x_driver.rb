@@ -18,7 +18,7 @@ module Equipment
       else
         connect({'type'=>'serial'}) if !@target.serial
         power_cycle()
-        wait_for(/cpsw/, 10)
+        wait_for(/cpsw/, 5)
         send_cmd("\e", /#{@boot_prompt}/, 10)
         
       end

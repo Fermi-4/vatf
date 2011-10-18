@@ -3,27 +3,28 @@ require File.dirname(__FILE__)+'/build_client'
 module Equipment
   class LinuxEquipmentDriver < EquipmentDriver
  
-    @@boot_info = Hash.new('console=ttyS0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock').merge(
+    @@boot_info = Hash.new('console=ttyS0,115200n8 ip=dhcp ').merge(
     {
-     'dm355'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=116M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',
-     'dm355-evm'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock mem=116M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',
-     'dm365'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
-     'dm365-evm'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
-     'dm368-evm'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
-     'am3730' => 'console=ttyO0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'am37x-evm' => 'console=ttyO0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'dm3730' => 'console=ttyO0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'dm373x-evm' => 'console=ttyO0,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'am1808'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
-     'am180x-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
-     'da850-omapl138-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp mem=32M root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
-     'am3517-evm'  => 'console=ttyO2,115200n8 noinitrd ip=dhcp root=/dev/nfs rw nfsroot=${nfs_root_path},nolock',
-     'dm814x-evm' => 'console=ttyO0,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'dm816x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'am387x-evm' => 'console=ttyO0,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'am389x-evm' => 'console=ttyO2,115200n8 ip=dhcp rw mem=166M earlyprink vram=50M root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'beagleboard' => 'console=ttyO2,115200n8 ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock',
-     'am335x-evm' => 'console=ttyO0,115200n8 ip=dhcp rw mem=128M earlyprink root=/dev/nfs nfsroot=${nfs_root_path},nolock',
+     'dm355'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp  mem=116M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',
+     'dm355-evm'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp  mem=116M davinci_enc_mngr.ch0_mode=NTSC davinci_enc_mngr.ch0_output=COMPOSITE',
+     'dm365'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp  mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
+     'dm365-evm'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp  mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
+     'dm368-evm'  => 'console=ttyS0,115200n8 noinitrd ip=dhcp  mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
+     'am3730' => 'console=ttyO0,115200n8 ip=dhcp ',
+     'am37x-evm' => 'console=ttyO0,115200n8 ip=dhcp ',
+     'dm3730' => 'console=ttyO0,115200n8 ip=dhcp ',
+     'dm373x-evm' => 'console=ttyO0,115200n8 ip=dhcp ',
+     'am1808'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp ',
+     'am180x-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp ',
+     'da850-omapl138-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp mem=32M ',
+     'am3517-evm'  => 'console=ttyO2,115200n8 noinitrd ip=dhcp ',
+     'dm814x-evm' => 'console=ttyO0,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
+     'dm816x-evm' => 'console=ttyO2,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
+     'am387x-evm' => 'console=ttyO0,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
+     'am389x-evm' => 'console=ttyO2,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
+     'beagleboard' => 'console=ttyO2,115200n8 ip=dhcp ',
+     'am335x-evm' => 'console=ttyO0,115200n8 ip=dhcp  mem=128M earlyprink ',
+     'beaglebone' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
      })
     
     def initialize(platform_info, log_path)
@@ -48,32 +49,51 @@ module Equipment
       @boot_args = params['bootargs'] if params['bootargs']
 			tmp_path = File.join(params['tester'].downcase.strip,params['target'].downcase.strip,params['platform'].downcase.strip)
       
-      if image_path != nil && File.exists?(image_path) && get_image(image_path, params['server'], tmp_path) then
+      if image_path == 'mmc' || ( image_path != nil && File.exists?(image_path) && get_image(image_path, params['server'], tmp_path) ) then
         boot_to_bootloader(params)
         connect({'type'=>'serial'}) if !@target.serial
         send_cmd("",@boot_prompt, 5)
         raise 'Bootloader was not loaded properly. Failed to get bootloader prompt' if timeout?
-        #set bootloader env vars and tftp the image to the unit -- Note: add more commands here if you need to change the environment further
-        send_cmd("setenv serverip #{tftp_ip}",@boot_prompt, 10)
-        send_cmd("setenv bootcmd 'dhcp;tftp;bootm'",@boot_prompt, 10)
-        send_cmd("setenv bootfile #{tmp_path}/#{File.basename(image_path)}",@boot_prompt, 10)
-        raise 'Unable to set bootfile' if timeout?
+        send_cmd("setenv bootfile #{tmp_path}/#{File.basename(image_path)}",@boot_prompt, 10) if image_path != 'mmc'
         send_cmd("setenv nfs_root_path #{nfs_root}",@boot_prompt, 10)
         raise 'Unable to set nfs root path' if timeout?
-        send_cmd("setenv bootargs #{@boot_args}",@boot_prompt, 10)
-        raise 'Unable to set bootargs' if timeout?
+        #set bootloader env vars -- Note: add more commands here if you need to change the environment further
+        get_boot_cmd(params).each {|cmd|
+          send_cmd("#{cmd}",@boot_prompt, 10)
+          raise "Timeout waiting for bootloader prompt #{@boot_prompt}" if timeout?
+        }
         send_cmd("saveenv",@boot_prompt, 10)
         raise 'Unable save environment' if timeout?
         send_cmd("printenv", @boot_prompt, 20)
-        send_cmd("usb start", @boot_prompt, 30) if @name.match(/beagle/)
+        send_cmd("usb start", @boot_prompt, 30) if @name.match(/beagleboard/)
         send_cmd('boot', /#{@login_prompt}/, 600)
         raise 'Unable to boot platform or platform took more than 10 minutes to boot' if timeout?
         # command prompt context commands
         send_cmd(@login, @prompt, 10) # login to the unit
         raise 'Unable to login' if timeout?
+      
       else
         raise "image #{image_path} does not exist, unable to copy"
+      
       end
+    end
+    
+    def get_boot_cmd(params)
+      image_path = params['image_path']
+      cmds = []
+      if image_path == 'mmc' then
+        cmds << "setenv mmc_load_uimage 'mmc rescan; fatload mmc 0 ${loadaddr} uImage'"
+        cmds << "setenv bootcmd 'run mmc_load_uimage; bootm ${loadaddr}'"
+        bootargs = params['bootargs'] ? "setenv bootargs #{@boot_args}" : "setenv bootargs #{@boot_args} root=/dev/mmcblk0p2 ext3 rootwait" 
+        cmds << bootargs
+      
+      else
+        cmds << "setenv bootcmd 'dhcp;tftp;bootm'"
+        cmds << "setenv serverip '#{params['server'].telnet_ip}'"
+        bootargs = params['bootargs'] ? "setenv bootargs #{@boot_args}" : "setenv bootargs #{@boot_args} root=/dev/nfs nfsroot=${nfs_root_path},nolock"
+        cmds << bootargs
+      end
+      cmds
     end
 
     # stop the bootloader after a reboot
@@ -145,7 +165,7 @@ module Equipment
         @power_handler.reset(@power_port)
       else
         puts "Soft reboot..."
-        send_cmd('reboot', /Rebooting/, 40)        
+        send_cmd('reboot', /(Restarting|Rebooting)/, 40)        
       end
     end
     
