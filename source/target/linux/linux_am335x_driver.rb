@@ -13,6 +13,7 @@ module Equipment
       @power_handler = params if (params and params.respond_to?(:reset) and params.respond_to?(:switch_on))  
     
       if params.instance_of? Hash and params['primary_bootloader'] and params['secondary_bootloader']
+        params['minicom_script_generator'] = method( :create_minicom_uart_script_spl )
         load_bootloader_from_uart(params)
         
       else

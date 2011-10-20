@@ -169,7 +169,39 @@ module Equipment
       end
     end
     
-    def create_minicom_uart_script(params)
+    def create_minicom_uart_script_spl(params)
+      File.open(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['minicom_script_name']), "w") do |file|
+        sleep 1  
+        file.puts "timeout 180"
+        file.puts "verbose on"
+        file.puts "! /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']}"
+        file.puts "expect {"
+        file.puts "    \"CCCCC\""
+        file.puts "}"
+        file.puts "! /usr/bin/sb -v  --ymodem #{params['secondary_bootloader']}"
+        file.puts "expect {"
+        file.puts "    \"stop autoboot\""
+        file.puts "}"
+        file.puts "send \"\""
+        file.puts "expect {"
+        file.puts "    \"#{@boot_prompt.source}\""
+        file.puts "}"
+        file.puts "print \"\\nDone loading u-boot\\n\""
+        file.puts "! killall -s SIGHUP minicom"
+      end
+    end
+    
+    def load_bootloader_from_uart(params)
+      server = params['server']
+      power_cycle()
+      params['minicom_script_name'] = 'uart-boot.minicom'
+      puts "\nCreating minicom script\n" # Debug info
+      params['minicom_script_generator'].call params
+      puts "\nStarting minicom script\n" # Debug info
+      server.send_cmd("cd #{File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'])}; minicom -D #{@serial_port} -b 115200 -S #{params['minicom_script_name']}", server.prompt, 90)
+    end
+    
+    def create_minicom_uart_script_ti_min(params)
       File.open(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['minicom_script_name']), "w") do |file|
         sleep 1  
         file.puts "timeout 180"
@@ -195,16 +227,6 @@ module Equipment
         file.puts "print \"\\nDone loading u-boot\\n\""
         file.puts "! killall -s SIGHUP minicom"
       end
-    end
-    
-    def load_bootloader_from_uart(params)
-      server = params['server']
-      power_cycle()
-      params['minicom_script_name'] = 'uart-boot.minicom'
-      puts "\nCreating minicom script\n" # Debug info
-      create_minicom_uart_script(params)
-      puts "\nStarting minicom script\n" # Debug info
-      server.send_cmd("cd #{File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'])}; minicom -D #{@serial_port} -b 115200 -S #{params['minicom_script_name']}", server.prompt, 90)
     end
       
   end
