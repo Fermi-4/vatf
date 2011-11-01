@@ -17,7 +17,7 @@ module Equipment
       log_info("Starting target session") if @targetc_log
       @platform_info = platform_info
       platform_info.instance_variables.each {|var|
-        self.class.class_eval {attr_reader *(var.to_s.gsub('@',''))}
+        self.class.class_eval {attr_accessor *(var.to_s.gsub('@',''))}
         self.instance_variable_set(var, platform_info.instance_variable_get(var))
       }
       @target = EquipmentConnection.new(@platform_info) 
