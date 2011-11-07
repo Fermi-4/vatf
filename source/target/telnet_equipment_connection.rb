@@ -12,14 +12,17 @@ class TelnetEquipmentConnection < TelnetBaseListenerClient
   end
 
   def connect
-    send_cmd("",/.*/)  if @telnet_port.to_s.strip != '23'
+    puts("")  if @telnet_port.to_s.strip != '23'
     ret = ''
     options = {}
     options["Name"] = @telnet_login.to_s if @telnet_login
-		options["Password"] = @telnet_passwd if @telnet_passwd
+	options["Password"] = @telnet_passwd if @telnet_passwd
     options["LoginPrompt"] = @login_prompt if @login_prompt
+	options["PasswordPrompt"] = @password_prompt if @password_prompt
+	options["TimeOut"] = @timeout if @timeout
+	options["Prompt"] = @prompt if @prompt
     if !options.empty?
-      login(options){ |c| 
+      login(options){ |c|
         ret = ret + c 
         break if c.match(/#{@prompt}/)
 		}
@@ -36,10 +39,10 @@ class TelnetEquipmentConnection < TelnetBaseListenerClient
 	command        = params[0]
     expected_match = params[1] #? params[1] : Regexp.new('.*')
     timeout        = params[2] #? params[2] : 30
-	  check_cmd_echo = params[3] #? params[3] : true
+	check_cmd_echo = params[3] #? params[3] : true
     append_linefeed = params[4] #? params[4] : true
-    #Kernel.puts "telnet_equipment_connection: #{command}, #{expected_match}, #{timeout}, #{check_cmd_echo}" # TODO REMOVE DEBUG PRINT
-    @is_timeout = false
+	#Kernel.puts "telnet_equipment_connection: #{params}, #{command}, #{expected_match}, #{timeout}, #{check_cmd_echo}" # TODO REMOVE DEBUG PRINT
+	@is_timeout = false
     listener = BaseListener.new(command, expected_match, check_cmd_echo)
     add_listener(listener)
     if append_linefeed

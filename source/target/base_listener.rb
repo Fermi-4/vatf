@@ -112,18 +112,20 @@ class TelnetBaseListenerClient < Net::Telnet
 	  @telnet_ip   = platform_info.telnet_ip
       @telnet_port = platform_info.telnet_port
 	end
-    @prompt      = platform_info.prompt
+	@prompt      = platform_info.prompt
     @boot_prompt = platform_info.boot_prompt
     @telnet_login = platform_info.telnet_login
     @telnet_passwd = platform_info.telnet_passwd
-		@login_prompt  = platform_info.login_prompt if platform_info.respond_to?:login_prompt
-	
+	@login_prompt  = platform_info.login_prompt if platform_info.respond_to?:login_prompt
+	@password_prompt  = platform_info.password_prompt if platform_info.respond_to?:password_prompt
+	@timeout = platform_info.timeout if platform_info.respond_to?:timeout
+	platform_info.telnet_bin_mode != nil ? @telnet_bin_mode = platform_info.telnet_bin_mode : @telnet_bin_mode = true
 	super( "Host" => @telnet_ip,
            "Port" => @telnet_port,
            "Waittime" => 0,
            "Prompt" => @prompt,
            "Telnetmode" => true,
-           "Binmode" => true )
+           "Binmode" => @telnet_bin_mode)
   end
   
   def add_listener(listener)

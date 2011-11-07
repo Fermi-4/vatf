@@ -16,13 +16,7 @@ class EquipmentConnection
     case params['type'].to_s.downcase.strip
     when 'telnet'
       @telnet = TelnetEquipmentConnection.new(@platform_info) 
-      if @platform_info.driver_class_name.to_s.downcase.include?("wince")
-        @telnet.connect
-        @telnet.waitfor({'Match' => />/, 'Timeout'=> 10})
-        sleep 1
-      else
-        @telnet.connect
-      end
+      @telnet.connect
 	  @telnet.start_listening
       @default = @telnet
     

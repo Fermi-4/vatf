@@ -303,3 +303,14 @@ linux_server.nfs_root_path = '/usr/workdir/filesys/'
 linux_server.samba_root_path = "filesys"
 linux_server.tftp_path = '/tftpboot'
 
+# Kvaser CAN Server
+can_kvaser_host = EquipmentInfo.new("can","kvaser")
+can_kvaser_host.telnet_bin_mode = false
+can_kvaser_host.driver_class_name = "LinuxEquipmentDriver"
+can_kvaser_host.telnet_ip = '10.218.103.117'
+can_kvaser_host.telnet_port = 2424
+can_kvaser_host.password_prompt = /password:.*/i
+can_kvaser_host.prompt = /Documents/
+can_kvaser_host.telnet_login = 'admintest'
+can_kvaser_host.telnet_passwd = 'admin123Test'
+can_kvaser_host.login_prompt = /login:/i

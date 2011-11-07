@@ -40,7 +40,8 @@ class EquipmentInfo
     attr_accessor :telnet_ip, :telnet_port, :driver_class_name, :audio_hardware_info, :telnet_login, 
             :telnet_passwd, :prompt, :first_boot_prompt, :boot_prompt, :executable_path, :nfs_root_path, :samba_root_path, \
             :login, :login_prompt, :login_passwd, :power_port, :tftp_path, :tftp_ip, :video_io_info, :audio_io_info, :usb_ip, \
-            :serial_server_ip, :serial_server_port, :serial_port, :serial_params, :board_id, :boot_load_address, :params
+            :serial_server_ip, :serial_server_port, :serial_port, :serial_params, :board_id, :boot_load_address, :params, \
+			:password_prompt, :timeout, :telnet_bin_mode
             
     #Constructor of the class            
     def initialize(name, id = nil)
