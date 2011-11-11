@@ -10,7 +10,8 @@ module Equipment
     # Reboot the unit to the bootloader prompt
     def boot_to_bootloader(params=nil)
       # Make the code backward compatible, previous API used optional power_handler object as first parameter 
-      @power_handler = params if (params and params.respond_to?(:reset) and params.respond_to?(:switch_on))  
+      @power_handler = params if ((!params.instance_of? Hash) and params.respond_to?(:reset) and params.respond_to?(:switch_on))  
+      @power_handler = params['power_handler'] if !@power_handler
     
       if params.instance_of? Hash and params['primary_bootloader'] and params['secondary_bootloader']
         params['minicom_script_generator'] = method( :create_minicom_uart_script_spl )
@@ -19,7 +20,7 @@ module Equipment
       else
         connect({'type'=>'serial'}) if !@target.serial
         power_cycle()
-        wait_for(/cpsw/, 5)
+        wait_for(/cpsw/, 90)
         send_cmd("\e", /#{@boot_prompt}/, 10)
         
       end

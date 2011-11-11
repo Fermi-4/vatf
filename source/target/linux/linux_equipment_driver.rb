@@ -62,7 +62,7 @@ module Equipment
           send_cmd("#{cmd}",@boot_prompt, 10)
           raise "Timeout waiting for bootloader prompt #{@boot_prompt}" if timeout?
         }
-        send_cmd("saveenv",@boot_prompt, 10)
+        send_cmd("saveenv",@boot_prompt, 10) if !@name.match(/beagleboard/)
         raise 'Unable save environment' if timeout?
         send_cmd("printenv", @boot_prompt, 20)
         send_cmd("usb start", @boot_prompt, 30) if @name.match(/beagleboard/)
@@ -84,11 +84,11 @@ module Equipment
       if image_path == 'mmc' then
         cmds << "setenv mmc_load_uimage 'mmc rescan; fatload mmc 0 ${loadaddr} uImage'"
         cmds << "setenv bootcmd 'run mmc_load_uimage; bootm ${loadaddr}'"
-        bootargs = params['bootargs'] ? "setenv bootargs #{@boot_args}" : "setenv bootargs #{@boot_args} root=/dev/mmcblk0p2 ext3 rootwait" 
+        bootargs = params['bootargs'] ? "setenv bootargs #{@boot_args}" : "setenv bootargs #{@boot_args} root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait" 
         cmds << bootargs
       
       else
-        cmds << "setenv bootcmd 'dhcp;tftp;bootm'"
+        cmds << "setenv bootcmd 'dhcp;bootm'"
         cmds << "setenv serverip '#{params['server'].telnet_ip}'"
         bootargs = params['bootargs'] ? "setenv bootargs #{@boot_args}" : "setenv bootargs #{@boot_args} root=/dev/nfs nfsroot=${nfs_root_path},nolock"
         cmds << bootargs
@@ -107,13 +107,17 @@ module Equipment
     def boot_to_bootloader(params=nil)
       connect({'type'=>'serial'}) if !@target.serial
       # Make the code backward compatible. Previous API used optional power_handler object as first parameter 
-      @power_handler = params if (params and params.respond_to?(:reset) and params.respond_to?(:switch_on))
+      @power_handler = params if ((!params.instance_of? Hash) and params.respond_to?(:reset) and params.respond_to?(:switch_on))
+      @power_handler = params['power_handler'] if !@power_handler
+      
       puts 'rebooting DUT'
 			if @power_port !=nil
         puts 'Resetting @using power switch'
         @power_handler.reset(@power_port)
         send_cmd("\e", /(U-Boot)|(#{@boot_prompt})/, 3)
       else
+        send_cmd('', /#{@login_prompt}/, 2)
+        send_cmd(@login, @prompt, 10) if !timeout   # login to the unit
         send_cmd('reboot', /U-Boot/, 40)
       end
       # stop the autobooter from autobooting the box
@@ -165,7 +169,14 @@ module Equipment
         @power_handler.reset(@power_port)
       else
         puts "Soft reboot..."
-        send_cmd('reboot', /(Restarting|Rebooting)/, 40)        
+        send_cmd('', @prompt, 1)
+        if timeout?
+          # assume at u-boot prompt
+          send_cmd('reset', /resetting/i, 3)
+        else
+          # at linux prompt
+          send_cmd('reboot', /(Restarting|Rebooting|going\s+down)/i, 40)
+        end
       end
     end
     
