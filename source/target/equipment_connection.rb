@@ -18,7 +18,7 @@ class EquipmentConnection
       @telnet = TelnetEquipmentConnection.new(@platform_info) 
       @telnet.connect
 	  @telnet.start_listening
-      @default = @telnet
+      @default = @telnet if !@default
     
     when 'serial'
       if @platform_info.serial_port.to_s.strip != ''

@@ -24,7 +24,7 @@ class BaseListener
   end
   
   def match
-    @match = true   if ( @response.index(@expect) && (!@check_cmd_echo || @response.index(/#{@cmd}.+?#{@expect}/m)) )
+    @match = (@response.index(@expect) && (!@check_cmd_echo || @response.index(/#{@cmd}.+?#{@expect}/m)) )
 	#@match = true   if ( @response.index(@expect) && (!@check_cmd_echo || @response.index(@cmd)))
     @match
   end
