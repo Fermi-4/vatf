@@ -3,7 +3,7 @@ require 'delegate'
 module Equipment
 
   class BaseDriver < SimpleDelegator  
- 
+
     def initialize(platform_info, log_path)
       @platform_info = platform_info
       @log_path      = log_path 
@@ -19,7 +19,10 @@ module Equipment
       rescue Exception => e
         raise e.backtrace.to_s+"\n Unable to start #{iface_type} interface with #{@platform_info.name} #{@platform_info.id}. Verify communication channel and settings"
     end
-        
+     
+    def instance_variable_defined?(symbol)
+      __getobj__.instance_variable_defined?(symbol)
+    end   
 end
 
 end
