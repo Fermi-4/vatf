@@ -117,7 +117,7 @@ module Equipment
         send_cmd("\e", /(U-Boot)|(#{@boot_prompt})/, 3)
       else
         send_cmd('', /#{@login_prompt}/, 2)
-        send_cmd(@login, @prompt, 10) if !timeout   # login to the unit
+        send_cmd(@login, @prompt, 10) if !timeout?   # login to the unit
         send_cmd('reboot', /U-Boot/, 40)
       end
       # stop the autobooter from autobooting the box
