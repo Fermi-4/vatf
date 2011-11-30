@@ -39,8 +39,8 @@ class TelnetEquipmentConnection < TelnetBaseListenerClient
 	command        = params[0]
     expected_match = params[1] ? params[1] : Regexp.new('.*')
     timeout        = params[2] ? params[2] : 30
-	  check_cmd_echo = params[3] ? params[3] : true
-    append_linefeed = params[4] ? params[4] : true
+	  check_cmd_echo = params[3] != nil ? params[3] : true
+    append_linefeed = params[4] != nil ? params[4] : true
     #Kernel.puts "telnet_equipment_connection: #{command}, #{expected_match}, #{timeout}, #{check_cmd_echo}" # TODO REMOVE DEBUG PRINT
 	@is_timeout = false
     listener = BaseListener.new(command, expected_match, check_cmd_echo)
