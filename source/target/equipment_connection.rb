@@ -13,20 +13,20 @@ class EquipmentConnection
   end
 
   def connect(params)
+    puts "\n equipment_connection::connect "+ __LINE__.to_s
     case params['type'].to_s.downcase.strip
     when 'telnet'
       @telnet = TelnetEquipmentConnection.new(@platform_info) 
       @telnet.connect
-	  @telnet.start_listening
-      @default = @telnet if !@default
-    
+      @telnet.start_listening
+      @default = @telnet if ((!@default) || params['force_connect'])            #change added 12-10-2011
     when 'serial'
       if @platform_info.serial_port.to_s.strip != ''
         @serial = SerialEquipmentConnection.new(@platform_info) 
       else
         @serial = SerialServerConnection.new(@platform_info)
       end
-	  @serial.start_listening
+      @serial.start_listening
       @default = @serial if !@default
     else
       raise "Unknown connection type: #{params['type'].to_s}"
@@ -45,11 +45,11 @@ class EquipmentConnection
     # command        = params[0]
     # expected_match = params[1] #? params[1] : Regexp.new('.*')
     # timeout        = params[2] #? params[2] : 30
-	# check_cmd_echo = params[3] #? params[3] : true
+    # check_cmd_echo = params[3] #? params[3] : true
     # puts "equipment_connection: #{command}, #{expected_match}, #{timeout}, #{check_cmd_echo}" # TODO REMOVE DEBUG PRINT
     
-	@default.send_cmd(*params)
-	end
+    @default.send_cmd(*params)
+  end
   
   def wait_for(*params)
     @default.wait_for(*params)
@@ -70,7 +70,4 @@ class EquipmentConnection
   def update_response
     @default.update_response
   end
-  
 end
-
-
