@@ -39,6 +39,7 @@ module Equipment
 	  #puts "\n\n==============\nequipment_driver: #{command}, #{expected_match}, #{timeout}, #{check_cmd_echo}" # TODO REMOVE DEBUG PRINT
       log_info("Host: " + command)
       @target.send_cmd(command, expected_match, timeout, check_cmd_echo, append_linefeed)
+      @target.response
       rescue Timeout::Error => e
         puts ">>>> On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s
         log_error("On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s)
