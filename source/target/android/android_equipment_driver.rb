@@ -7,7 +7,8 @@ module Equipment
     @@boot_info = {'am3517-evm' => 'console=ttyO2,115200n8 androidboot.console=ttyO2 mem=256M rootfstype=ext3 rootdelay=1 init=/init ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mpurate=600 omap_vout.vid1_static_vrfb_alloc=y vram="8M" omapfb.vram=0:8M',
                    'am37x-evm' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M rootfstype=ext3 rootdelay=1 init=/init ip=dhcp rw root=/dev/nfs nfsroot=${nfs_root_path},nolock mpurate=1000 omap_vout.vid1_static_vrfb_alloc=y vram="8M" omapfb.vram=0:8M',
                    'ti816x-evm' => 'mem=166M@0x80000000 mem=768M@0x90000000 console=ttyO2,115200n8 androidboot.console=ttyO2 noinitrd ip=dhcp rw init=/init root=/dev/nfs nfsroot=${nfs_root_path},nolock rootwait',
-		   'ti814x-evm' => 'mem=128M console=ttyO0,115200n8 noinitrd ip=dhcp rw init=/init root=/dev/nfs nfsroot=${nfs_root_path} rootwait vram=50M'}   
+		               'ti814x-evm' => 'mem=128M console=ttyO0,115200n8 noinitrd ip=dhcp rw init=/init root=/dev/nfs nfsroot=${nfs_root_path},nolock rootwait vram=50M',
+		               'am335x-evm' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M root=/dev/nfs nfsroot=${nfs_root_path},nolock rw rootfstype=ext4 rootwait init=/init ip=dhcp'}   
 
     def initialize(platform_info, log_path)
       super(platform_info, log_path)
