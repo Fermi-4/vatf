@@ -16,6 +16,7 @@ module Equipment
      'dm373x-evm' => 'console=ttyO0,115200n8 ip=dhcp ',
      'am1808'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp ',
      'am180x-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp ',
+     'am181x-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp ',
      'da850-omapl138-evm'  => 'console=ttyS2,115200n8 noinitrd ip=dhcp mem=32M ',
      'am3517-evm'  => 'console=ttyO2,115200n8 noinitrd ip=dhcp ',
      'dm814x-evm' => 'console=ttyO0,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
