@@ -8,8 +8,12 @@ module Equipment
     end
 
     # Reboot the unit to the bootloader prompt
-    def boot_to_bootloader(power_hdler=nil)
-      @power_handler = power_hdler if power_hdler 
+    def boot_to_bootloader(params=nil)
+      connect({'type'=>'serial'}) if !@target.serial
+      # Make the code backward compatible. Previous API used optional power_handler object as first parameter 
+      @power_handler = params if ((!params.instance_of? Hash) and params.respond_to?(:reset) and params.respond_to?(:switch_on))
+      @power_handler = params['power_handler'] if !@power_handler
+      #@power_handler = power_hdler if power_hdler 
       puts 'rebooting DUT am387x'
       if @power_port !=nil
         puts 'Resetting @using power switch'
