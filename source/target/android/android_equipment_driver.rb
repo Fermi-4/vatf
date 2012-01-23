@@ -45,7 +45,7 @@ module Equipment
         send_cmd("saveenv",@boot_prompt, 10)
         raise 'Unable save environment' if timeout?
         send_cmd("printenv", @boot_prompt, 20)
-        send_cmd('boot', "zygote", 120)
+        send_cmd('boot', "adb_open", 600)
         raise 'Unable to boot platform or platform took more than 2 minutes to boot' if timeout?
         sleep(4)
         send_host_cmd("adb kill-server")
