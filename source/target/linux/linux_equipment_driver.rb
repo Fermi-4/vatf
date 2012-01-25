@@ -98,7 +98,7 @@ module Equipment
       else
         cmds << "setenv bootcmd 'dhcp;tftp;bootm'"
         cmds << "setenv serverip '#{params['server'].telnet_ip}'"
-        bootargs = params['bootargs'] ? "setenv bootargs #{@boot_args}" : "setenv bootargs #{@boot_args} root=/dev/nfs nfsroot=${nfs_root_path},nolock"
+        bootargs = params['bootargs'] ? "setenv bootargs #{params['bootargs']}" : "setenv bootargs #{@boot_args} root=/dev/nfs nfsroot=${nfs_root_path},nolock"
         cmds << bootargs
       end
       cmds
