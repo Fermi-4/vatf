@@ -1,7 +1,12 @@
 require File.dirname(__FILE__)+'/../equipment_driver'
 require File.dirname(__FILE__)+'/build_client'
+require File.dirname(__FILE__)+'/../../lib/cmd_translator'
 module Equipment
   class LinuxEquipmentDriver < EquipmentDriver
+
+    include CmdTranslator
+    @uboot_version = nil
+    @linux_version = nil
  
     @@boot_info = Hash.new('console=ttyS0,115200n8 ip=dhcp ').merge(
     {
@@ -55,6 +60,7 @@ module Equipment
         connect({'type'=>'serial'}) if !@target.serial
         send_cmd("",@boot_prompt, 5)
         raise 'Bootloader was not loaded properly. Failed to get bootloader prompt' if timeout?
+        @uboot_version = get_uboot_version(params)
         send_cmd("setenv bootfile #{tmp_path}/#{File.basename(image_path)}",@boot_prompt, 10) if image_path != 'mmc'
         send_cmd("setenv nfs_root_path #{nfs_root}",@boot_prompt, 10)
         raise 'Unable to set nfs root path' if timeout?
@@ -83,7 +89,8 @@ module Equipment
       image_path = params['image_path']
       cmds = []
       if image_path == 'mmc' then
-        cmds << "setenv mmc_load_uimage 'mmc rescan 0; fatload mmc 0 ${loadaddr} uImage'"
+        mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@uboot_version})
+        cmds << "setenv mmc_load_uimage \' #{mmc_init_cmd}; fatload mmc 0 ${loadaddr} uImage \' "
         cmds << "setenv bootcmd 'run mmc_load_uimage; bootm ${loadaddr}'"
         bootargs = params['bootargs'] ? "setenv bootargs #{params['bootargs']}" : "setenv bootargs #{@boot_args} root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait" 
         cmds << bootargs
@@ -95,6 +102,35 @@ module Equipment
         cmds << bootargs
       end
       cmds
+    end
+
+    def get_uboot_version(params=nil)
+      return @uboot_version if @uboot_version
+      if !at_prompt?({'prompt'=>@boot_prompt})
+        puts "Not at uboot prompt, reboot to boot prompt...\n"
+        boot_to_bootloader(params)
+      end
+      send_cmd("version", @boot_prompt, 10)
+      version = /U-Boot\s+([\d\.]+)\s*\(/.match(response).captures[0]
+      raise "Could not find uboot version" if version == nil
+      puts "\nuboot version = #{version}\n\n"
+      return version
+    end
+
+    def get_linux_version()
+      return @linux_version if @linux_version
+      raise "Unable to get linux version since Dut is not at linux prompt!" if !at_prompt?({'prompt'=>@prompt})
+      send_cmd("cat /proc/version", @prompt, 10)
+      version = /Linux\s+version\s+([\d\.]+)\s*/.match(response).captures[0]
+      raise "Could not find linux version" if version == nil
+      puts "\nlinux version = #{version}\n\n"
+      return version
+    end
+
+    def at_prompt?(params)
+      prompt = params['prompt']
+      send_cmd("", prompt, 5)
+      !timeout?
     end
 
     # stop the bootloader after a reboot

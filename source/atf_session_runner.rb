@@ -1,6 +1,6 @@
 require 'db_handler/db_handlers'
 require 'equipment_info'
-require 'os_func'
+require 'lib/os_func'
 require 'html_writers/html_writers'
 require 'optparse'
 require 'ostruct'
