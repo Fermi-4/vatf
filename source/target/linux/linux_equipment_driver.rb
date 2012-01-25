@@ -85,7 +85,7 @@ module Equipment
       if image_path == 'mmc' then
         cmds << "setenv mmc_load_uimage 'mmc rescan 0; fatload mmc 0 ${loadaddr} uImage'"
         cmds << "setenv bootcmd 'run mmc_load_uimage; bootm ${loadaddr}'"
-        bootargs = params['bootargs'] ? "setenv bootargs #{@boot_args}" : "setenv bootargs #{@boot_args} root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait" 
+        bootargs = params['bootargs'] ? "setenv bootargs #{params['bootargs']}" : "setenv bootargs #{@boot_args} root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait" 
         cmds << bootargs
       
       else
