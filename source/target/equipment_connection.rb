@@ -13,21 +13,28 @@ class EquipmentConnection
   end
 
   def connect(params)
-    puts "\n equipment_connection::connect "+ __LINE__.to_s
     case params['type'].to_s.downcase.strip
     when 'telnet'
-      @telnet = TelnetEquipmentConnection.new(@platform_info) 
-      @telnet.connect
-      @telnet.start_listening
+      if !@telnet || @telnet.closed?
+        @telnet = TelnetEquipmentConnection.new(@platform_info) 
+        @telnet.connect
+        @telnet.start_listening
+      else
+        puts "Telnet connection already exists, using existing connection"
+      end
       @default = @telnet if ((!@default) || params['force_connect'])            #change added 12-10-2011
     when 'serial'
-      if @platform_info.serial_port.to_s.strip != ''
-        @serial = SerialEquipmentConnection.new(@platform_info) 
+      if !@serial || @serial.closed?
+        if @platform_info.serial_port.to_s.strip != ''
+          @serial = SerialEquipmentConnection.new(@platform_info) 
+        else
+          @serial = SerialServerConnection.new(@platform_info)
+        end
+        @serial.start_listening
       else
-        @serial = SerialServerConnection.new(@platform_info)
+        puts "Serial connection already exists, using existing connection"
       end
-      @serial.start_listening
-      @default = @serial if !@default
+      @default = @serial if !@default || params['force_connect']
     else
       raise "Unknown connection type: #{params['type'].to_s}"
     end
