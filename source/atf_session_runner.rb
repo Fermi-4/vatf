@@ -314,6 +314,7 @@ class SessionHandler
     
     #This function starts the test. Takes iter the test iteration number (number)
     def start_test(iter)
+      @current_test_iteration = iter
       @test_start_time = Time.now
       @test_result = TestResult.new
       @rtp_db.set_test_tables(@test_id)
@@ -326,7 +327,7 @@ class SessionHandler
       @equipment = Hash.new
       @connection_handler = ConnectionHandler.new(@files_dir)
       @power_handler = PowerHandler.new()
-      logs_array = Array.new
+      @logs_array = Array.new
       temp_params = @cli_params.clone
       temp_params.delete('release_assets')
       @test_params = @rtp_db.get_test_parameters(temp_params.merge(@cli_params['release_assets']))
@@ -404,14 +405,14 @@ class SessionHandler
               end 
               @connection_handler.load_switch_connections(@equipment[test_vars],equip_type,eq_id, i, iter)
               @power_handler.load_power_ports($equipment_table[equip_type][eq_id][i].power_port)
-              logs_array << [test_vars, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if $equipment_table[equip_type][eq_id][i].driver_class_name && $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
+              @logs_array << [test_vars, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if $equipment_table[equip_type][eq_id][i].driver_class_name && $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
             end
           end
         end
         rescue Exception => e
             raise e.to_s+"\n"+e.backtrace.to_s+"\n Unable to assign equipment #{current_etype}, #{eq_id} entry #{current_instance} to #{current_var}. Verify that #{@rtp_db.get_config_script} contains valid bench file entries; that you can communicate with #{current_etype}, #{eq_id} entry #{current_instance}; and that #{current_etype}, #{eq_id} entry #{current_instance} IO information is correct."
       end
-      @connection_handler.media_switches.each{|key,val| logs_array << ["MediaSwitch"+key.to_s, val[1].sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")]}
+      @connection_handler.media_switches.each{|key,val| @logs_array << ["MediaSwitch"+key.to_s, val[1].sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")]}
       test_script_found = false
       #require @view_drive+@rtp_db.get_test_script.gsub(".rb","")
       load File.join(@view_drive,@rtp_db.get_test_script)
@@ -457,7 +458,7 @@ class SessionHandler
         @test_ended = Time.now
         config_file.close if config_file && !is_db_type_xml?(@db_type)
         @rtp_db.set_test_result(@rtp_db.get_test_script, @test_result.result, @test_result.comment, @test_result.perf_data, "0",test_result_html_path.sub(@session_results_base_directory,@session_results_base_url), @test_start_time, @test_ended, iter, @tester.to_s, @test_params.platform, @test_params.target) 
-        @results_html_file.add_logs(logs_array)
+        @results_html_file.add_logs(@logs_array)
         @results_html_file.add_test_result(@rtp_db.get_test_description.to_s, @test_result.result, html_result)
         @results_html_file.add_test_information(@rtp_db.get_test_id.to_s, @rtp_db.get_test_script.to_s, @rtp_db.get_test_description.to_s, @test_start_time.strftime("%m/%d/%Y  %I:%M%p"), @test_ended.strftime("%m/%d/%Y  %I:%M%p"), @test_ended.strftime("%m/%d/%Y  %I:%M%p"))
         @results_html_file.write_file
@@ -545,14 +546,34 @@ class SessionHandler
       if File.exists?(file_path)
         server_dir = File.dirname(@files_dir)
         fpath = File.join(server_dir,File.basename(file_path))
-		puts "FPath is #{fpath}\n"
-		puts "file_path is #{file_path}\n"
-        FileUtils.cp(file_path,fpath)
+		    FileUtils.cp(file_path,fpath)
 		result = [fpath, fpath.sub(@session_results_base_directory,@session_results_base_url).sub("\\","/").sub(/http:\/\//i,"")]
       end
       result
     end
- 
+    
+    # This function allows the user to add equipment to the @equipment hash within the test script. 
+    # The functions takes the desired handle specified by the user in equip_var and a boolean specifying if a link to
+    # the log of the equipment should be created in the result html. The function yields a path where the equipment object can
+    # create a log file and expects a reference to the new Equipment object as the result of the yield.
+    # An example call would be like (NewEquipmentDriver and InfoObject are place holders for the equipment driver needed for an
+    # equipment and the input parameters used by the constructor of the driver respectively) 
+    #   
+    #   equip_info = InfoObject.new  
+    #   add_equipment('test_equip') do |log_path|
+    #     NewEquipmentDriver.new(equip_info,log_path)
+    #   end
+    #
+    # After calling this function the new instantiated driver can be accessed with call to @equipment. For the example presented
+    # before the equipment can accessed with @equipment['test_equip']
+    def add_equipment(equip_var, link_log=true)
+      raise "Could not add equipment, equipment hash already contains an equipment referenced with key #{equip_var}" if @equipment.has_key?(equip_var)
+      equip_log = File.join(@files_dir,equip_var.strip+"_"+@current_test_iteration.to_s+"_log.txt")
+      equip_object = yield equip_log
+      @equipment[equip_var] = equip_object
+      @logs_array << [equip_var, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if link_log
+    end
+
     private 
     class TestResult
       attr_accessor :result, :comment, :perf_data
@@ -604,7 +625,7 @@ class SessionHandler
       end
       
     end
-
+    
 end 
 
 
