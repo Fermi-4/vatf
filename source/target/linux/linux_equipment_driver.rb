@@ -249,6 +249,40 @@ module Equipment
       server.send_cmd("cd #{File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'])}; minicom -D #{@serial_port} -b 115200 -S #{params['minicom_script_name']}", server.prompt, 90)
     end
     
+    def load_bootloader_from_nand(params)
+      params['nand_loader'].call params
+    end
+    
+    # This function assumes there is an existing U-Boot (secondary bootloader) on the board, writes the new U-Boot image to a specified NAND location and reboots the board.
+    def write_bootloader_to_nand_min(params)
+      # get to existing U-Boot 
+      tmp_path = File.join(params['tester'].downcase.strip,params['target'].downcase.strip,params['platform'].downcase.strip)
+      get_image(params['secondary_bootloader'], params['server'], tmp_path)
+      connect({'type'=>'serial'}) if !@target.serial
+      send_cmd("",@boot_prompt, 5)
+      raise 'Bootloader was not loaded properly. Failed to get bootloader prompt' if timeout?
+      
+      # set U-Boot params to download file
+      send_cmd("setenv bootfile #{tmp_path}/#{File.basename(params['secondary_bootloader'])}",@boot_prompt, 10) 
+      send_cmd("setenv serverip #{params['server'].telnet_ip}",@boot_prompt, 10) 
+      send_cmd("saveenv",@boot_prompt, 10) 
+      raise 'Unable save environment' if timeout?
+      send_cmd("printenv", @boot_prompt, 20)
+
+      # write new U-Boot to NAND
+      send_cmd("mw.b #{params['mem_addr'].to_s(16) } 0xFF #{params['size'].to_s(16)}", @boot_prompt, 20)
+      send_cmd("dhcp", @boot_prompt, 60)
+      send_cmd("nand erase clean #{params['offset'].to_s(16)} #{params['size'].to_s(16)}", @boot_prompt, 40)
+      send_cmd("nand write #{params['mem_addr'].to_s(16)} #{params['offset'].to_s(16)} #{params['size'].to_s(16)}", @boot_prompt, 60)
+      
+      # Next, run any EVM-specific commands, if needed
+      params['extra_cmds'].each {|cmd|
+        send_cmd("#{cmd}",@boot_prompt, 60)
+        raise "Timeout waiting for bootloader prompt #{@boot_prompt}" if timeout?
+      }
+      send_cmd("reset", @boot_prompt, 60)
+    end
+    
     def create_minicom_uart_script_ti_min(params)
       File.open(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['minicom_script_name']), "w") do |file|
         sleep 1  
@@ -275,6 +309,14 @@ module Equipment
         file.puts "print \"\\nDone loading u-boot\\n\""
         file.puts "! killall -s SIGHUP minicom"
       end
+    end
+    
+    def get_write_mem_size(filename,nand_eraseblock_size)
+      filesize = File.size(File.new(filename))
+      bytes_per_kb = 1024
+      nand_eraseblock_size_in_dec_kb = (nand_eraseblock_size.to_s(10).to_i)/bytes_per_kb
+      blocks_to_write = (filesize/(bytes_per_kb*nand_eraseblock_size_in_dec_kb).to_f).ceil
+      return (blocks_to_write*nand_eraseblock_size)
     end
       
   end

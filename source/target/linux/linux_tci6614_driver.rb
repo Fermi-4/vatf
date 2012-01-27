@@ -17,5 +17,30 @@ module Equipment
       cmds
     end
     
+    # Reboot the unit to the bootloader prompt
+    def boot_to_bootloader(params=nil)
+      connect({'type'=>'serial'}) if !@target.serial
+      # Make the code backward compatible, previous API used optional power_handler object as first parameter 
+      @power_handler = params if ((!params.instance_of? Hash) and params.respond_to?(:reset) and params.respond_to?(:switch_on))  
+      @power_handler = params['power_handler'] if !@power_handler
+    
+      if params.instance_of? Hash and params['secondary_bootloader']
+        params['nand_loader'] = method( :write_bootloader_to_nand_min )
+        super
+        params['mem_addr'] = 0x88000000 
+        params['nand_eraseblock_size'] = 0x20000
+        params['offset'] = 0
+        # Calculate bytes to be written (in hex)
+        params['size'] = get_write_mem_size(params['secondary_bootloader'],params['nand_eraseblock_size'])
+        params['extra_cmds'] = []
+        params['extra_cmds'] << "oob fmt #{params['offset'].to_s(16)} #{params['size'].to_s(16)}"
+        load_bootloader_from_nand(params)
+        super
+      else
+        super
+      end
+      
+    end
+    
   end
 end
