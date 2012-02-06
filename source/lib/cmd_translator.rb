@@ -12,6 +12,12 @@ module CmdTranslator
                     '2.6.37' => 'cmd2.6.37',
                     '3.1.0'  => 'cmd3.1.0'  }
   }
+  
+  # Android cmd vs. version
+  @dict_android = {
+    'gallery_movie_cmp' => {  '2.3.4' => 'com.cooliris.media/.MovieView',
+                              '4.0.1' => 'com.android.gallery3d/.app.MovieActivity' }
+  }
 
   # user pass params['cmd'] and params['version']
   def self.get_uboot_cmd(params)  
@@ -22,6 +28,11 @@ module CmdTranslator
 
   def self.get_linux_cmd(params)
     params.merge!({'dict' => @dict_linux})
+    get_cmd(params)
+  end
+  
+  def self.get_android_cmd(params)
+    params.merge!({'dict' => @dict_android})
     get_cmd(params)
   end
 

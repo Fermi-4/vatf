@@ -179,6 +179,35 @@ module Equipment
       log_info("#{endpoint}-Response: "+response)
       response
     end
+    
+    def get_uboot_version(params=nil)
+      return @uboot_version if @uboot_version
+      if !at_prompt?({'prompt'=>@boot_prompt})
+        puts "Not at uboot prompt, reboot to boot prompt...\n"
+        boot_to_bootloader(params)
+      end
+      send_cmd("version", @boot_prompt, 10)
+      @uboot_version = /U-Boot\s+([\d\.]+)\s*\(/.match(response).captures[0]
+      raise "Could not find uboot version" if @uboot_version == nil
+      puts "\nuboot version = #{@uboot_version}\n\n"
+      return @uboot_version
+    end
+
+    def get_android_version()
+      return @android_version if @android_version
+      raise "Unable to get android version since Android has not booted up" if !at_prompt?({'prompt'=>@prompt})
+      version_info = send_adb_cmd("shell getprop ro.build.description")
+      @android_version = /[^\s]+\s+([\d\.]+)\s*/.match(version_info).captures[0]
+      raise "Could not find android version" if @android_version == nil
+      puts "\nAndroid version = #{@android_version}\n\n"
+      return @android_version
+    end
+    
+    def at_prompt?(params)
+      prompt = params['prompt']
+      send_cmd("", prompt, 5)
+      !timeout?
+    end
       
   end
   
