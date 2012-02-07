@@ -231,6 +231,7 @@ module Equipment
         file.puts "    \"stop autoboot\""
         file.puts "}"
         file.puts "send \"\""
+        file.puts "send \"\""
         file.puts "expect {"
         file.puts "    \"#{@boot_prompt.source}\""
         file.puts "}"
