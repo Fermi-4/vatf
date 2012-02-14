@@ -25,15 +25,19 @@ module Equipment
       @power_handler = params['power_handler'] if !@power_handler
     
       if params.instance_of? Hash and params['secondary_bootloader']
-        params['nand_loader'] = method( :write_bootloader_to_nand_min )
+        params['nand_loader'] = method( :write_bootloader_to_nand_via_mtdparts )
         super
+        sleep 120 # Wait in case no_post is set to 1 on existing U-Boot env
         params['mem_addr'] = 0x88000000 
-        params['nand_eraseblock_size'] = 0x20000
+        params['nand_eraseblock_size'] = 0x800 # which is page size for tci6614
+        params['mtdparts'] = "davinci_nand.0:1024k(bootloader),512k(params),4096k(kernel),-(filesystem)"
         params['offset'] = 0
         # Calculate bytes to be written (in hex)
         params['size'] = get_write_mem_size(params['secondary_bootloader'],params['nand_eraseblock_size'])
         params['extra_cmds'] = []
         params['extra_cmds'] << "oob fmt #{params['offset'].to_s(16)} #{params['size'].to_s(16)}"
+        params['extra_cmds'] << "setenv no_post 1"
+        params['extra_cmds'] << "saveenv"
         load_bootloader_from_nand(params)
         super
       else
