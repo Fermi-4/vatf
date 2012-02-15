@@ -196,9 +196,8 @@ module Equipment
     def get_android_version()
       return @android_version if @android_version
       raise "Unable to get android version since Android has not booted up" if !at_prompt?({'prompt'=>@prompt})
-      version_info = send_adb_cmd("shell getprop ro.build.description")
-      @android_version = /[^\s]+\s+([\d\.]+)\s*/.match(version_info).captures[0]
-      raise "Could not find android version" if @android_version == nil
+      @android_version = send_adb_cmd("shell getprop ro.build.version.release")
+      raise "Could not find android version" if @android_version.strip == ''
       puts "\nAndroid version = #{@android_version}\n\n"
       return @android_version
     end
