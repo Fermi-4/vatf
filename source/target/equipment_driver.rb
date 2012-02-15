@@ -102,7 +102,7 @@ module Equipment
       @targetc_log = Log4r::Logger['targetc_log']
       @targetc_log.level = Log4r::DEBUG
       @targetc_log.add  @targetc_log_outputter
-      @pattern_formatter = Log4r::PatternFormatter.new(:pattern => "- %d [%l] %c: %M",:date_pattern => "%H:%M:%S")
+      @pattern_formatter = Log4r::PatternFormatter.new(:pattern => "- %d [%l] %M",:date_pattern => "%H:%M:%S")
       @targetc_log_outputter.formatter = @pattern_formatter     
     end
     
@@ -116,15 +116,21 @@ module Equipment
     end
     
     def log_info(info)
-      @targetc_log.info(info) if @targetc_log
+      z= info.encode('ASCII', 'UTF-8', :universal_newline => true, :invalid => :replace, :undef => :replace, :replace => '')
+      z.gsub!(/[^[:print:][:space:]]/m,'')
+      @targetc_log.info(z) if @targetc_log
     end
 
     def log_error(error)
-      @targetc_log.error(error) if @targetc_log
+      z= error.encode('ASCII', 'UTF-8', :universal_newline => true, :invalid => :replace, :undef => :replace, :replace => '')
+      z.gsub!(/[^[:print:][:space:]]/m,'')
+      @targetc_log.error(z) if @targetc_log
     end
 
     def log_debug(debug_info)
-      @targetc_log.debug(debug_info) if @targetc_log
+      z= debug_info.encode('ASCII', 'UTF-8', :universal_newline => true, :invalid => :replace, :undef => :replace, :replace => '')
+      z.gsub!(/[^[:print:][:space:]]/m,'')
+      @targetc_log.debug(z) if @targetc_log
     end
 
   end
