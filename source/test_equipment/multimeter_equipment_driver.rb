@@ -5,7 +5,6 @@ module TestEquipment
 
   class KeithleyMultiMeterDriver < Equipment::EquipmentDriver
     attr_reader :number_of_channels, :dut_power_domains, :dut_domain_resistors
-    KEITHLY_OFFSET =  0.00029 
     def initialize(platform_info, log_path)
       super(platform_info, log_path)
     end
@@ -81,7 +80,7 @@ module TestEquipment
     #process arrays 
     volt_reading_array.each_index{|array_index|
     mod = array_index % @number_of_channels
-    temp_data = volt_reading_array[array_index].gsub(/\+/,'').to_f + KEITHLY_OFFSET.to_f
+    temp_data = volt_reading_array[array_index].gsub(/\+/,'').to_f
     if (0 <= mod and mod < (@number_of_channels / 2))
      chan_all_volt_reading["domain_"+ @dut_power_domains[mod] + "drop_volt_readings"] << temp_data
      chan_all_volt_reading["domain_"+ @dut_power_domains[mod] + "_current_readings"] << temp_data/(@dut_domain_resistors[@dut_power_domains[mod]]).to_f
