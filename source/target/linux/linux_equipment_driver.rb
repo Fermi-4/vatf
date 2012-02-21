@@ -72,7 +72,7 @@ module Equipment
         send_cmd("saveenv",@boot_prompt, 10) if !@name.match(/beagleboard/)
         raise 'Unable save environment' if timeout?
         send_cmd("printenv", @boot_prompt, 20)
-        send_cmd("usb start", @boot_prompt, 30) if @name.match(/beagleboard/)
+        send_cmd("dcache off; usb start", @boot_prompt, 30) if @name.match(/beagleboard/)
         send_cmd('boot', /#{@login_prompt}/, 600)
         raise 'Unable to boot platform or platform took more than 10 minutes to boot' if timeout?
         # command prompt context commands
