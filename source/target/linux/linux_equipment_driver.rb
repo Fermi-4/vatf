@@ -353,6 +353,11 @@ module Equipment
       raise 'Unable save environment' if timeout?
       send_cmd("printenv", @boot_prompt, 20)
     end
+    
+    def get_bootfile(addr)
+      send_cmd("tftp #{addr}",@boot_prompt, 10) 
+      raise 'Unable to get bootfile' if timeout?
+    end
       
   end
   

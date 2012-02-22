@@ -8,10 +8,14 @@ module Equipment
     end
     
     def get_boot_cmd(params)
-      image_path = params['image_path']
+      addr_fdt = '0x80000200'
+      setup_bootfile(params['dtb_file'],params)
+      get_bootfile(addr_fdt)
+      setup_bootfile(params['image_path'],params)
+      addr_kernel = '0x88000000'
+      get_bootfile(addr_kernel)
       cmds = []
-      cmds << "setenv bootcmd 'dhcp;tftp;bootm'"
-      cmds << "setenv serverip '#{params['server'].telnet_ip}'"
+      cmds << "setenv bootcmd 'bootm #{addr_kernel} - #{addr_fdt}'"
       bootargs = params['bootargs'] ? "setenv bootargs #{params['bootargs']}" : "setenv bootargs #{@boot_args} root=/dev/nfs nfsroot=${nfs_root_path},v3,tcp rw"
       cmds << bootargs
       cmds
