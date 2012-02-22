@@ -111,7 +111,7 @@ module Equipment
         boot_to_bootloader(params)
       end
       send_cmd("version", @boot_prompt, 10)
-      version = /U-Boot\s+([\d\.]+)\s*\(/.match(response).captures[0]
+      version = /U-Boot\s+([\d\.]+)\s*/.match(response).captures[0]
       raise "Could not find uboot version" if version == nil
       puts "\nuboot version = #{version}\n\n"
       return version
