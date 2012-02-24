@@ -16,7 +16,13 @@ module CmdTranslator
   # Android cmd vs. version
   @dict_android = {
     'gallery_movie_cmp' => {  '2.3.4' => 'com.cooliris.media/.MovieView',
-                              '4.0.1' => 'com.android.gallery3d/.app.MovieActivity' }
+                              '4.0.1' => 'com.android.gallery3d/.app.MovieActivity' },
+                              
+    'wifi_settings_enable_wifi' => {  '2.3.4' => ['__directional_pad_up__', '__directional_pad_center__'],
+                                      '4.0.1' => ['__directional_pad_down__','__enter__'] },
+                                      
+    'wifi_connected_ack_info' => {   '2.3.4' => ['WifiStateTracker', /DhcpHandler:\s+DHCP\s+request\s+succeeded/im],
+                                     '4.0.1' => ['ConnectivityService',/ConnectivityChange\s+for\s+WIFI:\s+CONNECTED\/CONNECTED/im]}
   }
 
   # user pass params['cmd'] and params['version']
