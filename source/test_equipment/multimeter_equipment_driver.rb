@@ -4,7 +4,7 @@ require 'socket'
 module TestEquipment
 
   class KeithleyMultiMeterDriver < Equipment::EquipmentDriver
-    attr_reader :number_of_channels, :dut_power_domains, :dut_domain_resistors
+    attr_reader :number_of_channels, :dut_power_domains, :dut_domain_resistors, :keithley_version
     def initialize(platform_info, log_path)
       super(platform_info, log_path)
     end
@@ -14,17 +14,20 @@ module TestEquipment
     # # Return Parameter: No return 
     def configure_multimeter(power_info)
       @number_of_channels = @params['number_of_channels']
+      @keithley_version = @params['keithley_version']
+      @connection_type =  @params['connection_type']
       @dut_power_domains = power_info['power_domains'] 
-      @dut_domain_resistors = power_info['domain_resistors']      
+      @dut_domain_resistors = power_info['domain_resistors']  
+      keithley_model = send_cmd("*IDN?",".*",1,true).match(/model\s+(\d+)/i).captures[0]
       send_cmd("*RST", ".*", 1, false)
       send_cmd("*CLS", ".*", 1, false)
       send_cmd(":TRAC:CLE", ".*", 1, false)
-      send_cmd(":VOLT:DC:RANG 2", ".*", 1, false)
+      send_cmd(":VOLT:DC:RANG AUTO ON", ".*", 1, false)
       send_cmd(":FUNC 'VOLT:DC'", ".*", 1, false)
-      if @number_of_channels == 20
-      	send_cmd(":ROUT:SCAN (@101:120)", ".*", 1, false)
-      else 
-      	send_cmd(":ROUT:SCAN (@1:#{@number_of_channels})", ".*", 1, false)
+      if keithley_model.to_s == "2701" or keithley_model.to_s == "2700"
+      	 send_cmd(":ROUT:SCAN (@201:2#{"%02d" % @number_of_channels})", ".*", 1, false)
+       else 
+       	send_cmd(":ROUT:SCAN (@1:#{@number_of_channels})", ".*", 1, false)
       end 
       send_cmd(":ROUT:SCAN:LSEL INT", ".*", 1, false)
       send_cmd(":SAMP:COUN #{@number_of_channels}", ".*", 1, false)
@@ -38,20 +41,22 @@ module TestEquipment
      #    timeout: Integer defining the read timeout in sec
      # Return Parameter: Array containing all voltage reading for all domains. 
      def get_multimeter_output(loop_count, timeout)
+       timeout  = timeout + 10
        sleep 5    # Make sure multimeter is configured and DUT is in the right state
        volt_reading = []
        counter=0
        regexp = ""
        for i in (2..@number_of_channels)
-       regexp = regexp + ".+?,"
+        regexp = regexp + ".+?,"
        end 
        while counter < loop_count 
-	  send_cmd("READ?", /#{regexp}[^\r\n]+/, timeout, false)
-          Kernel.print("\n")
+	        send_cmd("READ?", /#{regexp}[^\s]+/, timeout, false)
           volt_reading << response
-	  counter += 1
+	        counter += 1
        end
+      
 	  return sort_raw_data(volt_reading)
+	   
      end
 
      private
@@ -62,7 +67,7 @@ module TestEquipment
      def sort_raw_data(volt_readings) 
        chan_all_volt_reading = Hash.new
        for i in (0..@number_of_channels/2 - 1 ) 
-	 chan_all_volt_reading["domain_" + @dut_power_domains[i] + "_volt_readings"] = Array.new()
+      	 chan_all_volt_reading["domain_" + @dut_power_domains[i] + "_volt_readings"] = Array.new()
          chan_all_volt_reading["domain_" + @dut_power_domains[i] + "drop_volt_readings"] = Array.new()
          chan_all_volt_reading["domain_" + @dut_power_domains[i] + "_current_readings"] = Array.new()
        end 
@@ -72,9 +77,9 @@ module TestEquipment
          current_line_arr = current_line.strip.split(/[,\r\n]+/)
          count = @number_of_channels - 1
          if current_line_arr.length == (@number_of_channels) && current_line.match(/([+-]\d+\.\d+E[+-]\d+,){#{count}}[+-]\d+\.\d+E[+-]\d+/)
-          volt_reading_array.concat(current_line_arr)
+             volt_reading_array.concat(resort_data(current_line_arr))
          else 
-          puts "NOTHING #{current_line}"
+          puts "Bad Data  #{current_line}  Read, parsing failed"
          end
       end
     #process arrays 
@@ -89,9 +94,27 @@ module TestEquipment
      chan_all_volt_reading["domain_" + @dut_power_domains[index]  + "_volt_readings"]  << temp_data
     end 
     }
+    
     return chan_all_volt_reading
   end
-
+  # Re-arranging data for processing 
+  def resort_data(current_line_arr) 
+      sorted_data = Array.new(current_line_arr.length) 
+      odd_counter = current_line_arr.length/2 
+      even_counter = 0
+      for i in (0..current_line_arr.length - 1)
+        mod_value = i % 2
+        if mod_value == 1  
+         sorted_data[odd_counter ] = current_line_arr[i]
+         odd_counter +=  1
+        else 
+         sorted_data[even_counter] = current_line_arr[i]
+         even_counter +=1        
+        end 
+      end 
+     return sorted_data
+  end 
+ 
   end
 
 end  
