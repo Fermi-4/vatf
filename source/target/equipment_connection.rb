@@ -1,15 +1,17 @@
 require 'rubygems'
 require File.dirname(__FILE__)+'/telnet_equipment_connection'
 require File.dirname(__FILE__)+'/serial_equipment_connection'
+require File.dirname(__FILE__)+'/ccs_equipment_connection'
 
 class EquipmentConnection
-  attr_reader :default, :telnet, :serial
+  attr_reader :default, :telnet, :serial, :ccs
   attr_accessor :platform_info
   def initialize(platform_info)
     @platform_info = platform_info
     @default = nil
     @telnet = nil
     @serial = nil
+    @ccs    = nil
   end
 
   def connect(params)
@@ -23,6 +25,7 @@ class EquipmentConnection
         puts "Telnet connection already exists, using existing connection"
       end
       @default = @telnet if ((!@default) || params['force_connect'])            #change added 12-10-2011
+    
     when 'serial'
       if !@serial || @serial.closed?
         if @platform_info.serial_port.to_s.strip != ''
@@ -35,6 +38,14 @@ class EquipmentConnection
         puts "Serial connection already exists, using existing connection"
       end
       @default = @serial if !@default || params['force_connect']
+    
+    when 'ccs'
+      if !@ccs
+        @ccs = BoardController::CcsController.new(@platform_info.params)
+      else
+        puts "CCS Controller already exists, using existing connection"
+      end
+    
     else
       raise "Unknown connection type: #{params['type'].to_s}"
     end
@@ -43,9 +54,11 @@ class EquipmentConnection
   def disconnect
     @telnet.disconnect if @telnet
     @serial.disconnect if @serial
+    @ccs.disconnect if @ccs
     @default = nil
     @telnet = nil
     @serial = nil
+    @ccs = nil
   end
 
   def send_cmd(*params)

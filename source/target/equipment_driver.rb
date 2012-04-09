@@ -28,7 +28,7 @@ module Equipment
     
     def connect(params)
       @target.connect(params)
-	  log_info("Connected to #{@platform_info.name} via #{params['type']} ")
+	    log_info("Connected to #{@platform_info.name} via #{params['type']} ")
     end
 
     def disconnect
@@ -36,8 +36,7 @@ module Equipment
     end
     
     def send_cmd(command, expected_match=/.*/, timeout=10, check_cmd_echo=true, append_linefeed=true)
-	  #puts "\n\n==============\nequipment_driver: #{command}, #{expected_match}, #{timeout}, #{check_cmd_echo}" # TODO REMOVE DEBUG PRINT
-      log_info("Host: " + command)
+	    log_info("Host: " + command)
       @target.send_cmd(command, expected_match, timeout, check_cmd_echo, append_linefeed)
       @target.response
       rescue Timeout::Error => e
@@ -48,6 +47,16 @@ module Equipment
         raise
       ensure
         log_info("Target: \n" + response.to_s)
+    end
+    
+    def method_missing(method, *args)
+      if @target.ccs && @target.ccs.respond_to?(method)
+        log_info("Calling CCS method #{method.to_s} with params #{args.to_s}")
+        @target.ccs.logfp = self.method(:log_info)
+        @target.ccs.send(method, *args)
+      else
+        super
+      end
     end
     
     def wait_for(expected_match=/.*/, timeout=10)
