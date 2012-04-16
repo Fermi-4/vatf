@@ -157,7 +157,7 @@ module BoardController
   
   class CcsController 
     attr_reader :result
-    attr_accessor :workspace, :logfp, :jsEnvArgsFile
+    attr_accessor :workspace, :logfp, :jsEnvArgsFile, :tempdir
     #type: The type of commands to use. Only 'Ccsv4' supported for now
     def initialize(params)
       @ccs_type = params['ccs_type'] ? params['ccs_type'] : 'Ccsv5'
@@ -268,10 +268,11 @@ module BoardController
     
     def send_cmd(command, timeout=10, expected_match=/.*/)
       begin
+        @timeout = false
         Timeout::timeout(timeout) {
           @response = ''
           @logfp.call "Host: \n" + command
-          @response = `#{command} 2>&1`
+          @response = `#{command} 2>&1 | tee #{@tempdir}/response`
           @logfp.call "Target: \n" + @response
         }
         @timeout = @response.match(expected_match) == nil
@@ -290,7 +291,8 @@ module BoardController
     end
     
     def response
-      @response
+      x=`cat #{@tempdir}/response`
+      x
     end
     
     def timeout?
@@ -298,7 +300,8 @@ module BoardController
     end
     
     def update_response(type='default')
-      @response
+      x=`cat #{@tempdir}/response`
+      x
     end
     
     # Load javascript with test automation parameters
@@ -315,6 +318,40 @@ module BoardController
         out_file.close
       end
       outfile_name
+    end
+    
+    def send_ipc_data(data, timeout=-1)
+      begin
+        if timeout > 1
+          Timeout::timeout(timeout) {
+            `echo #{data} > #{@tempdir}/in`
+          }
+        else
+          `echo #{data} > #{@tempdir}/in`
+        end
+      rescue Timeout::Error 
+        puts "TIMEOUT sending ipc data:#{data}"
+        raise 
+      end
+    end
+      
+    
+    
+    def read_ipc_data(timeout=-1)
+      begin
+        data='' 
+        if timeout > 0
+          Timeout::timeout(timeout) {
+            data = `read line < #{@tempdir}/out; echo $line`
+          }
+        else
+          data = `read line < #{@tempdir}/out; echo $line`
+        end
+        return data  
+      rescue Timeout::Error 
+        puts "TIMEOUT receiving ipc data"
+        raise
+      end
     end
 
   end
