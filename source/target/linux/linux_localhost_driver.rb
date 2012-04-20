@@ -31,19 +31,37 @@ module Equipment
     end
 
     def send_sudo_cmd(cmd, expected_match=/.*/ ,timeout=30)
-      log_info("Cmd: sudo -E -S #{cmd}")
-      @response = `sudo -E -S #{cmd} << EOF
+      begin
+        @timeout = false
+        Timeout::timeout(timeout) {
+        @response = ''
+        log_info("Cmd: sudo -E -S #{cmd}")
+        @response = `sudo -E -S #{cmd} << EOF
 #{@telnet_passwd}
 EOF` 
-      log_info('Response: '+@response)		
-      @timeout = @response.match(expected_match) == nil
+        log_info('Response: '+@response)
+        }
+        @timeout = @response.match(expected_match) == nil
+      rescue Timeout::Error 
+        puts "TIMEOUT executing #{command}"
+        @timeout = true 
+      end
     end
     
     def send_cmd(command, expected_match=/.*/, timeout=10, check_cmd_echo=true)
-      log_info('Cmd: '+command.to_s)
-      @response = `#{command} 2>&1` 
-      log_info('Response: '+@response)		
-      @timeout = @response.match(expected_match) == nil
+      begin
+        @timeout = false
+        Timeout::timeout(timeout) {
+          @response = ''
+          log_info('Cmd: '+command.to_s)
+          @response = `#{command} 2>&1` 
+          log_info('Response: '+@response)		
+        }
+        @timeout = @response.match(expected_match) == nil
+      rescue Timeout::Error 
+        puts "TIMEOUT executing #{command}"
+        @timeout = true
+      end
     end
     
     def send_cmd_nonblock(command, expected_match=/.*/, timeout=10, check_cmd_echo=true)
