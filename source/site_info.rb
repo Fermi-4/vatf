@@ -11,6 +11,7 @@ module SiteInfo
    LOCAL_FILES_FOLDER           = '/usr/local/vatf/Video_tools/'
    VGDK_INPUT_CLIPS             = "/mnt/gtsnowball/Automation/gtsystst/video_files/VGDK_logs/input"
    LTP_TEMP_FOLDER              = '/mnt/gtsnowball/Automation/gtsystst/LTP'
+   SCLTE_LOGS_FOLDER            = '/mnt/gtsnowball/Automation/gtsystst/SCLTE'
    BENCH_FILE                   = '/usr/local/vatf/bench.rb'
    RESULTS_FILE                 = '/usr/local/vatf/vatf_automation_results.xml'
  else
@@ -22,6 +23,7 @@ module SiteInfo
    LOCAL_FILES_FOLDER           = 'C:/Video_tools/'
    VGDK_INPUT_CLIPS             = "//gtsnowball/System_Test/Automation/gtsystst/video_files/VGDK_logs/input"
    LTP_TEMP_FOLDER              = '//gtsnowball/System_Test/Automation/gtsystst/LTP'
+   SCLTE_LOGS_FOLDER            = '//gtsnowball/System_Test/Automation/gtsystst/SCLTE'
    BENCH_FILE                   = 'C:/VATF/bench.rb'
    RESULTS_FILE                 = 'C:/VATF/vatf_automation_results.xml'
  end
