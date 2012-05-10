@@ -338,9 +338,8 @@ module Equipment
     
     def get_write_mem_size(filename,nand_eraseblock_size)
       filesize = File.size(File.new(filename))
-      bytes_per_kb = 1024
-      nand_eraseblock_size_in_dec_kb = (nand_eraseblock_size.to_s(10).to_i)/bytes_per_kb
-      blocks_to_write = (filesize/(bytes_per_kb*nand_eraseblock_size_in_dec_kb).to_f).ceil
+      nand_eraseblock_size_in_dec = (nand_eraseblock_size.to_s(10).to_f)
+      blocks_to_write = (filesize.to_f/nand_eraseblock_size_in_dec.to_f).ceil
       return (blocks_to_write*nand_eraseblock_size)
     end
     
