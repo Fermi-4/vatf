@@ -51,7 +51,7 @@ EOF`
     def send_cmd(command, expected_match=/.*/, timeout=10, check_cmd_echo=true)
       begin
         @timeout = false
-        Timeout::timeout(timeout) {
+        Timeout::timeout(timeout.to_i) {
           @response = ''
           log_info('Cmd: '+command.to_s)
           @response = `#{command} 2>&1` 
