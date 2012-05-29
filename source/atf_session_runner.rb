@@ -20,6 +20,7 @@ require 'target/targets'
 require 'external_systems/external_systems'
 require 'net/smtp'
 require 'site_info'
+require 'lib/pass_criteria'
 
 module Find
   def file(*paths)
@@ -480,12 +481,23 @@ class SessionHandler
     end
     
     #This function is used inside the test script to set the result for the test. Takes test_result the result of the test (FrameworkConstants::Result), and comment a comment associated with the test result (string) as parameters.
-    def set_result(test_result, comment = nil, perf_data = nil)
+    def set_result(test_result, comment = nil, perf_data = nil, max_dev = 0.05)
       @test_result.result = test_result
       @test_result.comment = comment if comment
       @test_result.set_perf_data(perf_data)
+      # Compare performance data with previous executions
+      if perf_data && !perf_data.empty?
+        p_result, p_comment = PassCriteria::is_performance_good_enough(@test_params.platform, @test_id, @test_result.perf_data, max_dev)
+        if !p_result
+          # Performance is not good enough
+          @test_result.result = FrameworkConstants::Result[:fail]
+          @test_result.comment = @test_result.comment + p_comment
+        elsif p_result && p_comment
+          @test_result.comment = @test_result.comment + p_comment
+        end
+      end
     end
-    
+
     #This function saves the results for the multiple iterations ran for a given test.
     def save_iterations_result
       @test_iterations_ended = Time.now

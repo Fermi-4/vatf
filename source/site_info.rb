@@ -29,6 +29,7 @@ module SiteInfo
  end
  
  LOGS_SERVER                    = "http://gtsystest.telogy.design.ti.com/vatf"
+ ANALYTICS_SERVER               = "158.218.103.157:3000"
  WINCE_DOWNLOAD_APP             = 'cedownload.exe'
  WINCE_PERFTOCSV_APP            = 'perftocsv.exe'
  VGDK_OUTPUT_CLIPS		= "//10.218.100.223/video_files/VGDK_logs/output"
