@@ -8,7 +8,7 @@ require 'test_equipment/video_clarity'
 require 'test_equipment/multimeter_equipment_driver'
 require 'test_equipment/usb_switch_controller'
 require 'test_equipment/kvaser_canhsusb_driver'
-
+require 'test_equipment/digital_loggers_din_relay_driver'
 
 # reference_file 'C:\Program Files\Automation Studio\test_equipment.dll'
 # reference_file 'C:\Program Files\Automation Studio\PesqCalculator.dll'
