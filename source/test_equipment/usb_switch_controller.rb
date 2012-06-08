@@ -25,6 +25,31 @@ include Equipment
       end
     end
 
+    def disconnect
+      send_cmd("0!",/^Chn#{input}/mi,3,false,false)
+    end
+
+  end
+
+  class TiUsbSwitch < EquipmentDriver
+    
+    # Select USB Host input to connect to the USB devices. 
+    def select_input(input)
+      send_cmd("#{input}",/\*/mi,3,false,false)
+      #check to make sure the input was selected
+      if timeout?
+        puts "FAILED to select Input #{input}"
+        log_error("FAILED to select Input #{input}")
+      else
+        puts "USB Input #{input} selected"
+        log_info("USB Input #{input} selected")
+      end
+    end
+
+    def disconnect
+      send_cmd("0",/\*/mi,3,false,false)
+    end
+
   end
 end
 
