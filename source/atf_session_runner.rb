@@ -9,6 +9,7 @@ require 'connection_equipment/connection_equipment'
 require 'fileutils'
 require 'connection_handler'
 require 'power_handler'
+require 'usb_switch_handler'
 require 'media_equipment/media_equipment'
 require 'test_equipment/test_equipment'
 # require 'rubyclr'
@@ -328,6 +329,7 @@ class SessionHandler
       @equipment = Hash.new
       @connection_handler = ConnectionHandler.new(@files_dir)
       @power_handler = PowerHandler.new()
+      @usb_switch_handler = UsbSwitchHandler.new()
       @logs_array = Array.new
       temp_params = @cli_params.clone
       temp_params.delete('release_assets')
@@ -406,6 +408,12 @@ class SessionHandler
               end 
               @connection_handler.load_switch_connections(@equipment[test_vars],equip_type,eq_id, i, iter)
               @power_handler.load_power_ports($equipment_table[equip_type][eq_id][i].power_port)
+              if $equipment_table[equip_type][eq_id][i].params
+                $equipment_table[equip_type][eq_id][i].params.each do |key,val|
+                  next if !key.match(/^usb.*_port$/i)
+                  @usb_switch_handler.load_usb_ports(val)
+                end
+              end
               @logs_array << [test_vars, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if $equipment_table[equip_type][eq_id][i].driver_class_name && $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
             end
           end
@@ -486,7 +494,7 @@ class SessionHandler
       @test_result.comment = comment if comment
       @test_result.set_perf_data(perf_data)
       # Compare performance data with previous executions
-      if perf_data && !perf_data.empty?
+      if @test_result.perf_data && !@test_result.perf_data.empty?
         p_result, p_comment = PassCriteria::is_performance_good_enough(@test_params.platform, @test_id, @test_result.perf_data, max_dev)
         if !p_result
           # Performance is not good enough
