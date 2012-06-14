@@ -26,7 +26,7 @@ include Equipment
     end
 
     def disconnect
-      send_cmd("0!",/^Chn#{input}/mi,3,false,false)
+      send_cmd("0!",/^Chn0/mi,3,false,false)
     end
 
   end
