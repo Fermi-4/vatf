@@ -30,6 +30,7 @@ module Equipment
      'am389x-evm' => 'console=ttyO2,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
      'beagleboard' => 'console=ttyO2,115200n8 ip=dhcp ',
      'am335x-evm' => 'console=ttyO0,115200n8 ip=dhcp  mem=128M earlyprink ',
+     'am335x-sk' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
      'beaglebone' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
      })
     
@@ -60,7 +61,6 @@ module Equipment
         connect({'type'=>'serial'}) if !@target.serial
         send_cmd("",@boot_prompt, 5)
         raise 'Bootloader was not loaded properly. Failed to get bootloader prompt' if timeout?
-        @uboot_version = get_uboot_version(params)
         send_cmd("setenv bootfile #{tmp_path}/#{File.basename(image_path)}",@boot_prompt, 10) if image_path != 'mmc'
         send_cmd("setenv nfs_root_path #{nfs_root}",@boot_prompt, 10)
         raise 'Unable to set nfs root path' if timeout?
@@ -89,6 +89,7 @@ module Equipment
       image_path = params['image_path']
       cmds = []
       if image_path == 'mmc' then
+        @uboot_version = get_uboot_version(params)
         mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@uboot_version})
         cmds << "setenv mmc_load_uimage \' #{mmc_init_cmd}; fatload mmc 0 ${loadaddr} uImage \' "
         cmds << "setenv bootcmd 'run mmc_load_uimage; bootm ${loadaddr}'"
