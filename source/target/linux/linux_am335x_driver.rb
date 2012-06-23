@@ -42,6 +42,8 @@ module Equipment
         load_bootloader_from_uart(params)
         
       else
+        # disconnect to release the serial connection; otherwise, it may be locked.
+        disconnect() if @target.serial
         power_cycle()
         sleep 0.5    # To allow USB serial port to be enumerated
         connect({'type'=>'serial'}) if !@target.serial
