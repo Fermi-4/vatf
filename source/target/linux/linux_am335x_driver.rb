@@ -33,6 +33,7 @@ module Equipment
 
     # Reboot the unit to the bootloader prompt
     def boot_to_bootloader(params=nil)
+      connect({'type'=>'serial'}) if !@target.serial
       # Make the code backward compatible, previous API used optional power_handler object as first parameter 
       @power_handler = params if ((!params.instance_of? Hash) and params.respond_to?(:reset) and params.respond_to?(:switch_on))  
       @power_handler = params['power_handler'] if !@power_handler
@@ -43,12 +44,12 @@ module Equipment
         
       else
         # disconnect to release the serial connection; otherwise, it may be locked.
-        disconnect() if @target.serial
+        disconnect() if @target.serial && @power_port !=nil
         power_cycle()
         sleep 0.5    # To allow USB serial port to be enumerated
         connect({'type'=>'serial'}) if !@target.serial
-        20.times { 
-          send_cmd("", @boot_prompt, 0.2, false)
+        50.times { 
+          send_cmd("", @boot_prompt, 0.5, false)
           break if !timeout?
         }
       end
