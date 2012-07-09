@@ -7,6 +7,7 @@ module PassCriteria
     msg  = ''
     return [true, nil] if defined? skip_perf_comparison
     perf_data.each do |metric|
+      metric['name'].gsub!(/\s/,'_')
       op = get_perf_comparison_operator(testcase_id, metric['name'])
       op = overwrite_perf_comparison_operator(testcase_id, metric['name']) if defined? overwrite_perf_comparison_operator
       data = get_perf_value(platform, testcase_id, metric['name'], op)
@@ -39,8 +40,8 @@ module PassCriteria
   def self.get_perf_comparison_operator(testcase_id, metric_name)
     op = 'max' # Assume max as default comparison operator
     # Overwrite based on metric_name.
-    case metric_name
-    when /lat_/, /cpu_*load/, /packet_*loss/, /jitter/, /power/, /boottime/i
+    case metric_name.downcase
+    when /lat_/, /cpu_*load/, /packet_*loss/, /jitter/, /power/, /boottime/
       op = 'min'
     end
     # Add new entries to overwrite defaults if required. For example:
