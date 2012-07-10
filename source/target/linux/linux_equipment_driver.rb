@@ -73,7 +73,7 @@ module Equipment
         raise 'Unable save environment' if timeout?
         send_cmd("printenv", @boot_prompt, 20)
         send_cmd("dcache off; usb start", @boot_prompt, 30) if @name.match(/beagleboard/)
-        send_cmd('boot', /#{@login_prompt}/, 600)
+        send_cmd('boot', /#{@login_prompt}/, 180)
         raise 'Unable to boot platform or platform took more than 10 minutes to boot' if timeout?
         # command prompt context commands
         send_cmd(@login, @prompt, 10) # login to the unit
@@ -207,7 +207,7 @@ module Equipment
         @power_handler.reset(@power_port)
       else
         puts "Soft reboot..."
-        send_cmd('', @prompt, 1)
+        send_cmd('', @prompt, 3)
         if timeout?
           # assume at u-boot prompt
           send_cmd('reset', /resetting/i, 3)
