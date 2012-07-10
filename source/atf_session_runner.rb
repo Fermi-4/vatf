@@ -615,6 +615,14 @@ class SessionHandler
                current_data.each { |key, val|
                   if key.match(/^value/i)
                     current_hash.merge!(get_stat_values(val))
+                  elsif key.match(/^name/i)
+                    val = val[0..29]         # Testlink restrict metric names to 30 chars
+                    val.gsub!(/\s/,'_')      # remove white spaces from metric names
+                    val.gsub!(/[\/\\]/,'_')  # remove '/' and '\' from metric names
+                    current_hash[key]=val    
+                  elsif key.match(/^units/i)
+                    val = val[0..9]         # Testlink restrict metric units to 10 chars
+                    current_hash[key]=val
                   else
                     current_hash[key]=val
                   end
