@@ -41,7 +41,7 @@ module PassCriteria
     op = 'max' # Assume max as default comparison operator
     # Overwrite based on metric_name.
     case metric_name.downcase
-    when /lat_/, /cpu_*load/, /packet_*loss/, /jitter/, /power/, /boottime/
+    when /lat_/, /cpu_*load/, /sr_\d+load/, /packet_*loss/, /jitter/, /power/, /boottime/
       op = 'min'
     end
     # Add new entries to overwrite defaults if required. For example:
@@ -59,7 +59,7 @@ module PassCriteria
     host, port = SiteInfo::ANALYTICS_SERVER.split(':')
     port = port ? port.to_i : 3000      # ANALYTICS_SERVER runs on port 3000 by default
     response = Net::HTTP.get(host, "/passcriteria/#{platform}/#{testcase_id}/#{metric_name}", port)
-    data = response.match(/#{operator}=([\d\.]+)/).captures[0]
+    data = response.match(/#{operator}=([\-\d\.]+)/).captures[0]
     return data.to_f
   rescue
     return nil
