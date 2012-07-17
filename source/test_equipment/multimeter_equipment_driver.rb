@@ -13,7 +13,7 @@ module TestEquipment
     # Input parameters: platfrom name
     # # Return Parameter: No return 
     def configure_multimeter(power_info)
-      @number_of_channels = @params['number_of_channels']
+      @number_of_channels = [@params['number_of_channels'].to_i, power_info['power_domains'].length * 2].min
       @keithley_version = @params['keithley_version']
       @connection_type =  @params['connection_type']
       @dut_power_domains = power_info['power_domains'] 
