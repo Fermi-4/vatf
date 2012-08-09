@@ -45,10 +45,50 @@ module CmdTranslator
                             },
     'disable_stay_awake_on_resume' => { '2.3.4' => ["__directional_pad_down__","__enter__"],
                            '4.0.1' => ["__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__"]
+                            },
+  'select_bluetooth' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__"],
+                           '4.0.1' => ["__directional_pad_up__","__directional_pad_up__","__directional_pad_down__","__enter__","__enter__"]
+                            },
+  'select_bluetooth_setting' => { '2.3.4' => ["__directional_pad_down__","__enter__"],
+                           '4.0.1' => ["__directional_pad_down__","__enter__"]
+                            },
+  'configure_bluetooth' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__","__enter__"],
+                           '4.0.1' => ["__directional_pad_down__","__enter__","__directional_pad_down__","__enter__"]
+                            },
+  'select_wireless' => { '2.3.4' => ["__directional_pad_down__","__enter__"],
+                           '4.0.1' => ["__directional_pad_up__","__directional_pad_up__","__directional_pad_up__","__directional_pad_up__","__enter__","__enter__"]
+                            },
+  'select_wireless_setting' => { '2.3.4' => ["__directional_pad_down__","__enter__"],
+                           '4.0.1' => [" "]
+                            },
+  'two_step_down' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__"],
+                           '4.0.1' => ["__directional_pad_down__"]
+                            },
+ 'clear_access' => { '2.3.4' => ["__enter__","__directional_pad_down__","__enter__"],
+                           '4.0.1' => ["__enter__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__"]
+                            },
+  'configure_wireless_open' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__","gtaccess-open","__directional_pad_down__","__directional_pad_down__","__enter__"],
+                           '4.0.1' => ["__enter__","__directional_pad_right__","__directional_pad_right__","__enter__","gtaccess-open", "__enter__","__directional_pad_down__","__directional_pad_right__","__enter__"]
+                            },
+  'find_access_open' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__"],
+                           '4.0.1' => ["__enter__","__directional_pad_down__","__directional_pad_down__"]
+                            },
+  'connect_access_open' => { '2.3.4' => ["__enter__","__directional_pad_down__","__directional_pad_left__","__enter__"],
+                           '4.0.1' => ["__enter__","__directional_pad_down__","__directional_pad_down__","__directional_pad_right__","__enter__"]
+                            },
+  'configure_wireless_wpa-psk' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__","gtaccess-wpa-psk","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","q1w2e3r4","__directional_pad_down__","__directional_pad_down__","__enter__"],
+                           '4.0.1' => ["__enter__", "__directional_pad_right__","__directional_pad_right__","__enter__","gtaccess-wpa-psk","__enter__","__enter__","__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","q1w2e3r4","__enter__","__directional_pad_right__","__enter__"]
+                            },
+  'find_access_wpa-psk' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__"],
+                           '4.0.1' => ["__directional_pad_down__","__directional_pad_down__"]
+                            },
+'connect_access__wpa-psk' => { '2.3.4' => ["__enter__","q1w2e3r4","__directional_pad_down__","__directional_pad_left__","__enter__"],
+                         '4.0.1' => ["__enter__","q1w2e3r4","__enter__","__directional_pad_down__","__directional_pad_right__","__enter__"]
+                           },
+  'bluetooth_filter' => { '2.3.4' => [" "],
+                           '4.0.1' => "BluetoothAdapterStateMachine"
                             }
- 
          }
-
 
   # user pass params['cmd'] and params['version']
   def self.get_uboot_cmd(params)  
@@ -71,10 +111,8 @@ module CmdTranslator
     version = params['version']
     dict = params['dict']
     cmd = params['cmd']
- 
     cmds_hash = dict["#{cmd}"]
     versions = cmds_hash.keys.sort {|a,b| b <=> a}  # sort by version
-    #tmp = versions.select {|v| v <= version}
     tmp = versions.select {|v| Gem::Version.new(v) <= Gem::Version.new(version)}
     raise "get_cmd: Unable to find the version matching v<= #{version}\n" if tmp.empty?
     return cmds_hash[tmp[0]] 
