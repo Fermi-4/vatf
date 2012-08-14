@@ -85,11 +85,11 @@ module BoardController
       super
       if @is_linux
         @CCS_EXECUTABLE    = ' eclipse -noSplash '
-        @LOADTI_EXECUTABLE = 'loadti.sh '
+        @LOADTI_EXECUTABLE = 'auto_loadti.sh '
         @DSS_EXECUTABLE    = 'dss.sh ' 
       else
         @CCS_EXECUTABLE    = ' eclipsec -noSplash '
-        @LOADTI_EXECUTABLE = 'loadti.bat '
+        @LOADTI_EXECUTABLE = 'auto_loadti.bat '
         @DSS_EXECUTABLE    = 'dss.bat '
       end
     end
@@ -158,7 +158,7 @@ module BoardController
   class CcsController 
     attr_reader :result
     attr_accessor :workspace, :logfp, :jsEnvArgsFile, :tempdir
-    #type: The type of commands to use. Only 'Ccsv4' supported for now
+    
     def initialize(params)
       @ccs_type = params['ccs_type'] ? params['ccs_type'] : 'Ccsv5'
       @ccs_type = @ccs_type[0].upcase + @ccs_type[1..-1].downcase
@@ -178,15 +178,6 @@ module BoardController
       @dss_dir      = "#{@INSTALL_DIR}/ccs_base/scripting/bin"
     end
 
-=begin       
-    def connect
-      if OsFunctions::is_linux? 
-        return IO.popen("sh", "w+")
-      else
-        return IO.popen("cmd", "w+")
-      end
-    end
-=end    
     def disconnect
     end
   
@@ -197,18 +188,7 @@ module BoardController
       @run_cmd = BoardController.const_get("#{type}RunCommand").new
       @run_dss_cmd = BoardController.const_get("#{type}RunDssCommand").new
     end
-=begin   
-    def execute_cmds (cmds, keep_log=false)
-      pipe = connect()
-      cmds.each {|cmd|
-        pipe.puts cmd
-      }
-      pipe.close_write
-      keep_log ? @result = @result + pipe.read : @result = pipe.read
-      pipe.close
-      puts @result if !keep_log
-    end
-=end    
+ 
     def create(*params)
       timeout = params[0]
       options = params[1]
@@ -228,6 +208,7 @@ module BoardController
       extras = params[3..-1]
       args = ''
       extras.each{|v| args = "#{args} #{v}"}
+      create_auto_loadti
       appendAutotestEnv("#{@loadti_dir}/main.js")
       send_cmd("export AUTO_ENV_ARGS=#{@jsEnvArgsFile}; #{@loadti_dir}/#{@load_cmd.get_command(options.merge({'outfile' => outfile, 'usr_args' => args}))}", timeout)
     end
@@ -239,6 +220,7 @@ module BoardController
       extras = params[3..-1]
       args = ''
       extras.each{|v| args = "#{args} #{v}"}
+      create_auto_loadti
       appendAutotestEnv("#{@loadti_dir}/main.js")
       send_cmd("export AUTO_ENV_ARGS=#{@jsEnvArgsFile}; #{@loadti_dir}/#{@run_cmd.get_command(options.merge({'outfile' => outfile, 'usr_args' => args}))}", timeout)  
     end
@@ -312,12 +294,23 @@ module BoardController
         in_file = File.new(js_script, 'r')
         out_file.puts("load(java.lang.System.getenv(\"AUTO_ENV_ARGS\"));")
         in_file.each do |line|
+          if line.match(/debugSession\s*=\s*debugServer\.openSession\("\*", "\*"\);/)
+            out_file.puts get_openSession_command
+          else
           out_file.puts line
+        end
         end
         in_file.close
         out_file.close
       end
       outfile_name
+    end
+    
+    # Create loadti version that uses automation variables
+    def create_auto_loadti()
+      if !File.exists?("#{@loadti_dir}/auto_loadti.sh")
+        `cd #{@loadti_dir}; cat loadti.sh | sed 's+\$LOADTI_PATH/../../bin/dss.sh.*+\$LOADTI_PATH/../../bin/dss.sh \$LOADTI_PATH/auto_main.js \$@+' > auto_loadti.sh; chmod +x auto_loadti.sh`
+      end
     end
     
     def send_ipc_data(data, timeout=-1)
@@ -352,6 +345,38 @@ module BoardController
         puts "TIMEOUT receiving ipc data"
         raise
       end
+    end
+
+    private
+    def get_openSession_command
+      %q&
+      // ==========================================================
+      // ADDED BY OPENTEST
+      debugSession = debugServer.openSession(autotestEnv.ccsPlatform, autotestEnv.ccsCpu);
+      isDebugSession = true;
+
+
+      printTrace("TARGET: " + debugSession.getBoardName());
+
+      if (autotestEnv.gelFile)
+      {
+          printTrace("Loading GEL file...");
+
+          // Load GEL file
+          try
+          {
+            var loadexpr = "GEL_LoadGel(\"" + autotestEnv.gelFile + "\")";
+            debugSession.expression.evaluate(loadexpr);
+          }
+          catch (ex)
+          {
+            errCode = getErrorCode(ex);
+            dssScriptEnv.traceWrite("Error code #" + errCode + ", could not load gel file!\nAborting!");
+            quit(errCode != 0 ? errCode : 1);
+          }
+      }
+      // ===========================================================
+      &
     end
 
   end
