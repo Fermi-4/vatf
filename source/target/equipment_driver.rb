@@ -31,8 +31,9 @@ module Equipment
 	    log_info("Connected to #{@platform_info.name} via #{params['type']} ")
     end
 
-    def disconnect
-      @target.disconnect if @target
+    def disconnect(type='all')
+      @target.disconnect(type) if @target
+      log_info("Disconnected #{type} from #{@platform_info.name}")
     end
     
     def send_cmd(command, expected_match=/.*/, timeout=10, check_cmd_echo=true, append_linefeed=true)

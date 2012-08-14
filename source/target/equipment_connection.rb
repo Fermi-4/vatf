@@ -51,14 +51,21 @@ class EquipmentConnection
     end
   end
 
-  def disconnect
+  def disconnect(type='all')
+    if type == 'telnet' || type == 'all'
     @telnet.disconnect if @telnet
-    @serial.disconnect if @serial
-    @ccs.disconnect if @ccs
-    @default = nil
     @telnet = nil
+      @default = nil if type.downcase.strip == 'all' || !@serial
+    end
+    if type == 'serial' || type == 'all'
+      @serial.disconnect if @serial
     @serial = nil
+      @default = nil if type.downcase.strip == 'all' || !@telnet
+    end
+    if type == 'ccs' || type == 'all'
+      @ccs.disconnect if @ccs
     @ccs = nil
+  end
   end
 
   def send_cmd(*params)
