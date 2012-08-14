@@ -36,7 +36,7 @@ module Equipment
         Timeout::timeout(timeout) {
         @response = ''
         log_info("Cmd: sudo -E -S #{cmd}")
-        @response = `sudo -E -S #{cmd} << EOF
+        @response = `sudo -E -S #{cmd} 2>&1 << EOF
 #{@telnet_passwd}
 EOF` 
         log_info('Response: '+@response)
