@@ -31,8 +31,8 @@ class SerialEquipmentConnection < SerialBaseListenerClient
         end
     }
     rescue Timeout::Error => e
-      log_error("On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s) if respond_to?(:log_error)
       @is_timeout = true
+      raise
     rescue Exception => e
        Kernel.print e.to_s+"\n"+e.backtrace.to_s
        raise
