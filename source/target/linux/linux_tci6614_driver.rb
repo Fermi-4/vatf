@@ -8,16 +8,24 @@ module Equipment
     end
     
     def get_boot_cmd(params)
+    cmds = []
+    if !params['dtb_file']
+      cmds << " "
+    else
       addr_fdt = '0x80000200'
       setup_bootfile(params['dtb_file'],params)
-      get_bootfile(addr_fdt)
+      # get_bootfile(addr_fdt)
       setup_bootfile(params['image_path'],params)
       addr_kernel = '0x88000000'
-      get_bootfile(addr_kernel)
-      cmds = []
-      cmds << "setenv bootcmd 'bootm #{addr_kernel} - #{addr_fdt}'"
+      # get_bootfile(addr_kernel)
+      cmds << "setenv serverip #{params['server'].telnet_ip}"
+      cmds << "set path_kernel #{params['target'].downcase.strip}/#{params['platform'].downcase.strip}/#{File.basename(params['image_path'])}"
+      cmds << "set path_fdt #{params['target'].downcase.strip}/#{params['platform'].downcase.strip}/#{File.basename(params['dtb_file'])}"
+      cmds << "set \"update_fdt_kernel setenv bootfile ${path_fdt}; tftp ${addr_fdt}; setenv bootfile ${path_kernel}; tftp ${addr_kernel}\""
+      cmds << "setenv bootcmd 'run update_fdt_kernel ; bootm #{addr_kernel} - #{addr_fdt}'"
       bootargs = params['bootargs'] ? "setenv bootargs #{params['bootargs']}" : "setenv bootargs #{@boot_args} root=/dev/nfs nfsroot=${nfs_root_path},v3,tcp rw"
       cmds << bootargs
+    end
       cmds
     end
     
@@ -27,8 +35,8 @@ module Equipment
       # Make the code backward compatible, previous API used optional power_handler object as first parameter 
       @power_handler = params if ((!params.instance_of? Hash) and params.respond_to?(:reset) and params.respond_to?(:switch_on))  
       @power_handler = params['power_handler'] if !@power_handler
-    
-      if params.instance_of? Hash and params['secondary_bootloader']
+      if @power_port !=nil and params.instance_of? Hash and params['secondary_bootloader']
+        # 08/16/2012: This code will not work if @power_port is not set since 'reset' does not work on tci6614's version of U-Boot
         params['nand_loader'] = method( :write_bootloader_to_nand_via_mtdparts )
         super
         sleep 120 # Wait in case no_post is set to 1 on existing U-Boot env
