@@ -43,7 +43,7 @@ EOF`
         }
         @timeout = @response.match(expected_match) == nil
       rescue Timeout::Error 
-        puts "TIMEOUT executing #{command}"
+        puts "TIMEOUT executing #{cmd}"
         @timeout = true 
       end
     end
