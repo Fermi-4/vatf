@@ -3,7 +3,9 @@ module CmdTranslator
     'mmc init' => { '0.0'     => 'mmc init', 
                     '2008.10' => 'mmc init', 
                     '2010.06' => 'mmc rescan 0',
-                    '2011.06' => 'mmc rescan'   }
+                    '2011.06' => 'mmc rescan'   },
+    'printenv' => { '0.0'     => 'printenv', },
+    'tftp'     => { '0.0'     => 'tftp', },
   }
   
   # place holder for linux cmds vs. version
