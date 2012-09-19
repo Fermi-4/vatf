@@ -53,7 +53,7 @@ module Equipment
       
     # Select BootLoader's load_method based on params
     def set_bootloader(params)
-      @boot_loader = case params['boot_dev']
+      @boot_loader = case params['primary_bootloader_dev']
       when /uart/i
         BaseLoader.new method(:LOAD_FROM_SERIAL)
       when /eth/i
@@ -97,9 +97,11 @@ module Equipment
 
     # stop the bootloader after a reboot
     def stop_boot()
-      0.upto 3 do
-        send_cmd("\e", @boot_prompt, 1)
+      0.upto 10 do
+        send_cmd("", @boot_prompt, 10)
+        break if !timeout?
       end
+      raise "Failed to load bootloader" if timeout?
     end
     
     # Reboot the unit to the bootloader prompt
@@ -156,74 +158,6 @@ module Equipment
     ###############################################################################################
     ### keeping the methods defined below here for now. These are mainly used by linux_tci6614 driver.
     ###############################################################################################
-    
-    def setup_bootfile(bootfile,params)
-      tmp_path = File.join(params['target'].downcase.strip,params['platform'].downcase.strip)
-      get_image(bootfile, params['server'], tmp_path)
-      send_cmd("setenv bootfile #{tmp_path}/#{File.basename(bootfile)}",@boot_prompt, 10) 
-      send_cmd("setenv serverip #{params['server'].telnet_ip}",@boot_prompt, 10) 
-      send_cmd("saveenv",@boot_prompt, 10) 
-      raise 'Unable save environment' if timeout?
-      send_cmd("printenv", @boot_prompt, 20)
-    end
-    
-    def load_bootloader_from_nand(params)
-      params['nand_loader'].call params
-    end
-    
-    # This function assumes there is an existing U-Boot (secondary bootloader) on the board, writes the new U-Boot image to a specified NAND location and reboots the board.
-    def write_bootloader_to_nand_min(params)
-      # get to existing U-Boot 
-      connect({'type'=>'serial'}) if !@target.serial
-      send_cmd("",@boot_prompt, 5)
-      raise 'Bootloader was not loaded properly. Failed to get bootloader prompt' if timeout?
-      
-      # set U-Boot params to download file
-      setup_bootfile(params['secondary_bootloader'],params)
-
-      # write new U-Boot to NAND
-      send_cmd("mw.b #{params['mem_addr'].to_s(16) } 0xFF #{params['size'].to_s(16)}", @boot_prompt, 20)
-      send_cmd("dhcp", @boot_prompt, 60)
-      send_cmd("nand erase clean #{params['offset'].to_s(16)} #{params['size'].to_s(16)}", @boot_prompt, 40)
-      send_cmd("nand write #{params['mem_addr'].to_s(16)} #{params['offset'].to_s(16)} #{params['size'].to_s(16)}", @boot_prompt, 60)
-      
-      # Next, run any EVM-specific commands, if needed
-      if defined? params['exra_cmds']
-        params['extra_cmds'].each {|cmd|
-          send_cmd("#{cmd}",@boot_prompt, 60)
-          raise "Timeout waiting for bootloader prompt #{@boot_prompt}" if timeout?
-        }
-      end
-      send_cmd("reset", @boot_prompt, 60)
-    end
-    
-    def write_bootloader_to_nand_via_mtdparts(params)
-      # get to existing U-Boot 
-      connect({'type'=>'serial'}) if !@target.serial
-      send_cmd("",@boot_prompt, 5)
-      raise 'Bootloader was not loaded properly. Failed to get bootloader prompt' if timeout?
-      
-      #set mtd partition names
-      send_cmd("setenv mtdparts mtdparts=#{params['mtdparts']}",@boot_prompt, 10) 
-      
-      # set U-Boot params to download file
-      setup_bootfile(params['secondary_bootloader'],params)
-
-      # write new U-Boot to NAND
-      send_cmd("mw.b #{params['mem_addr'].to_s(16) } 0xFF #{params['size'].to_s(16)}", @boot_prompt, 20)
-      send_cmd("dhcp", @boot_prompt, 60)
-      send_cmd("nand erase.part bootloader", @boot_prompt, 60)
-      send_cmd("nand write #{params['mem_addr'].to_s(16)} bootloader #{params['size'].to_s(16)}", @boot_prompt, 60)
-      
-      # Next, run any EVM-specific commands, if needed
-      if defined? params['exra_cmds']
-        params['extra_cmds'].each {|cmd|
-          send_cmd("#{cmd}",@boot_prompt, 60)
-          raise "Timeout waiting for bootloader prompt #{@boot_prompt}" if timeout?
-        }
-      end
-      send_cmd("reset", @boot_prompt, 60)
-    end
     
     def get_write_mem_size(filename,nand_eraseblock_size)
       filesize = File.size(File.new(filename))

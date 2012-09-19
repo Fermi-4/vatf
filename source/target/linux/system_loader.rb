@@ -42,6 +42,8 @@ module SystemLoader
       case params['dut'].response
       when /kernel_addr=[\da-fA-Fx]+/
         load_addr = '${kernel_addr}'
+      when /addr_kernel=[\da-fA-Fx]+/
+        load_addr = '${addr_kernel}'
       end
       params['_env']['kernel_loadaddr'] = load_addr
       # Determine dtb loadaddr
@@ -49,6 +51,8 @@ module SystemLoader
       case params['dut'].response
       when /fdt_addr_r=[\da-fA-Fx]+/
         load_dtb_addr = '${fdt_addr_r}'
+      when /addr_fdt=[\da-fA-Fx]+/
+        load_dtb_addr = '${addr_fdt}'
       end
       params['_env']['dtb_loadaddr'] = load_dtb_addr
       # Determine ramdisk loadaddr
@@ -96,7 +100,7 @@ module SystemLoader
       get_uboot_version params
       send_cmd params, "setenv bootargs '#{params['bootargs']} '"
       send_cmd params, "setenv bootcmd  ''"
-      send_cmd params, "setenv serverip ''"
+      send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'"
       get_environment(params)
     end
   end
