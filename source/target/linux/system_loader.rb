@@ -245,6 +245,10 @@ module SystemLoader
       @steps.select! {|step| step.name != name.downcase.strip }
     end
 
+    def get_step(name)
+      @steps.select {|step| step.name == name.downcase.strip }
+    end
+
     def replace_step(name, new_step)
       @steps.map! {|step| 
         if step.name == name.downcase.strip
