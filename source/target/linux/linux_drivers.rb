@@ -14,4 +14,5 @@ require File.dirname(__FILE__)+'/linux_tomahawk_driver'
 require File.dirname(__FILE__)+'/linux_c6x_driver'
 require File.dirname(__FILE__)+'/linux_localhost_driver'
 require File.dirname(__FILE__)+'/linux_tci6614_driver'
+require File.dirname(__FILE__)+'/linux_beagle_driver'
 include Equipment
