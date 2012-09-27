@@ -9,19 +9,21 @@ module Equipment
       end
 
       def run(params)
-        setup_params(params)
-        write_bootloader_to_nand_via_mtdparts(params)
-        params['dut'].power_cycle
-        params['dut'].stop_boot()
-        @@uboot_version = nil
-        get_uboot_version params
-      end
-      
-      def load_file_from_eth_now(params, load_addr, filename)
-        tftp_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'tftp', 'version'=>@@uboot_version})
-        self.send_cmd(params, "#{tftp_cmd} #{load_addr} #{params['server'].telnet_ip}:#{filename}", @boot_prompt, 60)
-      end
-      
+        puts "In keystone_boot step"
+        params['fs_options'] = ",v3,tcp"
+        sleep 5
+        if params['secondary_bootloader_image_name']
+          setup_params(params)
+          self.send_cmd params, "dhcp"
+          ip_regex = Regexp.new(/DHCP\sclient\sbound\sto\saddress\s(?:\d{1,3}\.){3}\d{1,3}/)
+          raise "Could not get IP addr from DHCP" if (ip_regex.match(params['dut'].response) == nil)
+          write_bootloader_to_nand_via_mtdparts(params)
+          params['dut'].power_cycle(params)
+          params['dut'].stop_boot()
+          @@uboot_version = nil      
+        end
+        
+      end      
     
     def write_bootloader_to_nand_via_mtdparts(params)
      
@@ -30,7 +32,7 @@ module Equipment
       
       # write new U-Boot to NAND
       self.send_cmd(params,"mw.b #{params['mem_addr'].to_s(16) } 0xFF #{params['size'].to_s(16)}", @boot_prompt, 20)
-      load_file_from_eth_now(params, params['mem_addr'].to_s(16), params['secondary_bootloader_image_name'])
+      self.load_file_from_eth_now(params, params['mem_addr'].to_s(16), params['secondary_bootloader_image_name'])
       self.send_cmd(params,"nand erase.part bootloader", @boot_prompt, 60)
       self.send_cmd(params,"nand write #{params['mem_addr'].to_s(16)} bootloader #{params['size'].to_s(16)}", @boot_prompt, 60)
       
@@ -68,15 +70,15 @@ module Equipment
     def write_bootloader_to_nand_min(params)
 
       # write new U-Boot to NAND
-      send_cmd("mw.b #{params['mem_addr'].to_s(16) } 0xFF #{params['size'].to_s(16)}", @boot_prompt, 20)
-      load_file_from_eth_now(params, params['mem_addr'].to_s(16), params['secondary_bootloader_image_name'])
-      send_cmd("nand erase clean #{params['offset'].to_s(16)} #{params['size'].to_s(16)}", @boot_prompt, 40)
-      send_cmd("nand write #{params['mem_addr'].to_s(16)} #{params['offset'].to_s(16)} #{params['size'].to_s(16)}", @boot_prompt, 60)
+      self.send_cmd(params,"mw.b #{params['mem_addr'].to_s(16) } 0xFF #{params['size'].to_s(16)}", @boot_prompt, 20)
+      self.load_file_from_eth_now(params, params['mem_addr'].to_s(16), params['secondary_bootloader_image_name'])
+      self.send_cmd("nand erase clean #{params['offset'].to_s(16)} #{params['size'].to_s(16)}", @boot_prompt, 40)
+      self.send_cmd("nand write #{params['mem_addr'].to_s(16)} #{params['offset'].to_s(16)} #{params['size'].to_s(16)}", @boot_prompt, 60)
       
       # Next, run any EVM-specific commands, if needed
       if defined? params['extra_cmds']
         params['extra_cmds'].each {|cmd|
-          send_cmd("#{cmd}",@boot_prompt, 60)
+          self.send_cmd("#{cmd}",@boot_prompt, 60)
           raise "Timeout waiting for bootloader prompt #{@boot_prompt}" if timeout?
         }
       end
@@ -89,14 +91,79 @@ module Equipment
      
     end
 
+    class KeystoneUBIStep < SystemLoader::UbootStep
+      def initialize
+        super('keystone_ubi_boot')
+      end
+
+      def run(params)
+        write_ubi_image_to_nand_via_mtdparts(params)
+     end
+      
+      def write_ubi_image_to_nand_via_mtdparts(params)
+        ubi_filesize = File.size(params['kernel']).to_s(16)
+        puts " >>> UBI filesize is #{ubi_filesize}"
+        append_text params, 'bootargs', "mem=512M rootwait=1 rootfstype=ubifs root=ubi0:rootfs rootflags=sync rw ubi.mtd=2,2048" 
+        self.send_cmd(params,"setenv mtdparts mtdparts=davinci_nand.0:1024k(bootloader),512k(params)ro,129536k(ubifs)", @boot_prompt, 20)
+        self.send_cmd(params,"nand erase.part ubifs", @boot_prompt, 20)
+        self.load_file_from_eth_now(params,params['_env']['kernel_loadaddr'],params['kernel_image_name'],600)
+        self.send_cmd(params,"nand write #{params['_env']['kernel_loadaddr']} ubifs 0x#{ubi_filesize}", @boot_prompt, 600)
+        params['kernel_image_name'] = 'uImage'
+        params['kernel_dev'] = 'ubi'
+      end
+    end
+    
+    class KeystoneUBIBootCmdStep < SystemLoader::UbootStep
+    def initialize
+      super('keystone_ubi_boot_cmd')
+    end
+
+    def run(params)
+      send_cmd params, "setenv bootcmd 'ubi part ubifs; ubifsmount boot; ubifsload ${addr_kernel} uImage; ubifsload ${addr_fdt} tci6614-evm.dtb; bootm ${addr_kernel} - ${addr_fdt} '"
+    end
+    end
+    # reboot is needed the first time so user will be able to power cycle the board without corrupting the file system.
+    class KeystoneUBIRebootStep < SystemLoader::UbootStep
+    def initialize
+      super('keystone_ubi_reboot')
+    end
+
+    def run(params)
+      send_cmd params, "reboot", params['dut'].login_prompt, 180
+      send_cmd params, params['dut'].login, params['dut'].prompt, 10 # login to the unit
+    end
+    end
+     
+
+ 
+  
+    def set_bootloader(params)
+      @boot_loader = BaseLoader.new 
+    end
+    
     # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
       @system_loader = SystemLoader::UbootSystemLoader.new
       @system_loader.insert_step_before('kernel', KeystoneExtrasStep.new)
+      @system_loader.insert_step_before('kernel', PrepStep.new)
+      @system_loader.insert_step_before('boot', SaveEnvStep.new)
+      if params['fs_type'] == 'ubifs'
+        puts "*********** Setting system loader to UBI "
+        @system_loader.insert_step_before('kernel', KeystoneUBIStep.new)
+        @system_loader.remove_step('fs')
+        @system_loader.replace_step('boot_cmd', KeystoneUBIBootCmdStep.new)
+        @system_loader.add_step(KeystoneUBIRebootStep.new)
+      end
     end
-     
-    def set_bootloader(params)
-      @boot_loader = BaseLoader.new 
+
+    
+    def boot_to_bootloader(params=nil)
+      set_bootloader(params) if !@boot_loader
+      set_systemloader(params) if !@system_loader
+      @boot_loader.run params
+      @system_loader.run_step('prep',params)
+      @system_loader.run_step('keystone_boot',params)
     end
+    
   end
 end

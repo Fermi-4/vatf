@@ -4,7 +4,7 @@ module BootLoader
   ###################### Define ways to load bootloader here #########################
   ####################################################################################
   def LOAD_NOTHING(params)
-    params['dut'].power_cycle()
+    params['dut'].power_cycle(params)
   end
 
   def LOAD_FROM_SERIAL(params)
@@ -99,7 +99,7 @@ class BaseLoader
   end
 
   def run_minicom_uart_script(params)
-    params['dut'].power_cycle()
+    params['dut'].power_cycle(params)
     params['server'].send_cmd("cd #{File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'])}; minicom -D #{params['dut'].serial_port} -b #{params['dut'].serial_params['baud']} -S #{params['minicom_script_name']}", params['server'].prompt, 90)
   end
 

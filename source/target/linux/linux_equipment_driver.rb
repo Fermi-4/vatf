@@ -118,7 +118,8 @@ module Equipment
       end
     end
 
-    def power_cycle
+    def power_cycle(params)
+      @power_handler = params['power_handler'] if !@power_handler
       if @power_port !=nil
         puts 'Resetting @using power switch'
         @power_handler.reset(@power_port)

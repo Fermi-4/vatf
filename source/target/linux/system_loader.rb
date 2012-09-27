@@ -88,6 +88,11 @@ module SystemLoader
       tftp_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'tftp', 'version'=>@@uboot_version})
       append_text params, 'bootcmd', "#{tftp_cmd} #{load_addr} #{params['server'].telnet_ip}:#{filename}; "
     end
+    
+    def load_file_from_eth_now(params, load_addr, filename,timeout=60)
+        tftp_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'tftp', 'version'=>@@uboot_version})
+        self.send_cmd(params, "#{tftp_cmd} #{load_addr} #{params['server'].telnet_ip}:#{filename}", @boot_prompt, timeout)
+    end
 
   end
 
@@ -116,6 +121,8 @@ module SystemLoader
         load_kernel_from_mmc params
       when 'eth'
         load_kernel_from_eth params
+      when 'ubi'
+        load_kernel_from_ubi params
       else
         raise "Don't know how to load kernel from #{params['kernel_dev']}"
       end
@@ -129,6 +136,10 @@ module SystemLoader
     def load_kernel_from_eth(params)
       send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'"
       append_text params, 'bootcmd', "dhcp #{params['_env']['kernel_loadaddr']} #{params['server'].telnet_ip}:#{params['kernel_image_name']}; "
+    end
+   
+    def load_kernel_from_ubi(params)
+      append_text params, 'bootcmd', "ubi part ubifs; ubifsmount boot; ubifsmount boot; ubifsload #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']}; "
     end
   
   end
@@ -144,6 +155,8 @@ module SystemLoader
         load_dtb_from_mmc params
       when 'eth'
         load_dtb_from_eth params
+      when 'ubi'
+        load_dtb_from_ubi params
       when 'none'
         # Do nothing
       else
@@ -158,6 +171,10 @@ module SystemLoader
 
     def load_dtb_from_eth(params)
       load_file_from_eth params, params['_env']['dtb_loadaddr'], params['dtb_image_name']
+    end
+    
+    def load_dtb_from_ubi(params)
+      append_text params, 'bootcmd', "ubifsload #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']};"
     end
 
   end
@@ -182,7 +199,8 @@ module SystemLoader
     
     private
     def set_nfs(params)
-      append_text params, 'bootargs', "root=/dev/nfs rw nfsroot=#{params['nfs_path']},nolock "
+      params['fs_options'] = ",nolock" if !params['fs_options']
+      append_text params, 'bootargs', "root=/dev/nfs rw nfsroot=#{params['nfs_path']}#{params['fs_options']} "
     end
     
     def set_ramfs(params)
@@ -200,11 +218,23 @@ module SystemLoader
     def set_mmcfs(params)
       append_text params, 'bootargs', "root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait "
     end
+    
   end
-
-  class BootStep < UbootStep
+  
+  class SaveEnvStep < UbootStep
     def initialize
-      super('boot')
+      super('save_env')
+    end
+
+    def run(params)
+      send_cmd params, "saveenv"
+      send_cmd params, "printenv"
+    end
+  end
+  
+  class BootCmdStep < UbootStep
+    def initialize
+      super('boot_cmd')
     end
 
     def run(params)
@@ -217,6 +247,15 @@ module SystemLoader
       end
       dtb_addr = params['_env']['dtb_loadaddr'] if params['dtb_image_name'].strip != ''
       append_text params, 'bootcmd', "bootm #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr} "
+    end
+  end
+
+  class BootStep < UbootStep
+    def initialize
+      super('boot')
+    end
+
+    def run(params)
       send_cmd params, "boot", params['dut'].login_prompt, 180
       send_cmd params, params['dut'].login, params['dut'].prompt, 10 # login to the unit
     end
@@ -235,6 +274,15 @@ module SystemLoader
       @steps << step
     end
 
+    def run_step(stepname,params)
+      @steps.each {|step| 
+        if step.name == stepname.downcase.strip
+          puts "Calling #{name} run() method"
+          step.run(params)
+        end 
+      }
+    end
+    
     def insert_step_before(name, new_step)
       index = @steps.index {|step| step.name == name.downcase.strip}
       raise "#{name} step does not exist" if !index
@@ -273,6 +321,7 @@ module SystemLoader
       add_step( KernelStep.new )
       add_step( DTBStep.new )
       add_step( FSStep.new )
+      add_step( BootCmdStep.new )
       add_step( BootStep.new )
     end
 
