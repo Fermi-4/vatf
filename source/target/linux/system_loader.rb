@@ -105,6 +105,7 @@ module SystemLoader
       get_uboot_version params
       send_cmd params, "setenv bootargs '#{params['bootargs']} '"
       send_cmd params, "setenv bootcmd  ''"
+      send_cmd params, "setenv autoload 'yes'"
       send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'"
       get_environment(params)
     end
