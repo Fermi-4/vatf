@@ -78,6 +78,17 @@ module Equipment
       @boot_loader.run params
       @system_loader.run params
     end
+    
+    def set_boot_cmd (params)
+      @power_handler = params['power_handler'] if !@power_handler
+      params['bootargs'] = @boot_args if !params['bootargs']
+      set_bootloader(params) if !@boot_loader
+      set_systemloader(params) if !@system_loader
+      params.each{|k,v| puts "#{k}:#{v}"}
+      @system_loader.remove_step('boot')
+      @boot_loader.run params
+      @system_loader.run params
+    end
 
     def get_linux_version()
       return @linux_version if @linux_version

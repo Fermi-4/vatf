@@ -156,6 +156,18 @@ module Equipment
       end
     end
 
+    def set_boot_cmd (params)
+      params['bootargs'] = @boot_args if !params['bootargs']
+      set_bootloader(params) if !@boot_loader
+      set_systemloader(params) if !@system_loader
+      params.each{|k,v| puts "#{k}:#{v}"}
+      @system_loader.remove_step('boot')
+      if params['fs_type'] == 'ubifs'
+        @system_loader.remove_step('keystone_ubi_reboot')
+      end
+      @boot_loader.run params
+      @system_loader.run params
+    end
     
     def boot_to_bootloader(params=nil)
       set_bootloader(params) if !@boot_loader
