@@ -36,7 +36,7 @@ module Equipment
      'am387x-evm' => 'console=ttyO0,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
      'am389x-evm' => 'console=ttyO2,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
      'beagleboard' => 'console=ttyO2,115200n8 ip=dhcp ',
-     'am335x-evm' => 'console=ttyO0,115200n8 ip=dhcp  mem=128M earlyprink ',
+     'am335x-evm' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
      'am335x-sk' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
      'beaglebone' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
      })
