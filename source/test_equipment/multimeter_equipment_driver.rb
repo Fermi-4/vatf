@@ -18,7 +18,7 @@ module TestEquipment
       @connection_type =  @params['connection_type']
       @dut_power_domains = power_info['power_domains'] 
       @dut_domain_resistors = power_info['domain_resistors']  
-      keithley_model = send_cmd("*IDN?",".*",1,true).match(/model\s+(\d+)/i).captures[0]
+      keithley_model = send_cmd("*IDN?",/\w+/,1,false).match(/model\s+(\d+)/i).captures[0]
       send_cmd("*RST", ".*", 1, false)
       send_cmd("*CLS", ".*", 1, false)
       send_cmd(":TRAC:CLE", ".*", 1, false)
