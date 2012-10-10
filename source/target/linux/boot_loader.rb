@@ -99,8 +99,16 @@ class BaseLoader
   end
 
   def run_minicom_uart_script(params)
+    3.times { break if kill_pending_minicom_tasks(params) }  # Try to kill pending minicom tasks 3 times
     params['dut'].power_cycle(params)
     params['server'].send_cmd("cd #{File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'])}; minicom -D #{params['dut'].serial_port} -b #{params['dut'].serial_params['baud']} -S #{params['minicom_script_name']}", params['server'].prompt, 90)
+  end
+
+  def kill_pending_minicom_tasks(params)
+    params['server'].send_sudo_cmd("fuser #{params['dut'].serial_port} -k", params['server'].prompt, 5)
+    sleep 1
+    p=`fuser #{params['dut'].serial_port}`
+    !p.match(/\d+/)
   end
 
   def stop_at_boot_prompt(params)
