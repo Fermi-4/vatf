@@ -34,6 +34,8 @@ module Equipment
      'dm814x-evm' => 'console=ttyO0,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
      'dm816x-evm' => 'console=ttyO2,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
      'am387x-evm' => 'console=ttyO0,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
+     'dm385-evm' => 'console=ttyO0,115200n8 ip=dhcp  mem=166M earlyprink vram=50M',
+     'ti813x-evm' => 'console=ttyO0,115200n8 ip=dhcp  mem=166M earlyprink vram=50M',
      'am389x-evm' => 'console=ttyO2,115200n8 ip=dhcp  mem=166M earlyprink vram=50M ',
      'beagleboard' => 'console=ttyO2,115200n8 ip=dhcp ',
      'am335x-evm' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
