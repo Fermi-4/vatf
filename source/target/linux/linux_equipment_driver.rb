@@ -138,6 +138,8 @@ module Equipment
         @power_handler.reset(@power_port)
       else
         puts "Soft reboot..."
+        connect({'type'=>'serial'}) if !target.serial
+        send_cmd(@login,@prompt, 3)
         send_cmd('', @prompt, 3)
         if timeout?
           # assume at u-boot prompt
@@ -146,6 +148,7 @@ module Equipment
           # at linux prompt
           send_cmd('reboot', /(Restarting|Rebooting|going\s+down)/i, 40)
         end
+        disconnect({'type'=>'serial'})
       end
     end
     
