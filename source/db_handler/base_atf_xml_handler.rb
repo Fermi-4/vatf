@@ -1,5 +1,5 @@
 require 'rexml/document'
-require 'framework_constants'
+require File.dirname(__FILE__)+'/../framework_constants'
 require File.dirname(__FILE__)+'/ruby_staf_handler'
 require File.dirname(__FILE__)+'/base_handler'
 

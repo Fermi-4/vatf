@@ -1,3 +1,3 @@
-require 'external_systems/host_controller'
+require File.dirname(__FILE__)+'/host_controller'
 
 include ExternalSystems

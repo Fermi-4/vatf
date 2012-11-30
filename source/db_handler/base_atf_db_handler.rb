@@ -1,6 +1,6 @@
 require 'dbi'
 require 'active_record'
-require 'framework_constants'
+require File.dirname(__FILE__)+'/../framework_constants'
 require File.dirname(__FILE__)+'/base_handler'
 
 module ATFDBHandlers

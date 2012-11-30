@@ -1,4 +1,4 @@
-require 'db_handler/base_atf_db_handler'
+require File.dirname(__FILE__)+'/base_atf_db_handler'
 
 module ATFDBHandlers
 =begin

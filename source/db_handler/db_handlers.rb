@@ -1,3 +1,3 @@
-require 'db_handler/db_handler'
-require 'db_handler/xml_handler'
+require File.dirname(__FILE__)+'/db_handler'
+require File.dirname(__FILE__)+'/xml_handler'
 include ATFDBHandlers

@@ -1,5 +1,5 @@
-require 'html_writers/html_file_writer'
-require 'framework_constants'
+require File.dirname(__FILE__)+'/html_file_writer'
+require File.dirname(__FILE__)+'/../framework_constants'
 
 module HTMLWriters 
 =begin

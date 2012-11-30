@@ -1,5 +1,5 @@
-require 'atf_session_runner'
-require 'test_areas'
+require File.dirname(__FILE__)+'/atf_session_runner'
+require File.dirname(__FILE__)+'/test_areas'
 
 
 include TestAreas

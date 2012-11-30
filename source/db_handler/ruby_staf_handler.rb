@@ -1,10 +1,15 @@
+require File.dirname(__FILE__)+'/../lib/os_func.rb'
 if(system("staf local service help"))
   require File.dirname(__FILE__)+'/staf/STAFException'
   require File.dirname(__FILE__)+'/staf/STAFResult'
-  if RUBY_PLATFORM.downcase.include?("mswin") || RUBY_PLATFORM.downcase.include?("mingw")
+  if OsFunctions::is_windows?
     require File.dirname(__FILE__)+'/staf/windows/STAFHandle'
-  elsif RUBY_PLATFORM.downcase.include?("linux")
-    require File.dirname(__FILE__)+'/staf/linux/STAFHandle'
+  elsif OsFunctions::is_linux?
+    if OsFunctions::is_64bit? 
+      require File.dirname(__FILE__)+'/staf/linux/64bit/STAFHandle'
+    else
+      require File.dirname(__FILE__)+'/staf/linux/32bit/STAFHandle'
+    end
   end
   require File.dirname(__FILE__)+'/staf/STAFCommand'
   include STAF

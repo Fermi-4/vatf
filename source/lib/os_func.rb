@@ -6,4 +6,8 @@ module OsFunctions
   def self.is_linux?
     RUBY_PLATFORM.downcase.include?("linux")
   end
+
+  def self.is_64bit?
+    ['a'].pack('P').length > 4
+  end
 end

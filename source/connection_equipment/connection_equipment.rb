@@ -1,2 +1,2 @@
-require 'connection_equipment/video_switch'
-require 'connection_equipment/usb_switch'
+require File.dirname(__FILE__)+'/video_switch'
+require File.dirname(__FILE__)+'/usb_switch'

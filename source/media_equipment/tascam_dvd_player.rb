@@ -1,5 +1,5 @@
 require 'net/telnet'
-require 'media_equipment/dvd_player'
+require File.dirname(__FILE__)+'/dvd_player'
 
 module MediaEquipment
   class TascamDvdPlayer < DvdPlayer

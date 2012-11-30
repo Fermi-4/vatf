@@ -1,6 +1,6 @@
 
-require 'equipment_info'
-require 'connection_equipment/connection_equipment'
+require File.dirname(__FILE__)+'/equipment_info'
+require File.dirname(__FILE__)+'/connection_equipment/connection_equipment'
 
 include ConnectionEquipment
 class ConnectionHandler
