@@ -28,7 +28,8 @@ module SiteInfo
    RESULTS_FILE                 = 'C:/VATF/vatf_automation_results.xml'
  end
  
- LOGS_SERVER                    = "http://automationlogs.gt.design.ti.com/gtsystst_logs/vatf"
+ #LOGS_SERVER                    = "http://automationlogs.gt.design.ti.com/gtsystst_logs/vatf"
+ LOGS_SERVER                    = "http://gtsystest.telogy.design.ti.com/vatf"
  ANALYTICS_SERVER               = "158.218.103.157:3000"
  WINCE_DOWNLOAD_APP             = 'cedownload.exe'
  WINCE_PERFTOCSV_APP            = 'perftocsv.exe'
