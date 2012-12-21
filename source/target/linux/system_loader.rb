@@ -205,6 +205,19 @@ module SystemLoader
     end
     
     def set_ramfs(params)
+      # Make sure file have required headers (i.e. mkimage have been run)
+      y=`mkimage -l /tftpboot/#{params['fs_image_name']}`
+      if !y.match(/Image\s+Name:\s+Arago\s+Test\s+Image/i)
+        ramdisk_image_name="#{File.dirname params['fs_image_name']}/uRamdisk"
+        x=`mkimage -A arm -T ramdisk -C gzip -n 'Arago Test Image' -d /tftpboot/#{params['fs_image_name']} /tftpboot/#{ramdisk_image_name}`
+        raise "Could not run mkimage on #{params['fs_image_name']}" if !x.match(/Image\s+Name:\s+Arago\s+Test\s+Image/i)
+        params['fs_image_name']=ramdisk_image_name
+      end
+
+      # Avoid relocation of ramfs and device tree data
+      send_cmd params, "setenv initrd_high '0xffffffff'"
+      send_cmd params, "setenv fdt_high '0xffffffff'"
+      
       case params['fs_dev']
       when /eth/i
         load_file_from_eth params, params['_env']['ramdisk_loadaddr'], params['fs_image_name']
@@ -257,7 +270,7 @@ module SystemLoader
     end
 
     def run(params)
-      send_cmd params, "boot", params['dut'].login_prompt, 180
+      send_cmd params, "boot", params['dut'].login_prompt, 900
       send_cmd params, params['dut'].login, params['dut'].prompt, 10 # login to the unit
     end
   end
