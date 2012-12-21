@@ -114,7 +114,7 @@ class BaseLoader
   def stop_at_boot_prompt(params)
     dut = params['dut']
     dut.connect({'type'=>'serial'}) if !dut.target.serial
-    50.times { 
+    100.times { 
       dut.send_cmd("", dut.boot_prompt, 0.5, false)
       break if !dut.timeout?
     }
