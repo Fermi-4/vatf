@@ -1,0 +1,4 @@
+To compile the STAFHandle.so on linux do:
+1) make clean
+2) ruby extconf.rb --with-staf-dir=<STAF install dir (ex. /usr/local/staf)>
+3) make
