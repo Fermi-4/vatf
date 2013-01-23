@@ -107,6 +107,11 @@ module SystemLoader
       send_cmd params, "setenv bootcmd  ''"
       send_cmd params, "setenv autoload 'yes'"
       send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'"
+      if  params.has_key?'uboot_user_cmds'
+        params['uboot_user_cmds'].each{|uboot_cmd|
+          send_cmd params, uboot_cmd
+        }
+      end
       get_environment(params)
     end
   end
