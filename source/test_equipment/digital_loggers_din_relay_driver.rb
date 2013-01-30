@@ -47,35 +47,25 @@ include Log4r
 
     def _switch(type, address)
       type.upcase!
-      sleep_time = 1
-      sleep_time = 12 if type.match(/OFF/)
-      6.times {
-        begin 
-          send_cmd(address, "ON", 2)
-          sleep sleep_time
-          3.times {
-            begin
-              send_cmd(address, "OFF", 2)
-              return
-            rescue 
-              next
-            end
-          }
-          raise "Could not turn relay OFF"
-        rescue
+      3.times {
+        begin
+          send_cmd(address, type, 3)
+          return
+        rescue 
           next
         end
       }
-      raise "Timeout trying to switch #{type} port #{address}"
+      log_warning("Could not get a confirmation from DIN relay that it turned relay #{address} #{type}")
+      #raise "Could not turn relay #{address} #{type}"
     end
 		
     # Cycle (Turn OFF and ON) the port/relay at the specified address
     # * address - the port/relay address to cycle
     # * waittime - how long to wait between cycling (default: 5 seconds)
-    def reset(address, waittime=3)
-      switch_off(address)
-      sleep(waittime)
+    def reset(address, waittime=2)
       switch_on(address) 
+      sleep(waittime)
+      switch_off(address)
     end
 
     # sends a command to the unit
