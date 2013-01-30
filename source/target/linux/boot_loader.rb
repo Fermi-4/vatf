@@ -100,8 +100,12 @@ class BaseLoader
 
   def run_minicom_uart_script(params)
     3.times { break if kill_pending_minicom_tasks(params) }  # Try to kill pending minicom tasks 3 times
+    minicom_thread = Thread.new {
+      params['server'].send_cmd("cd #{File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'])}; minicom -D #{params['dut'].serial_port} -b #{params['dut'].serial_params['baud']} -S #{params['minicom_script_name']}", params['server'].prompt, 90)
+    }
+    sleep 2 # To make sure that minicom is running before power cycling
     params['dut'].power_cycle(params)
-    params['server'].send_cmd("cd #{File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'])}; minicom -D #{params['dut'].serial_port} -b #{params['dut'].serial_params['baud']} -S #{params['minicom_script_name']}", params['server'].prompt, 90)
+    minicom_thread.join
   end
 
   def kill_pending_minicom_tasks(params)
