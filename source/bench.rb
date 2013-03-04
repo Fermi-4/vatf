@@ -3,23 +3,50 @@
 #is stored. A VATF user must taylor the bench file to match his/her hardware setup  
 #All entries in the bench file must belong to the EquipmentInfo class. This class has the following
 #methods and properties:
-#   Methods
-#     new(name,capabilities)
+# Methods:
+#   new(name,capabilities)
 #     Constructor of the class takes two parameter as input:
-#    	 name: string to associate an equipment with a given name
-#         capabilities: used to differentiate equipment with the same "name" attribute but with different capabilities. 
+#   	  name: string to associate an equipment with a given name
+#       capabilities: used to differentiate equipment with the same "name" attribute but with different capabilities. 
 #                               Zero or more capabilities can be specified, capabalities are separated by underscore '_'
 #                               For more information about acceptable values see http://automation.telogy.design.ti.com/wiki/index.php?title=Cheat_Sheet
-#    Properties
-#	  telnet_ip: string containing the ip address used to connect to an equipment. For example
-#	  		     dut = EquipmentInfo("dm365", "linux")
-#	  			dut.telnet_ip = "111.222.333.444"
-#	  telnet_port: integer defining the port used to connect to an equipment.
-#	              dut = EquipmentInfo("dm365", "linux")
-#				   dut.telnet_port = 2024	  
-#	  driver_class_name: string containing the name of the driver used to control an equipment.
-#	               dut = EquipmentInfo("dm365", "linux")
-#				   dut.driver_class_name = "PioneerDvdPlayer"	  
+
+# MUST-HAVE DUT Equipment Properties (sorted by importance):
+#   driver_class_name: string containing the name of the driver used to control an equipment.
+#     dut = EquipmentInfo("am335x-evm", "linux")
+#     dut.driver_class_name = "LinuxEquipmentDriver"   
+#   serial_port: String to identify how the host pc connects to the DUT
+#     dut.serial_port = '/dev/ttyS0'
+#   serial_params: Serial port parameters for serial_port
+#     dut.serial_params = {"baud" => 115200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+#   login: string containing the username used to login to an equipment if it is not done via telnet
+#     dut.login = "root"
+#   login_prompt: Regexp (regular expression) containing the pattern of the prompt expected to login in to an equipment
+#     dut.login_prompt = /login:/
+#   prompt: Regexp (regular expression) containing the pattern of the prompt expected after login in to an equipment 
+#      dut.prompt = /root.*#/
+#   boot_prompt: Regexp (regular expression) containing the pattern of the prompt in bootloader
+#     dut.boot_prompt = /:>/     
+#   nfs_root_path: string containing the path in the nfs host used by the equipment to run via nfs
+#     dut.nfs_root_path = '/usr/workdir/filesys'
+#   boot_load_address: Memory address where bootloader will be loaded 
+#     dut.boot_load_address = '0x81000000'
+
+# Other equipment Properties:
+#   power_port: Hash whose key identifies the power_controller equipment and the value identifies the port 
+#     dut.power_port = {'<power controller equipment info name'=> <power port associated with this DUT>}
+#   telnet_ip: string containing the ip address used to connect to an equipment. For example
+#     dut.telnet_ip = "111.222.333.444"
+#   telnet_port: integer defining the port used to connect to an equipment.
+#     dut.telnet_port = 2024   
+#   telnet_login: string containing the username that will be used to login to an equipment via telnet, if an equipment requires to login for access. For example
+#     dut.telnet_login = "root"
+#   telnet_passwd: string containing the password that will be used to login to an equipment via telnet, if an equipment requires a password for access. For example
+#     dut.telnet_passwd = "admin"
+#   tftp_path: string containing the tftp root path
+#     dut.tftp_path = '/tftpboot'
+#   board_id: Name associated with a platform. Currently only used by Android and WinCE for devuce identification
+#     dut.board_id = 'MY-DM365-BOARD'
 #	  audio_hardware_info: data structure used to specify the audio hardware attributes in the VATF host. 
 #	    The attributes supported in this data structure are:
 #		    analog_audio_inputs: a comma separated string containing the ids assign by the
@@ -43,45 +70,6 @@
 #				   dut.audio_hardware_info.midi_audio_inputs = "4"
 #				   dut.audio_hardware_info.midi_audio_outputs	= "4"  
 #	                       
-#	  telnet_login: string containing the username that will be used to login to an equipment via telnet, if an equipment requires to login for access. For example
-#	              dut = EquipmentInfo("dm365", "linux")
-#			   dut.telnet_login = "root"
-#	  telnet_passwd: string containing the password that will be used to login to an equipment via telnet, if an equipment requires a password for access. For example
-#	              dut = EquipmentInfo("dm365", "linux")
-#			   dut.telnet_passwd = "admin"
-#	  prompt: Regexp (regular expression) containing the pattern of the prompt expected after login in to an equipment 
-#	              dut = EquipmentInfo("dm365", "linux")
-#			   dut.prompt = /root.*#/
-#    boot_prompt: egexp (regular expression) containing the pattern of the prompt in bootloader
-#                dut = EquipmentInfo("dm365",0)
-#                dut.boot_prompt = /:>/     
-#	  executable_path: string containing the path, with respect to the root directory of the equipment, were the executables required by an equipment are placed
-#	             dut = EquipmentInfo("dm365", "linux")
-#		       dut.executable_path = "/opt/dvsdk/dm355"
-#	  nfs_root_path: string containing the path in the nfs host used by the equipment to run via nfs
-#	             dut = EquipmentInfo("dm365", "linux")
-#			  dut.nfs_root_path = '/usr/workdir/filesys'
-#	  samba_root_path: string containg a path, with respect to the VATF host, with the smb shared provided by the equipment
-#	             dut = EquipmentInfo("dm365", "linux")
-#			  dut.samba_root_path = "\\\\10.218.111.201\\mv_pro5_08\\filesys"
-#    login: string containing the username used to login to an equipment if it is not done via telnet
-#               dut = EquipmentInfo("dm365", "linux")
-#               dut.login = "root"
-#    login_prompt: Regexp (regular expression) containing the pattern of the prompt expected to login in to an equipment
-#               dut = EquipmentInfo("dm365", "linux")
-#               dut.login_prompt = /Login:/
-#    power_port: Hash whose key identifies the power_controller equipment and the value identifies the port 
-#               dut = EquipmentInfo("dm365", "linux")
-#               dut.power_port = {'0'=> 6}
-#    tftp_path: string containing the tftp root path
-#              dut = EquipmentInfo("dm365", "linux")
-#              dut.tftp_path = '/tftpboot'
-#    tftp_ip: string containing the ip address of tftp server
-#               dut = EquipmentInfo("dm365", "linux")
-#               dut.tftp_ip = "111.222.333.444"
-#    board_id: Name associated with a platform. Currently the only known usage is for WinCE eboot's device ID 
-#               dut = EquipmentInfo("dm365", "linux")
-#               dut.board_id = 'MY-DM365-BOARD'
 #
 #	  video_io_info: data structure containing the ids of the video inputs and outputs used by an equipment when connecting to other equipment through
 #	                   a programmable video switch. The attributes supported in this data structure are vga_inputs, vga_outputs, component_inputs, component_outputs, composite_inputs, composite_outputs, svideo_inputs, \
@@ -103,76 +91,104 @@
 #				       dut.audio_io_info.mini35mm_inputs = {0 => [15,13]}
 #					   dut.audio_io_info.mini35mm_outputs = {0 => [5]}
 					  
-#NOTE: TO SPECIFY AN EQUIPMENT IN A BENCH FILE IT IS NOT NECESSARY TO SPECIFY ALL THE ATTRIBUTES LISTED BEFORE ONLY THE ATTRIBUTES RELEVANT TO THAT EQUIPMENT ARE REQUIRED
-#FOR SOME EXAMPLES SEE BELOW
+#NOTE: TO SPECIFY AN EQUIPMENT IN A BENCH FILE IT IS NOT NECESSARY TO SPECIFY
+#      ALL THE ATTRIBUTES LISTED BEFORE ONLY THE ATTRIBUTES RELEVANT TO THAT EQUIPMENT ARE REQUIRED
+#      FOR SOME EXAMPLES SEE BELOW
 
-
-# DUTs
-# DM365 located at Rack 3, shelf3
-dut = EquipmentInfo.new("dm365", "linux")
-dut.driver_class_name = "LinuxDm365Driver"
-dut.video_io_info.composite_inputs = {0 => [11]}
-dut.video_io_info.composite_outputs = {0 => [11]}
-dut.video_io_info.svideo_inputs = {0 => [17]}
-dut.video_io_info.component_inputs = {1 => [3]}
-dut.video_io_info.component_outputs = {1 => [3]}
-dut.audio_io_info.mini35mm_inputs = {0 => [25]}
-dut.audio_io_info.mini35mm_outputs = {0 => [25]}
-dut.telnet_ip = '10.0.0.6'
-dut.telnet_port = 23
-#dut.serial_server_ip = '10.0.0.100'   # Use only if connection is done via Telnet to Serial Switch like Port-Master
-#dut.serial_server_port = 6003           # Use only if connection is done via Telnet to Serial Switch like Port-Master
-dut.serial_port = '0'
-dut.serial_params = {"baud" => 115200, "data_bits" => 8, "stop_bits" => 1}
-dut.executable_path = '/drop2'
-dut.prompt = /root.*#/m
-dut.boot_prompt = /DM365\s*EVM\s*>/m
+#############################################################
+################# Most Typicall entries #####################
+#############################################################
+dut = EquipmentInfo.new("am335x-evm", "linux_sd_sdhc_usbhostmsc_usbhosthid_power")
+dut.driver_class_name='LinuxEquipmentDriver'
+dut.prompt = /[\w\d]+@.+[@:#]+/
+dut.boot_prompt = /U-Boot#/
+dut.first_boot_prompt = /TI-MIN/
+dut.boot_load_address = '0x81000000'
 dut.login = 'root'
 dut.telnet_login = 'root'
-dut.login_prompt = 'login'
-dut.nfs_root_path = '/usr/workdir/filesys/dvsdk_310/dm365'
-dut.samba_root_path = "\\\\10.218.111.201\\filesys\\dvsdk_310\\dm365"
-dut.power_port = {0 => 7}
+dut.login_prompt = /login:/
+dut.board_id='20100720'
+dut.nfs_root_path = '/home/a0850405/NFS_exports/linux/arago-test'
+dut.serial_port = '/dev/ttyUSB0'
+dut.serial_params = {"baud" => 115200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+dut.power_port = {'apc.158.218.103.33' => 6}
+dut.params = {'usb_port' => {'1' => 1}, 'multimeter1' => minfo}
 
-# Freon board located at Rack 2, shelf3
-dut = EquipmentInfo.new("omapl138", "linux")
-dut.driver_class_name = "LinuxOmapL13xDriver"
-#dut.telnet_ip = '10.0.0.15'
-#dut.telnet_port = 23
-dut.serial_server_ip = '10.0.0.100'
-dut.serial_server_port = 6008
-dut.executable_path = '/drop1'
-dut.prompt = /root.*#/
-dut.boot_prompt = /Boot\s*>/
+#pwr = EquipmentInfo.new("power_controller", 0)
+pwr = EquipmentInfo.new("power_controller", "apc.158.218.103.33")
+pwr.telnet_ip = '158.218.103.45'
+pwr.telnet_port = 23
+#pwr.driver_class_name = 'ApcPowerController'
+pwr.driver_class_name = 'StafApcPowerController'
+pwr.telnet_login = 'apc'
+pwr.telnet_passwd = 'apc'
+pwr.params = {'staf_ip' => 'local'}
+
+svr = EquipmentInfo.new("linux_server")
+svr.tftp_path = '/tftpboot'
+svr.driver_class_name = 'LinuxLocalHostDriver'
+svr.telnet_login = 'a0850405'
+svr.telnet_passwd = '95yMy512'
+svr.telnet_ip = '158.218.103.10'
+svr.prompt = /@@/
+
+#############################################################
+################ Other Test Equipment Samples ###############
+#############################################################
+# Keithley Multimeter
+minfo = EquipmentInfo.new("multimeter1")
+minfo.serial_port = '/dev/ttyUSB5'
+minfo.serial_params = {"baud" => 19200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+minfo.driver_class_name = 'KeithleyMultiMeterDriver'
+minfo.params = {'number_of_channels' => 40}
+
+# MSP430-Based USB switch
+usb = EquipmentInfo.new("usb_switch_controller", "1")
+usb.serial_port = '/dev/ttyACM0'
+usb.serial_params = {"baud" => 9600, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+usb.driver_class_name = 'TiUsbSwitch'
+
+#Objective Speech Tester information
+aud = EquipmentInfo.new("speech_tester")
+aud.driver_class_name = "OperaForClr"
+aud.telnet_ip = "10.218.111.209"
+
+# Kvaser CAN Server
+can_kvaser_host = EquipmentInfo.new("can","kvaser")
+can_kvaser_host.telnet_bin_mode = false
+can_kvaser_host.driver_class_name = "LinuxEquipmentDriver"
+can_kvaser_host.telnet_ip = '10.218.103.117'
+can_kvaser_host.telnet_port = 2424
+can_kvaser_host.password_prompt = /password:.*/i
+can_kvaser_host.prompt = /Documents/
+can_kvaser_host.telnet_login = 'admintest'
+can_kvaser_host.telnet_passwd = 'admin123Test'
+can_kvaser_host.login_prompt = /login:/i
+
+# DUT controlled via CCS/JTAG
+dut = EquipmentInfo.new("am180x-evm", "ccs")
+dut.driver_class_name='EquipmentDriver'
+dut.prompt = /[\w\d]+@.+[@:#]+/
+dut.telnet_ip='158.218.103.93'
+dut.telnet_port=23
+dut.boot_prompt = /U-Boot\s*>/m
 dut.login = 'root'
 dut.telnet_login = 'root'
-dut.login_prompt = 'login'
-dut.nfs_root_path = '/usr/workdir/filesys/freon/'
-dut.samba_root_path = "\\\\10.218.111.201\\filesys\\freon"
-dut.power_port = {0 => 3}
+dut.login_prompt = /login:/
+dut.board_id='20100720'
+dut.nfs_root_path = '/home/a0850405/NFS_exports/linux/4.01/am18x'
+dut.power_port = {'apc.158.218.103.33' => 1}
+dut.params = {'ccs_type'        => 'Ccsv5',
+              'ccs_install_dir' => '/opt/ti/ccsv5',
+              'ccs_workspace'   => '/home/a0850405/workspace_v5_1',
+              'ccsConfig'       => '/home/a0850405/ti/CCSTargetConfigurations/c6748.ccxml',
+              'gelFile'         => '/home/a0850405/ti/CCSTargetConfigurations/C6748.gel',
+              'ccsPlatform'     => 'Spectrum Digital XDS510USB Emulator_0',
+              'ccsCpu'          => 'C674X_0'}
 
-
-dut = EquipmentInfo.new("omapl138", "wince")
-dut.driver_class_name = "WinceOmapL13xDriver"
-dut.telnet_ip = '10.0.0.5'
-dut.telnet_port = 23
-#dut.serial_server_ip = '10.0.0.100'
-#dut.serial_server_port = 6003
-dut.serial_port = '0'
-dut.serial_params = {"baud" => 115200, "data_bits" => 8, "stop_bits" => 1}
-dut.executable_path = '/drop1'
-dut.prompt = /root.*#/
-dut.boot_prompt = /Boot\s*>/
-dut.login = 'root'
-dut.telnet_login = 'root'
-dut.login_prompt = 'login'
-dut.nfs_root_path = '/usr/workdir/filesys/freon/'
-dut.samba_root_path = "\\\\10.218.111.201\\filesys\\freon"
-dut.power_port = {0 => 3}
-dut.board_id = 'MY-FREON-BOARD"
-
-# Media connection equipment information
-
+#############################################################
+########## Media connection equipment information ###########
+#############################################################
 #Composite switch Rack2
 te = EquipmentInfo.new("media_switch",0)
 te.telnet_ip = "10.0.0.200"
@@ -193,19 +209,14 @@ te.driver_class_name = "VideoSwitch"
 
 #TVs information
 tv = EquipmentInfo.new("tv") #left tv
-# tv.video_io_info.composite_inputs = {0 => [30]}
-# tv.audio_io_info.mini35mm_inputs = {0 => [30]}
 tv.video_io_info.composite_inputs = {0 => [25]}
 tv.video_io_info.svideo_inputs = {0 => [25]}
 tv.audio_io_info.mini35mm_inputs = {0 => [23]}
 tv.video_io_info.component_inputs = {1 => [11]}
 
 tv = EquipmentInfo.new("tv")  #right tv
-# tv.video_io_info.composite_inputs = {0 => [31]}
-# tv.audio_io_info.mini35mm_inputs = {0 => [31]}
 tv.video_io_info.composite_inputs = {0 => [27]}
 tv.video_io_info.svideo_inputs = {0 => [27]}
-#tv.audio_io_info.mini35mm_inputs = {0 => [27]}
 tv.audio_io_info.mini35mm_inputs = {0 => [23]}
 tv.video_io_info.component_inputs = {1 => [12]}
 
@@ -220,23 +231,11 @@ dvd = EquipmentInfo.new("dvd","pal")
 dvd.video_io_info.composite_outputs = {0 => ["26"]}
 dvd.video_io_info.svideo_outputs = {0 => ["26"]}
 dvd.audio_io_info.mini35mm_outputs = {0 => ["26"]}
-#dvd.driver_class_name = "PioneerDvdPlayer"
-#dvd.telnet_ip = "10.0.0.100"
-#dvd.telnet_port = 6002
-
-dvd = EquipmentInfo.new("dvd","ntsc")
-dvd.video_io_info.composite_outputs = {0 => ["29"]}
-dvd.video_io_info.svideo_outputs = {0 => ["29"]}
-dvd.audio_io_info.mini35mm_outputs = {0 => ["29"]}
-#dvd.driver_class_name = "PioneerDvdPlayer"
-#dvd.telnet_ip = "10.0.0.100"]
-#dvd.telnet_port = 6001
 
 dvd = EquipmentInfo.new("dvd", "hd") # blue-ray
 dvd.video_io_info.composite_outputs = {0 => ["26"]}
 dvd.video_io_info.svideo_outputs = {0 => ["26"]}
 dvd.video_io_info.component_outputs = {1 => ["15"]}
-#dvd.audio_io_info.mini35mm_outputs = {1 => ["17"]}
 dvd.audio_io_info.mini35mm_outputs = {0 => ["7"]}
 
 #Video clarity on Rack3
@@ -268,49 +267,3 @@ conv.video_io_info.svideo_inputs = {0 => [26]}
 conv.video_io_info.svideo_outputs = {0 => [27]}
 conv.video_io_info.composite_inputs = {0 => [26]}
 conv.video_io_info.composite_outputs = {0 => [27]}
-
-#Power controller 1 on rack 3
-te = EquipmentInfo.new("power_controller", 0)
-te.telnet_ip = '10.0.0.60'
-te.telnet_port = 23
-te.driver_class_name = "ApcPowerController"
-te.telnet_login = 'apc'
-te.telnet_passwd = 'apc'
-
-#Audio equipment Information
-audio_controller = EquipmentInfo.new("audio_player")
-audio_controller.driver_class_name = "AudioCard"
-audio_controller.audio_hardware_info.analog_audio_inputs = "0"
-audio_controller.audio_hardware_info.analog_audio_outputs = "0"
-audio_controller.audio_io_info.mini35mm_inputs = {0 => [27]}
-audio_controller.audio_io_info.mini35mm_outputs = {0 => [27]}
-
-#Objective Speech Tester information
-aud = EquipmentInfo.new("speech_tester")
-aud.driver_class_name = "OperaForClr"
-aud.telnet_ip = "10.218.111.209"
-
-#Linux Host
-linux_server = EquipmentInfo.new("linux_server")
-linux_server.driver_class_name = "LinuxEquipmentDriver"
-linux_server.telnet_ip = '10.218.111.201'
-linux_server.telnet_port = 23
-linux_server.telnet_login = 'mylogin'
-linux_server.telnet_passwd = 'mypassword'
-linux_server.prompt = /\$@@/m
-linux_server.boot_prompt = /\$/m
-linux_server.nfs_root_path = '/usr/workdir/filesys/'
-linux_server.samba_root_path = "filesys"
-linux_server.tftp_path = '/tftpboot'
-
-# Kvaser CAN Server
-can_kvaser_host = EquipmentInfo.new("can","kvaser")
-can_kvaser_host.telnet_bin_mode = false
-can_kvaser_host.driver_class_name = "LinuxEquipmentDriver"
-can_kvaser_host.telnet_ip = '10.218.103.117'
-can_kvaser_host.telnet_port = 2424
-can_kvaser_host.password_prompt = /password:.*/i
-can_kvaser_host.prompt = /Documents/
-can_kvaser_host.telnet_login = 'admintest'
-can_kvaser_host.telnet_passwd = 'admin123Test'
-can_kvaser_host.login_prompt = /login:/i
