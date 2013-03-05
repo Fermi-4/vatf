@@ -10,9 +10,18 @@ module CmdTranslator
   
   # place holder for linux cmds vs. version
   @dict_linux = {
-    'testcmd' => {  '0.0' => 'cmd0.0',
+    'set_uart_to_gpio_standby' => { 
+                    '3.1.0' => 'cmd for 3.1.0',
+                    '3.2.0' => Hash.new('echo uart0_rxd.gpio1_10=0x27,rising > standby_gpio_pad_conf').merge!(
+                          {'am335x-evm' => 'echo uart0_rxd.gpio1_10=0x27,rising > standby_gpio_pad_conf', 
+                           'am180x-evm' => 'am180x cmd'} ),
+    },
+    'get_uart_to_gpio_standby' => { 
                     '2.6.37' => 'cmd2.6.37',
-                    '3.1.0'  => 'cmd3.1.0'  }
+                    '3.2.0' => Hash.new('cat standby_gpio_pad_conf').merge!(
+                          {'am335x-evm'=>'cat standby_gpio_pad_conf', 
+                           'am180x-evm' => 'am180x getcmd'} ),
+    },
   }
   
   # Android cmd vs. version
@@ -119,11 +128,13 @@ module CmdTranslator
     version = params['version']
     dict = params['dict']
     cmd = params['cmd']
+    platform = params['platform'] if params.key?('platform')
     cmds_hash = dict["#{cmd}"]
     versions = cmds_hash.keys.sort {|a,b| b <=> a}  # sort by version
     tmp = versions.select {|v| Gem::Version.new(v) <= Gem::Version.new(version)}
     raise "get_cmd: Unable to find the version matching v<= #{version}\n" if tmp.empty?
-    return cmds_hash[tmp[0]] 
+    return cmds_hash[tmp[0]] if !cmds_hash[tmp[0]].is_a?(Hash)
+    return cmds_hash[tmp[0]][platform]
   end
 
 end
