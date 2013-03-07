@@ -11,13 +11,11 @@ class BaseListener
       i+=1
     }
     @cmd = Regexp.new(Regexp.escape(first_cmd_word))
-	#@cmd = /#{first_cmd_word}.+?#{expect}/m
-    @expect = /#{expect}/m
-	@check_cmd_echo = check_cmd_echo
+	  @expect = /#{expect}/m
+	  @check_cmd_echo = check_cmd_echo
     @response = ''
     @match = false
-	#puts "\nBaseListener: cmd=#{@cmd}, expect=#{@expect}, cmd_echo?#{@check_cmd_echo}" # TODO REMOVE DEBUG PRINT
-  end
+	end
 
   def process_response(data)
     @response += data
@@ -25,8 +23,7 @@ class BaseListener
   
   def match
     @match = (@response.index(@expect) && (!@check_cmd_echo || @response.index(/#{@cmd}.+?#{@expect}/m)) )
-	#@match = true   if ( @response.index(@expect) && (!@check_cmd_echo || @response.index(@cmd)))
-    @match
+	  @match
   end
 end
   
@@ -106,16 +103,16 @@ class TelnetBaseListenerClient < Net::Telnet
   
   def initialize(platform_info,serial_server)
     if serial_server
-	  @telnet_ip   = platform_info.serial_server_ip
-	  @telnet_port = platform_info.serial_server_port
-	else
-	  @telnet_ip   = platform_info.telnet_ip
+	    @telnet_ip   = platform_info.serial_server_ip
+	    @telnet_port = platform_info.serial_server_port
+	  else
+	    @telnet_ip   = platform_info.telnet_ip
       @telnet_port = platform_info.telnet_port
-	end
+	  end
 	@prompt      = platform_info.prompt
-    @boot_prompt = platform_info.boot_prompt
-    @telnet_login = platform_info.telnet_login
-    @telnet_passwd = platform_info.telnet_passwd
+  @boot_prompt = platform_info.boot_prompt
+  @telnet_login = platform_info.telnet_login
+  @telnet_passwd = platform_info.telnet_passwd
 	@login_prompt  = platform_info.login_prompt if platform_info.respond_to?:login_prompt
 	@password_prompt  = platform_info.password_prompt if platform_info.respond_to?:password_prompt
 	@timeout = platform_info.timeout if platform_info.respond_to?:timeout
@@ -179,4 +176,13 @@ class TelnetBaseListenerClient < Net::Telnet
     stop_listening
     self.close
   end    
+
+  def method_missing(method, *args)
+    if @sock.respond_to?(method.to_s)
+      @sock.__send__(method, *args)
+    else
+      super
+    end
+  end
+
 end
