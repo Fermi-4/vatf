@@ -131,7 +131,7 @@ module CmdTranslator
     platform = params['platform'] if params.key?('platform')
     cmds_hash = dict["#{cmd}"]
     versions = cmds_hash.keys.sort {|a,b| b <=> a}  # sort by version
-    tmp = versions.select {|v| Gem::Version.new(v) <= Gem::Version.new(version)}
+    tmp = versions.select {|v| Gem::Version.new(v.dup) <= Gem::Version.new(version)}
     raise "get_cmd: Unable to find the version matching v<= #{version}\n" if tmp.empty?
     return cmds_hash[tmp[0]] if !cmds_hash[tmp[0]].is_a?(Hash)
     return cmds_hash[tmp[0]][platform]
