@@ -85,10 +85,12 @@ class SerialBaseListenerClient < SerialPort
 
   def send_cmd(command)
     puts(command)
+    flush
   end
   
   def write_cmd(command)
     write(command)
+    flush
   end
 
   def disconnect
