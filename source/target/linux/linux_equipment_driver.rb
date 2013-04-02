@@ -41,6 +41,7 @@ module Equipment
      'am335x-evm' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
      'am335x-sk' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
      'beaglebone' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
+     'omap5-evm' => 'console=ttyO2,115200n8 ip=dhcp ',
      })
     
     def initialize(platform_info, log_path)
@@ -68,7 +69,7 @@ module Equipment
     # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
       @system_loader = SystemLoader::UbootSystemLoader.new
-      end
+    end
     
     # Take the DUT from power on to system prompt
     def boot (params)
