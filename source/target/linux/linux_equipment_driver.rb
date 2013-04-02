@@ -68,7 +68,11 @@ module Equipment
 
     # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
-      @system_loader = SystemLoader::UbootSystemLoader.new
+      if params.has_key?("var_use_default_env")
+        @system_loader = SystemLoader::UbootDefaultEnvSystemLoader.new
+      else
+        @system_loader = SystemLoader::UbootSystemLoader.new
+      end
     end
     
     # Take the DUT from power on to system prompt

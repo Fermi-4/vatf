@@ -250,6 +250,17 @@ module SystemLoader
       send_cmd params, "printenv"
     end
   end
+
+  class SetDefaultEnvStep < UbootStep
+    def initialize
+      super('set_default_env')
+    end
+
+    def run(params)
+      send_cmd params, "env default -a -f"
+      send_cmd params, "printenv"
+    end
+  end
   
   class BootCmdStep < UbootStep
     def initialize
@@ -341,6 +352,18 @@ module SystemLoader
       add_step( DTBStep.new )
       add_step( FSStep.new )
       add_step( BootCmdStep.new )
+      add_step( BootStep.new )
+    end
+
+  end
+
+  class UbootDefaultEnvSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( PrepStep.new )
+      add_step( SetDefaultEnvStep.new )
       add_step( BootStep.new )
     end
 
