@@ -124,6 +124,10 @@ include Log4r
       @dl_log.error(error) if @dl_log
     end
     
+    def log_warning(warn)
+      @dl_log.warn(warn) if @dl_log
+    end
+
     def disconnect()
       
     end
