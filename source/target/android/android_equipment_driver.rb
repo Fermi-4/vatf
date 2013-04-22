@@ -75,7 +75,7 @@ module Equipment
       begin
         Timeout::timeout(600) do
           response = send_adb_cmd("logcat -d")
-          while(!response.match(/bootCompleted/m)) do
+          while(!response.match(/(bootCompleted)|(Boot\s*animation\s*finished)/m)) do
             response = send_adb_cmd("logcat -d")
             sleep(1)
           end
