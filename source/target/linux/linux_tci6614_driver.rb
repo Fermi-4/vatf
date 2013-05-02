@@ -156,7 +156,7 @@ module Equipment
       end
     end
 
-    def set_boot_cmd (params)
+    def set_boot_env (params)
       params['bootargs'] = @boot_args if !params['bootargs']
       set_bootloader(params) if !@boot_loader
       set_systemloader(params) if !@system_loader

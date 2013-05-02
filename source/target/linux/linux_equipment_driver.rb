@@ -86,7 +86,7 @@ module Equipment
       @system_loader.run params
     end
     
-    def set_boot_cmd (params)
+    def set_boot_env (params)
       @power_handler = params['power_handler'] if !@power_handler
       params['bootargs'] = @boot_args if !params['bootargs']
       set_bootloader(params) if !@boot_loader
