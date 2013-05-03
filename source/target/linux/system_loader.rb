@@ -44,6 +44,8 @@ module SystemLoader
         load_addr = '${kernel_addr}'
       when /addr_kernel=[\da-fA-Fx]+/
         load_addr = '${addr_kernel}'
+      when /addr_kern=[\da-fA-Fx]+/
+        load_addr = '${addr_kern}'
       end
       params['_env']['kernel_loadaddr'] = load_addr
       # Determine dtb loadaddr
@@ -60,8 +62,18 @@ module SystemLoader
       case params['dut'].response
       when /ramdisk_addr=[\da-fA-Fx]+/
         load_ramdisk_addr = '${ramdisk_addr}'
+      when /addr_fs=[\da-fA-Fx]+/
+        load_ramdisk_addr = '${addr_fs}'
       end
       params['_env']['ramdisk_loadaddr'] = load_ramdisk_addr
+      
+      # Determine mon 
+      mon_addr = '${addr_mon}'
+      case params['dut'].response
+      when /addr_mon=[\da-fA-Fx]+/
+        mon_addr = '${addr_mon}'
+      end
+      params['_env']['mon_addr'] = mon_addr
       # Determine mmcdev
       mmcdev = '0'
       case params['dut'].response
@@ -198,6 +210,8 @@ module SystemLoader
         set_ramfs params
       when /mmcfs/i
         set_mmcfs params
+      when /ubifs/i
+        set_ubifs params
       else
         raise "Don't know how to set #{params['fs_type']} filesystem"
       end
@@ -207,6 +221,10 @@ module SystemLoader
     def set_nfs(params)
       params['fs_options'] = ",nolock" if !params['fs_options']
       append_text params, 'bootargs', "root=/dev/nfs rw nfsroot=#{params['nfs_path']}#{params['fs_options']} "
+    end
+    
+    def set_ubifs(params)
+      append_text params, 'bootargs', "rootfstype=ubifs root=#{params['ubi_root']} rootflags=sync rw ubi.mtd=#{params['ubi_mtd_partition']},#{params['nand_eraseblock_size'].to_i}"
     end
     
     def set_ramfs(params)
