@@ -6,7 +6,7 @@ require File.dirname(__FILE__)+'/system_loader'
 
 module Equipment
   class LinuxEquipmentDriver < EquipmentDriver
-    attr_accessor :boot_loader, :system_loader
+    attr_accessor :boot_loader, :system_loader, :boot_args
 
     include CmdTranslator
     include BootLoader
@@ -116,8 +116,8 @@ module Equipment
 
     # stop the bootloader after a reboot
     def stop_boot()
-      0.upto 10 do
-        send_cmd("", @boot_prompt, 10)
+      0.upto 30 do
+        send_cmd("", @boot_prompt, 1)
         break if !timeout?
       end
       raise "Failed to load bootloader" if timeout?
