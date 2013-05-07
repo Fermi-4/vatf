@@ -74,6 +74,10 @@ module Equipment
       else
         @system_loader = SystemLoader::UbootSystemLoader.new
       end
+
+      if params.has_key?("bootargs_append")
+        @system_loader.insert_step_before('boot', SetExtraArgsStep.new) 
+      end
     end
     
     # Take the DUT from power on to system prompt
