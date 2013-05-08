@@ -6,6 +6,7 @@ module CmdTranslator
                     '2011.06' => 'mmc rescan'   },
     'printenv' => { '0.0'     => 'printenv', },
     'tftp'     => { '0.0'     => 'tftp', },
+    'wdt'     => { '0.0' => Hash.new('').merge!({'omap5-evm' => 'omap-wdt.kernelpet=0', })},
   }
   
   # place holder for linux cmds vs. version
@@ -130,6 +131,7 @@ module CmdTranslator
     cmd = params['cmd']
     platform = params['platform'] if params.key?('platform')
     cmds_hash = dict["#{cmd}"]
+    return cmd if cmds_hash == nil
     versions = cmds_hash.keys.sort {|a,b| b <=> a}  # sort by version
     tmp = versions.select {|v| Gem::Version.new(v.dup) <= Gem::Version.new(version)}
     raise "get_cmd: Unable to find the version matching v<= #{version}\n" if tmp.empty?
