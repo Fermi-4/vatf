@@ -61,18 +61,19 @@ module CmdTranslator
                             },
   'select_bluetooth' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__"],
                            '4.0.1' => ["__directional_pad_up__","__directional_pad_up__","__directional_pad_down__","__enter__","__enter__"],
-                          '4.1.1' => ["__directional_pad_up__","__directional_pad_up__","__directional_pad_down__","__enter__","__directional_pad_right__","__enter__"]
+                          '4.1.1' => ["__directional_pad_up__","__directional_pad_up__","__directional_pad_down__","__enter__","__directional_pad_right__","__enter__"],
+			  '4.2.2' => ["__directional_pad_down__","__enter__","__directional_pad_right__","__directional_pad_up__","__enter__"]
                             },
   'select_bluetooth_setting' => { '2.3.4' => ["__directional_pad_down__","__enter__"],
                            '4.0.1' => ["__directional_pad_down__","__enter__"]
                             },
   'configure_bluetooth' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__","__enter__"],
                            '4.0.1' => ["__directional_pad_down__","__enter__","__directional_pad_down__","__enter__"]
-                            },
+			    },
   'select_wireless' => { '2.3.4' => ["__directional_pad_down__","__enter__"],
-                           '4.0.1' => ["__directional_pad_up__","__directional_pad_up__","__directional_pad_up__","__directional_pad_up__","__enter__","__enter__"],
-                            '4.1.1' => ["__directional_pad_up__","__directional_pad_up__","__directional_pad_up__","__directional_pad_up__","__enter__","__directional_pad_right__","__enter__"]
-                             },
+                         '4.0.1' => ["__directional_pad_up__","__directional_pad_up__","__directional_pad_up__","__directional_pad_up__","__enter__","__enter__"],
+                         '4.1.1' => ["__directional_pad_up__","__directional_pad_up__","__directional_pad_up__","__directional_pad_up__","__enter__","__directional_pad_right__","__enter__"]
+                         },
 
   'select_wireless_setting' => { '2.3.4' => ["__directional_pad_down__","__enter__"],
                            '4.0.1' => [" "]
@@ -104,8 +105,9 @@ module CmdTranslator
                          '4.0.1' => ["__enter__","q1w2e3r4","__enter__","__directional_pad_down__","__directional_pad_right__","__enter__"]
                            },
   'bluetooth_filter' => { '2.3.4' => [" "],
-                           '4.0.1' => "BluetoothAdapterStateMachine"
-                            }
+                          '4.0.1' => "BluetoothAdapterStateMachine",
+			  '4.2.2' => "BluetoothAdapter"
+                        }
          }
 
   # user pass params['cmd'] and params['version']
