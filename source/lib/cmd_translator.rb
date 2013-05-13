@@ -77,33 +77,37 @@ module CmdTranslator
                              },
 
   'select_wireless_setting' => { '2.3.4' => ["__directional_pad_down__","__enter__"],
-                           '4.0.1' => [" "]
+                           '4.0.1' => [" "],
+			   '4.2.2' => ["__tab__","__tab__","__directional_pad_left__", "__enter__"]
                             },
   'two_step_down' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__"],
                            '4.0.1' => ["__directional_pad_down__"]
                             },
  'clear_access' => { '2.3.4' => ["__enter__","__directional_pad_down__","__enter__"],
-                           '4.0.1' => ["__enter__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__"]
-                            },
+                     '4.0.1' => ["__enter__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__"],
+                     '4.2.2' => ["__directional_pad_down__","__page_up__","__enter__","__directional_pad_down__","__enter__"]
+		   },
   'configure_wireless_open' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__","gtaccess-open","__directional_pad_down__","__directional_pad_down__","__enter__"],
                            '4.0.1' => ["__enter__","__directional_pad_right__","__directional_pad_right__","__enter__","gtaccess-open", "__enter__","__directional_pad_down__","__directional_pad_right__","__enter__"],
                            '4.1.1' => ["__enter__", "__directional_pad_right__", "__directional_pad_right__", "__directional_pad_right__", "__enter__", "gtaccess-open", "__enter__", "__directional_pad_down__", "__directional_pad_right__", "__enter__"],
-                           '4.2.2' => ["__enter__","__directional_pad_up__","__directional_pad_left__","__directional_pad_right__", "__directional_pad_up__", "__directional_pad_right__", "__directional_pad_right__", "__enter__", "gtaccess-open", "__enter__", "__directional_pad_down__", "__directional_pad_right__", "__enter__"]
+                           '4.2.2' => ["__enter__","__directional_pad_down__","__page_up__","__directional_pad_up__","__directional_pad_right__","__directional_pad_right__", "__enter__", "gtaccess-open", "__enter__", "__directional_pad_down__", "__directional_pad_right__", "__enter__"]
                             },
   'find_access_open' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__"],
-                           '4.0.1' => ["__enter__","__directional_pad_down__","__directional_pad_down__"]
-                            },
+                          '4.0.1' => ["__enter__","__directional_pad_down__","__directional_pad_down__"],
+                          '4.2.2' => ["__enter__","__directional_pad_down__","__page_up__"]
+                        },
   'connect_access_open' => { '2.3.4' => ["__enter__","__directional_pad_down__","__directional_pad_left__","__enter__"],
                            '4.0.1' => ["__enter__","__directional_pad_down__","__directional_pad_down__","__directional_pad_right__","__enter__"]
                             },
   'configure_wireless_wpa-psk' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__enter__","gtaccess-wpa-psk","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","q1w2e3r4","__directional_pad_down__","__directional_pad_down__","__enter__"],
                            '4.0.1' => ["__enter__", "__directional_pad_right__","__directional_pad_right__","__enter__","gtaccess-wpa-psk","__enter__","__enter__","__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","q1w2e3r4","__enter__","__directional_pad_right__","__enter__"],
                            '4.1.1' => ["__enter__", "__directional_pad_right__", "__directional_pad_right__", "__directional_pad_right__", "__enter__", "gtaccess-wpa-psk", "__enter__", "__enter__", "__directional_pad_down__", "__directional_pad_down__", "__enter__", "__directional_pad_down__", "q1w2e3r4", "__enter__", "__directional_pad_right__", "__enter__"],
-                           '4.2.2' => ["__enter__","__directional_pad_up__","__directional_pad_left__", "__directional_pad_right__", "__directional_pad_right__","__directional_pad_left__", "__enter__", "gtaccess-wpa-psk", "__enter__", "__enter__", "__directional_pad_down__", "__directional_pad_down__", "__enter__", "__directional_pad_down__", "q1w2e3r4", "__enter__", "__directional_pad_right__", "__enter__"]
-                            },
+                           '4.2.2' => ["__enter__","__directional_pad_down__","__page_up__","__directional_pad_up__","__directional_pad_right__","__directional_pad_right__", "__enter__", "gtaccess-wpa-psk", "__enter__", "__enter__", "__directional_pad_down__", "__directional_pad_down__", "__enter__", "__directional_pad_down__", "q1w2e3r4", "__enter__", "__directional_pad_right__", "__enter__"]
+			   },
   'find_access_wpa-psk' => { '2.3.4' => ["__directional_pad_down__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__"],
-                           '4.0.1' => ["__directional_pad_down__","__directional_pad_down__"]
-                            },
+                             '4.0.1' => ["__directional_pad_down__","__directional_pad_down__"],
+                             '4.2.2' => ["__enter__","__directional_pad_down__","__page_up__"]
+                           },
 'connect_access__wpa-psk' => { '2.3.4' => ["__enter__","q1w2e3r4","__directional_pad_down__","__directional_pad_left__","__enter__"],
                          '4.0.1' => ["__enter__","q1w2e3r4","__enter__","__directional_pad_down__","__directional_pad_right__","__enter__"]
                            },
