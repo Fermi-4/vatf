@@ -152,7 +152,7 @@ module Equipment
         @system_loader.insert_step_before('kernel', KeystoneUBIStep.new)
         @system_loader.remove_step('fs')
         @system_loader.replace_step('boot_cmd', KeystoneUBIBootCmdStep.new)
-        @system_loader.add_step(KeystoneUBIRebootStep.new)
+#        @system_loader.add_step(KeystoneUBIRebootStep.new)
       end
     end
 
