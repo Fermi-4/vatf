@@ -23,7 +23,7 @@ module Equipment
                    'am37x-evm' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M init=/init ip=dhcp omap_vout.vid1_static_vrfb_alloc=y vram=8M omapfb.vram=0:8M',
                    'ti816x-evm' => 'mem=166M@0x80000000 mem=768M@0x90000000 console=ttyO2,115200n8 androidboot.console=ttyO2 noinitrd ip=dhcp rw init=/init',
 		           'ti814x-evm' => 'mem=128M console=ttyO0,115200n8 noinitrd ip=dhcp rw init=/init vram=50M',
-		           'am335x-evm' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M init=/init ip=dhcp',
+		           'am335x-evm' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=512M init=/init ip=dhcp',
 		           'am335x-sk' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M  init=/init ip=dhcp',
 		           'beaglebone' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M init=/init ip=dhcp',
 		           'flashboard' => 'console=ttyO2,115200n8 androidboot.console=ttyO2 mem=256M init=/init ip=dhcp omap_vout.vid1_static_vrfb_alloc=y vram=8M omapfb.vram=0:8M',
