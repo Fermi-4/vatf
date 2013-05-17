@@ -7,6 +7,8 @@ module CmdTranslator
     'printenv' => { '0.0'     => 'printenv', },
     'tftp'     => { '0.0'     => 'tftp', },
     'wdt'     => { '0.0' => Hash.new('').merge!({'omap5-evm' => 'omap-wdt.kernelpet=0', })},
+    'env default' => { '0.0'  => 'env default -f',
+                       '2011.10' => 'env default -a -f',},
   }
   
   # place holder for linux cmds vs. version

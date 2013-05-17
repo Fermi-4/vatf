@@ -275,7 +275,7 @@ module SystemLoader
     end
 
     def run(params)
-      send_cmd params, "env default -a -f"
+      send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'env default', 'version'=>@@uboot_version})
       send_cmd params, "printenv"
     end
   end
