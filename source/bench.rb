@@ -124,6 +124,13 @@ pwr.telnet_login = 'apc'
 pwr.telnet_passwd = 'apc'
 pwr.params = {'staf_ip' => 'local'}
 
+# Devantech / robot-electronics.co.uk relay.  Uses default port and user/pass
+# This device is used to trigger the reset signal on a board, and the board
+# is powered by something else.
+pwr = EquipmentInfo.new("power_controller", "rly16.IP.ADDR")
+pwr.telnet_ip = 'IP.ADDR'
+pwr.driver_class_name = 'DevantechRelayController'
+
 svr = EquipmentInfo.new("linux_server")
 svr.tftp_path = '/tftpboot'
 svr.driver_class_name = 'LinuxLocalHostDriver'
