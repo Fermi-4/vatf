@@ -110,7 +110,7 @@ dut.login_prompt = /login:/
 dut.board_id='20100720'
 dut.nfs_root_path = '/home/a0850405/NFS_exports/linux/arago-test'
 dut.serial_port = '/dev/ttyUSB0'
-dut.serial_params = {"baud" => 115200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+dut.serial_params = {"baud" => 115200}
 dut.power_port = {'apc.158.218.103.33' => 6}
 dut.params = {'usb_port' => {'1' => 1}, 'multimeter1' => minfo}
 

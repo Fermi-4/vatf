@@ -8,15 +8,15 @@ module BootLoader
   end
 
   def LOAD_FROM_SERIAL(params)
-    params.merge!({'minicom_script_name' => 'uart-boot.minicom'})
-    params['bootloader_class'].create_minicom_uart_script_spl(params)
-    params['bootloader_class'].run_minicom_uart_script(params)
+    params.merge!({'bootloader_load_script_name' => 'uart-spl-boot.sh'})
+    params['bootloader_class'].create_bootloader_load_script_uart_spl(params)
+    params['bootloader_class'].run_bootloader_load_script(params)
   end
 
   def LOAD_FROM_SERIAL_TI_MIN(params)
-    params.merge!({'minicom_script_name' => 'uart-boot.minicom'})
-    params['bootloader_class'].create_minicom_uart_script_ti_min(params)
-    params['bootloader_class'].run_minicom_uart_script(params)
+    params.merge!({'bootloader_load_script_name' => 'uart-ti-min-boot.sh'})
+    params['bootloader_class'].create_bootloader_load_script_uart_ti_min(params)
+    params['bootloader_class'].run_bootloader_load_script(params)
   end
   
   def LOAD_FROM_ETHERNET(params)
@@ -47,68 +47,69 @@ class BaseLoader
     stop_at_boot_prompt params
   end
 
-  def create_minicom_uart_script_spl(params)
-    File.open(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['minicom_script_name']), "w") do |file|
+  def create_bootloader_load_script_uart_spl(params)
+    script = File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name'])
+    File.open(script, "w") do |file|
       sleep 1  
-      file.puts "timeout 180"
-      file.puts "verbose on"
-      file.puts "! /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']}"
-      file.puts "expect {"
-      file.puts "    \"CCC\""
-      file.puts "}"
-      file.puts "! /usr/bin/sb -v  --ymodem #{params['secondary_bootloader']}"
-      file.puts "expect {"
-      file.puts "    \"stop autoboot\""
-      file.puts "}"
-      file.puts "send \"\""
-      file.puts "send \"\""
-      file.puts "expect {"
-      file.puts "    \"#{params['dut'].boot_prompt.source}\""
-      file.puts "}"
-      file.puts "print \"\\nDone loading u-boot\\n\""
-      file.puts "! killall -s SIGHUP minicom"
+      file.puts "#!/bin/bash"
+      # Run stty to set the baud rate.
+      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
+      # Send SPL as xmodem, 2 minute timeout.
+      file.puts "/usr/bin/timeout 2m /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+      # If we timeout or don't return cleanly (transfer failed), return 1
+      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
+      # Send U-Boot as ymodem, 2 minute timeout.
+      file.puts "/usr/bin/timeout 2m /usr/bin/sb -v --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+      # If we timeout or don't return cleanly (transfer failed), return 1
+      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
+      # Send an echo to be sure that we will break into autoboot.
+      file.puts "echo > #{params['dut'].serial_port}"
+      # Return success.
+      file.puts "exit 0"
     end
+    File.chmod(0755, script)
   end
 
-  def create_minicom_uart_script_ti_min(params)
-    File.open(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['minicom_script_name']), "w") do |file|
+  def create_bootloader_load_script_uart_ti_min(params)
+    script = File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name'])
+    File.open(script, "w") do |file|
       sleep 1  
-      file.puts "timeout 180"
-      file.puts "verbose on"
-      file.puts "! /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']}"
-      file.puts "expect {"
-      file.puts "    \"stop autoboot\""
-      file.puts "}"
-      file.puts "send \"\""
-      file.puts "send \"loady #{params['dut'].boot_load_address}\""
-      file.puts "! /usr/bin/sb -v  --ymodem #{params['secondary_bootloader']}"
-      file.puts "expect {"
-      file.puts "    \"#{params['dut'].first_boot_prompt.source}\""
-      file.puts "}"
-      file.puts "send \"go #{params['dut'].boot_load_address}\""
-      file.puts "expect {"
-      file.puts "    \"stop autoboot\""
-      file.puts "}"
-      file.puts "send \"\""
-      file.puts "expect {"
-      file.puts "    \"#{params['dut'].boot_prompt.source}\""
-      file.puts "}"
-      file.puts "print \"\\nDone loading u-boot\\n\""
-      file.puts "! killall -s SIGHUP minicom"
+      file.puts "#!/bin/bash"
+      # Run stty to set the baud rate.
+      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
+      # Send u-boot-min as xmodem, 2 minute timeout.
+      file.puts "/usr/bin/timeout 2m /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+      # If we timeout or don't return cleanly (transfer failed), return 1
+      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
+      # Send an echo to be sure that we will break into autoboot.
+      file.puts "echo > #{params['dut'].serial_port}"
+      # Start loady
+      file.puts "echo \"loady #{params['dut'].boot_load_address}\" > #{params['dut'].serial_port}"
+      # Send U-Boot as ymodem, 2 minute timeout.
+      file.puts "/usr/bin/timeout 2m /usr/bin/sb -v --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+      # Start it.
+      file.puts "echo \"go #{params['dut'].boot_load_address}\" > #{params['dut'].serial_port}"
+      # If we timeout or don't return cleanly (transfer failed), return 1
+      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
+      # Send an echo to be sure that we will break into autoboot.
+      file.puts "echo > #{params['dut'].serial_port}"
+      # Return success.
+      file.puts "exit 1"
     end
+    File.chmod(0755, script)
   end
 
-  def run_minicom_uart_script(params)
-    3.times { break if kill_pending_minicom_tasks(params) }  # Try to kill pending minicom tasks 3 times
-    minicom_thread = Thread.new {
-      params['server'].send_cmd("cd #{File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'])}; minicom -D #{params['dut'].serial_port} -b #{params['dut'].serial_params['baud']} -S #{params['minicom_script_name']}", params['server'].prompt, 90)
-    }
-    sleep 2 # To make sure that minicom is running before power cycling
+  def run_bootloader_load_script(params)
+    # Kill anything which has the serial port open already.
+    3.times { break if kill_tasks_holding_serial_port(params) }
+    # Ensure the board is reset.
     params['dut'].power_cycle(params)
-    minicom_thread.join
+    # Make sure that we're ready to catch the board coming out of reset
+    sleep 2
+    params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 240)
   end
 
-  def kill_pending_minicom_tasks(params)
+  def kill_tasks_holding_serial_port(params)
     params['server'].send_sudo_cmd("fuser #{params['dut'].serial_port} -k", params['server'].prompt, 5)
     sleep 1
     p=`fuser #{params['dut'].serial_port}`
