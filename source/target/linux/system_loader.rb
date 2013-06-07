@@ -48,6 +48,8 @@ module SystemLoader
         load_addr = '${addr_kern}'
       end
       params['_env']['kernel_loadaddr'] = load_addr
+      params['_env']['loadaddr'] = load_addr
+
       # Determine dtb loadaddr
       load_dtb_addr = '${fdtaddr}'
       case params['dut'].response
@@ -101,9 +103,108 @@ module SystemLoader
       append_text params, 'bootcmd', "#{tftp_cmd} #{load_addr} #{params['server'].telnet_ip}:#{filename}; "
     end
     
-    def load_file_from_eth_now(params, load_addr, filename,timeout=60)
+    def load_file_from_eth_now(params, load_addr, filename, timeout=60)
         tftp_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'tftp', 'version'=>@@uboot_version})
+        set_ipaddr(params)
         self.send_cmd(params, "#{tftp_cmd} #{load_addr} #{params['server'].telnet_ip}:#{filename}", @boot_prompt, timeout)
+        raise "load_file_from_eth_now failed to load #{filename}" if params['dut'].response.match(/error/i)
+    end
+
+    def load_file_from_mmc_now(params, load_addr, filename, timeout=60)
+      raise "load_file_from_mmc_now: no filename is provided." if !filename
+      mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
+      self.send_cmd(params, "#{mmc_init_cmd}; fatload mmc #{params['_env']['mmcdev']} #{load_addr} #{filename} ", @boot_prompt, timeout)
+    end
+
+    # if ipaddr was not set yet, set it using dhcp
+    # TODO: if needed in the future, it can be set statically here.
+    def set_ipaddr(params, static_ip=false)
+        self.send_cmd params, "print ipaddr"
+        if params['dut'].response.match(/error/i)
+          if !static_ip
+            self.send_cmd(params, "dhcp", @boot_prompt, 60)
+          end
+        end
+    end
+
+    def erase_nand(params, nand_loc, size, timeout=60)
+      self.send_cmd(params, "nand erase #{nand_loc} #{size}", @boot_prompt, timeout)
+      raise "erase_nand failed!" if !params['dut'].response.match(/100\%\s+complete/i) 
+    end
+
+    def write_file_to_nand(params, mem_addr, nand_loc, size, timeout=60)
+      self.send_cmd(params, "nand write #{mem_addr} #{nand_loc} #{size}", @boot_prompt, timeout)
+      raise "write to nand failed!" if !params['dut'].response.match(/bytes\s+written:\s+OK/i) 
+    end
+
+    def flash_run(params, part, timeout)
+      case params["#{part}_src_dev"]
+      when 'mmc'
+        load_file_from_mmc_now params, params['_env']['loadaddr'], params["#{part}_image_name"]
+      when 'eth'
+        load_file_from_eth_now params, params['_env']['loadaddr'], params["#{part}_image_name"]
+      else
+        raise "Unsupported src_dev -- " + params["#{part}_src_dev"] + " for flashing"
+      end
+      
+      # filesize will be updated to the size of file which was just loaded
+      params['_env']['filesize'] = '${filesize}'
+
+      case params["#{part}_dev"]
+      when 'nand'
+        erase_nand params, params["nand_#{part}_loc"], params['_env']['filesize'], timeout
+        write_file_to_nand params, params['_env']['loadaddr'], params["nand_#{part}_loc"], params['_env']['filesize'], timeout
+      when 'spi'
+        #TODO: add erase_spi and write_file_to_spi functions
+        erase_spi params, params["spi_#{part}_loc"], params['_env']['filesize'], timeout
+        write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], params['_env']['filesize'], timeout
+      else
+        raise "Unsupported dst dev: " + params["#{part}_dev"]
+      end
+    end
+
+  end
+
+  class FlashPrimaryBootloaderStep < UbootStep
+    def initialize
+      super('flash_primary_bootloader')
+    end
+
+    def run(params)
+      flash_run(params, "primary_bootloader", 30)
+    end
+
+  end
+
+  class FlashSecondaryBootloaderStep < UbootStep
+    def initialize
+      super('flash_secondary_bootloader')
+    end
+
+    def run(params)
+      flash_run(params, "secondary_bootloader", 30)
+    end
+
+  end
+
+  class FlashKernelStep < UbootStep
+    def initialize
+      super('flash_kernel')
+    end
+
+    def run(params)
+      flash_run(params, "kernel", 60)
+    end
+
+  end
+
+  class FlashFSStep < UbootStep
+    def initialize
+      super('flash_fs')
+    end
+
+    def run(params)
+      flash_run(params, "fs", 120)
     end
 
   end
@@ -409,4 +510,51 @@ module SystemLoader
 
   end
 
+  class UbootFlashBootloaderSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( PrepStep.new )
+      add_step( FlashPrimaryBootloaderStep.new )
+      add_step( FlashSecondaryBootloaderStep.new )
+    end
+
+  end
+
+  class UbootFlashKernelSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( PrepStep.new )
+      add_step( FlashKernelStep.new )
+    end
+
+  end
+
+  class UbootFlashFSSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( PrepStep.new )
+      add_step( FlashFSStep.new )
+    end
+
+  end
+
+  class UbootFlashAllSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( PrepStep.new )
+      add_step( FlashPrimaryBootloaderStep.new )
+      add_step( FlashSecondaryBootloaderStep.new )
+      add_step( FlashKernelStep.new )
+      add_step( FlashFSStep.new )
+    end
+
+  end
 end

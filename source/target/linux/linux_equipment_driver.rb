@@ -50,6 +50,7 @@ module Equipment
       @boot_args = @@boot_info[@name]
       @boot_loader = nil
       @system_loader = nil
+      @updator = nil
     end
     
     def set_api(dummy_var)
@@ -79,7 +80,36 @@ module Equipment
         @system_loader.insert_step_before('boot', SetExtraArgsStep.new) 
       end
     end
+
+    # Update primary and secondary bootloader 
+    def update_bootloader(params)
+      set_bootloader(params) if !@boot_loader
+      @updator = SystemLoader::UbootFlashBootloaderSystemLoader.new
+      @boot_loader.run params
+      @updator.run params
+    end
+
+    def update_kernel(params)
+      set_bootloader(params) if !@boot_loader
+      @updator = SystemLoader::UbootFlashKernelSystemLoader.new
+      @boot_loader.run params
+      @updator.run params
+    end
+
+    def update_fs(params)
+      set_bootloader(params) if !@boot_loader
+      @updator = SystemLoader::UbootFlashFSSystemLoader.new
+      @boot_loader.run params
+      @updator.run params
+    end
     
+    def update_all(params)
+      set_bootloader(params) if !@boot_loader
+      @system_loader = SystemLoader::UbootFlashAllSystemLoader.new
+      @boot_loader.run params
+      @system_loader.run params
+    end
+
     # Take the DUT from power on to system prompt
     def boot (params)
       @power_handler = params['power_handler'] if !@power_handler
