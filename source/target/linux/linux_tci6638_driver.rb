@@ -12,7 +12,7 @@ module Equipment
         puts "In keystone2_boot step"
         sleep 5
         setup_params(params)
-        if params['secondary_bootloader_image_name']
+        if params['secondary_bootloader'] != ''
           write_bootloader_to_spi_nor(params)
           stop_boot(params)
           @@uboot_version = nil      
