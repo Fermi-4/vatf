@@ -152,7 +152,7 @@ module Equipment
     end
 
     def run(params)
-      send_cmd params, "setenv bootcmd 'ubi part ubifs; ubifsmount boot; ubifsload #{params['_env']['kernel_loadaddr']} uImage-keystone-evm.bin; ubifsload #{params['_env']['dtb_loadaddr']} uImage-tci6638-evm.dtb; ubifsload ${addr_mon} skern-keystone-evm.bin; mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']} '"
+      send_cmd params, "setenv bootcmd 'ubi part ubifs; ubifsmount boot; ubifsload #{params['_env']['kernel_loadaddr']} uImage-keystone-evm.bin; ubifsload #{params['_env']['dtb_loadaddr']} uImage-k2hk-evm.dtb; ubifsload ${addr_mon} skern-keystone-evm.bin; mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']} '"
     end
     end
     
