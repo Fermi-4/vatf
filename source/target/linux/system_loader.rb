@@ -510,6 +510,16 @@ module SystemLoader
 
   end
 
+  class UbootLetItGoSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( BootStep.new )
+    end
+
+  end
+
   class UbootFlashBootloaderSystemLoader < BaseSystemLoader
     attr_accessor :steps
 
