@@ -152,7 +152,10 @@ module Equipment
     end
 
     def run(params)
-      send_cmd params, "setenv bootcmd 'ubi part ubifs; ubifsmount boot; ubifsload #{params['_env']['kernel_loadaddr']} uImage-keystone-evm.bin; ubifsload #{params['_env']['dtb_loadaddr']} uImage-k2hk-evm.dtb; ubifsload ${addr_mon} skern-keystone-evm.bin; mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']} '"
+      send_cmd params, "env default -a -f"
+      send_cmd params, "setenv boot ubi"
+      send_cmd params, "setenv no_post 1"
+      send_cmd params, "setenv mtdparts mtdparts=davinci_nand.0:1024k(bootloader),512k(params)ro,129536k(ubifs)"
     end
     end
     
@@ -188,24 +191,29 @@ module Equipment
     
     # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
-      @system_loader = SystemLoader::UbootSystemLoader.new
-      @system_loader.insert_step_before('kernel', Keystone2ExtrasStep.new)
-      @system_loader.insert_step_before('kernel', PrepStep.new)
-      @system_loader.insert_step_before('fs', SkernStep.new)
-      @system_loader.insert_step_before('boot', SaveEnvStep.new)
-      @system_loader.insert_step_before('fs', Keystone2InstallMon.new)
-      case params['fs_type']
-      when /ramfs/i
-        puts "*********** Setting system loader to ramfs "
-        @system_loader.replace_step('boot_cmd', Keystone2ramfsBootCmdStep.new)
-        @system_loader.replace_step('fs', Keystone2SetRamfsStep.new)
-      when /ubifs/i
-        puts "*********** Setting system loader to ubifs "
-        @system_loader.insert_step_before('kernel', Keystone2UBIStep.new)
-        @system_loader.replace_step('boot_cmd', Keystone2UBIBootCmdStep.new)
-      when /nfs/i
-        puts "*********** Setting system loader to nfs "
-        @system_loader.replace_step('boot_cmd', Keystone2nfsBootCmdStep.new)
+      super
+      #@system_loader = SystemLoader::UbootSystemLoader.new
+      if params.has_key?("var_use_default_env")
+      # do nothing
+      else
+          @system_loader.insert_step_before('kernel', Keystone2ExtrasStep.new)
+          @system_loader.insert_step_before('kernel', PrepStep.new)
+          @system_loader.insert_step_before('fs', SkernStep.new)
+          @system_loader.insert_step_before('boot', SaveEnvStep.new)
+          @system_loader.insert_step_before('fs', Keystone2InstallMon.new)
+          case params['fs_type']
+          when /ramfs/i
+            puts "*********** Setting system loader to ramfs "
+            @system_loader.replace_step('boot_cmd', Keystone2ramfsBootCmdStep.new)
+            @system_loader.replace_step('fs', Keystone2SetRamfsStep.new)
+          when /ubifs/i
+            puts "*********** Setting system loader to ubifs "
+            @system_loader.insert_step_before('kernel', Keystone2UBIStep.new)
+            @system_loader.replace_step('boot_cmd', Keystone2UBIBootCmdStep.new)
+          when /nfs/i
+            puts "*********** Setting system loader to nfs "
+            @system_loader.replace_step('boot_cmd', Keystone2nfsBootCmdStep.new)
+          end
       end
     end
 
