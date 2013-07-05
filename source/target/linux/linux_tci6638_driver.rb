@@ -47,8 +47,8 @@ module Equipment
         case params['fs_type']
         when /ramfs/i
           fs_sizeMB = bytesToMeg(File.size(File.new(params['fs']))).to_i
-          # params['fs_size'] = fs_sizeMB + 10
-		  params['fs_size'] = 80
+          params['fs_size'] = fs_sizeMB + 10
+          # params['fs_size'] = 80
           puts " >>> fs filesize is #{params['fs_size']}"
           params['fs_options'] = " rdinit=/sbin/init initrd=0x802000000,#{params['fs_size']}M"
           params['ram_id'] = 0
