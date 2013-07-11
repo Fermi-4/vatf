@@ -23,15 +23,15 @@ def run_session
   options = CmdLineParser.parse(ARGV) #getting the test session's parameters
   frame_id = Socket.gethostname
 
-  session_result_dir = options.results_base_dir+'/'+options.tester+"/"+frame_id+"/"
-  session_result_server = options.results_base_url+'/'+options.tester+"/"+frame_id+"/"
-  rtps = TestAreas::get_rtps(options.rtp, options.drive.sub(/(\\|\/)$/,'')+'/GoldenMatrices',options.results_base_dir+'/'+options.tester, options.platform)
+  session_result_dir = options.results_base_dir+"/"+options.tester+"/"+frame_id+"/"
+  session_result_server = options.results_base_url+"/"+options.tester+"/"+frame_id+"/"
+  rtps = TestAreas::get_rtps(options.rtp, options.drive.sub(/(\\|\/)$/,'')+"/GoldenMatrices",options.results_base_dir+"/"+options.tester, options.platform)
   if rtps.length > 1 || options.rtp.values[0]['test_areas'].kind_of?(Array)
     multi_session_start_time = Time.now
   session_result_dir = options.results_base_dir.gsub('\\','/')+'/'+options.tester+"/"+frame_id+"/Multisession_"+multi_session_start_time.strftime("%m_%d_%Y_%H_%M_%S")
   session_result_server = session_result_dir.sub(options.results_base_dir.gsub('\\','/'),options.results_base_url)
   FileUtils.mkdir_p(session_result_dir)
-  multi_session_html = session_result_dir+'/multisession.html'
+  multi_session_html = session_result_dir+"/multisession.html"
   multi_session_html_writer = MultiSessionSummaryHtml.new(multi_session_html, "MultiSession Summary")
   multi_session_html_writer.add_summary_information_tables(options.tester)
   multi_session_html_writer.add_sessions_info_table
