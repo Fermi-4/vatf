@@ -28,7 +28,7 @@ module Find
     find(*paths) { |path| return path if yield path }
   end
   module_function :file
-  
+
   def files(*paths)
     result = []
     find(*paths) { |path| result = result | [path] if yield path }
@@ -45,7 +45,7 @@ class CmdLineParser
     # Return a structure describing the options.
     #
     include OsFunctions
-    
+
     def self.parse(args)
       # The options specified on the command line will be collected in *options*.
       # We set default values here.
@@ -55,7 +55,7 @@ class CmdLineParser
       options.tests_to_run = [['all', 1]]
       if OsFunctions::is_windows?
         options.tester = `set COMPUTERNAME`.strip.split('=')[1].strip
-      elsif OsFunctions::is_linux?       
+      elsif OsFunctions::is_linux?
         options.tester = `hostname`.strip
       else
         options.tester = 'hostname'
@@ -72,17 +72,17 @@ class CmdLineParser
       options.browser = true
       options.results_file = SiteInfo::RESULTS_FILE
       options.staf_service_name = nil
-      
+
       opts = OptionParser.new do |opts|
         opts.banner = "Usage: atf_run.rb -u <user name> -v <view drive> -r <rtp path or image::level:=areas> [-s <n>] [-d <results directory>] [-b <bench file path>] [-p <platform>] [-x <np for reboot>] [-e <target code sources>] [-k <product version>] [-m <e-mail address>] -t <[tcaseID1,...,tcaseIDn]*n;tcaseIDx;....;tcaseID>"
-        
+
         opts.separator " "
         opts.separator "Specific options:"
-        
+
         opts.on("-u name","=OPTIONAL","Tester's name or Id") do |tster|
           options.tester = tster.strip
         end
-        
+
         opts.on("-t tests","=OPTIONAL","Test cases to run, -t option format is one or more semicolon separated string of structure <tests cases to run>*<number of times to run each case>;.... where *<number of times to run each case> is optional and <test cases to run> can be an array of caseID i.e [caseID,caseID,...]") do |test_cases|
           options.tests_to_run = []
           tcase_array = test_cases.split(';')
@@ -106,47 +106,47 @@ class CmdLineParser
             end
           end
         end
-        
+
         opts.on("-e target source path","=OPTIONAL","Embedded target source path") do |path|
           options.target_source_drive = path.strip
         end
-        
+
         opts.on("-v drive","=MANDATORY","view drive letter, i.e x:") do |drive|
           options.drive = drive.strip
         end
-        
+
         opts.on("-s n","=OPTIONAL","specifies the number of times this session will run all the tests") do |sess_iter|
           options.session_iterations = sess_iter.to_i
         end
-        
+
         opts.on("-d","=OPTIONAL","specified the directory used to store the html results") do |res_dir|
           options.results_base_dir = res_dir.sub(/(\\|\/)$/,'')
         end
-        
+
         opts.on("-b","=OPTIONAL","specifies the path of the bench.rb file") do |bnch_pth|
           options.bench_path = bnch_pth
-        end 
-        
+        end
+
         opts.on("-p","=OPTIONAL IF -r IS AN RTP PATH","specifies the platform type used for the tests, setting this parameter overrides the platform value specified in the matrix. Also, if this option is used the value must match a bench file entry") do |pltfrm|
           options.platform = pltfrm
         end
-        
+
         opts.on("-k","=OPTIONAL IF -r IS AN RTP PATH","specifies the release to be tested. For instance, it could be the kernel version or a product/component version") do |release|
           options.release = release
         end
-        
-        opts.on("-o","do NOT open browser with results html at the end of the test session") do 
+
+        opts.on("-o","do NOT open browser with results html at the end of the test session") do
           options.browser = false
         end
-        
+
         opts.on("-m","=OPTIONAL","specifies the e-mail address(es) to send the test results summary at the end of the test execution. Separate multiple address w/ semicolons") do |email_addr|
           options.email = email_addr
         end
-        
+
         opts.on("-r path","=MANDATORY","a semicolon combination of paths to rtp(s), i.e. [binary_path##sourcepath::]C:\\an_rtp.mdb; and a string of structure image_path::level:=areas, i.e myTargetImage::sanity:=[usb,nand,video]") do |path|
           options.rtp = {}
           rtp_array = path.split(';')
-          rtp_array.each do |val|         
+          rtp_array.each do |val|
             if val.include?(":=")
                 level_plus_areas = val.split(':=')
                 level = level_plus_areas[0].strip
@@ -154,13 +154,13 @@ class CmdLineParser
                 options.rtp[level] = {'test_areas' => areas}
             else
                 rtp_paths = val.strip.gsub(/[\s\[\]]/,'').split(',')
-                rtp_paths.each do |current_path| 
+                rtp_paths.each do |current_path|
                   options.rtp[current_path] = {'test_areas' => current_path}
                 end
             end
           end
         end
-        
+
         opts.on("-a","=OPTIONAL","Specifies the information regarding any asset(s) required to run a test. The sytanx used is a semicolon separated set of <asset name>=<asset information> pairs") do |assets|
           assets_array = assets.split(/(?<!\\)[;]/)
           assets_array.each do |current_asset|
@@ -168,23 +168,23 @@ class CmdLineParser
             options.release_assets[asset_info[0].strip] = asset_info[1].strip.gsub(/\\(?=[=:;,])/,"")
           end
         end
-        
+
         opts.on("-x","=OPTIONAL","specifies the number of consecutive failed or skipped tests that causes a dut reboot (if supported in test script). If this value is not specified then the system is never rebooted by the VATF") do |num_fails|
           options.num_fails_to_reboot = num_fails.to_i
         end
-        
+
         opts.on("-f","=OPTIONAL","specifies the path where the results will be saved when working with xml files as test data") do |res_file|
           options.results_file = res_file
         end
-        
+
         opts.on("-l","=OPTIONAL","specifies the URL where that can be used to access the files specified by -d") do |base_url|
           options.results_base_url = base_url
         end
-        
+
         opts.on("-w","=OPTIONAL","specifies the name of STAF service that is calling vatf") do |base_url|
           options.staf_service_name = base_url
         end
-        
+
         opts.separator ""
         opts.separator "Common options:"
 
@@ -194,14 +194,14 @@ class CmdLineParser
           puts opts
           exit
         end
-     end   
+     end
      opts.parse!(args)
-     
-     if !options.rtp || !options.drive #|| !options.tests_to_run || !options.tester 
+
+     if !options.rtp || !options.drive #|| !options.tests_to_run || !options.tester
         puts opts
         exit
      end
-     
+
      options.rtp.each do |rtp_key, rtp_val|
       if rtp_val['test_areas'].kind_of?(Array) && (!options.release_assets['kernel'] || !options.platform)
         puts "Argument -p missing or image path not specified for #{rtp_key}:=#{rtp_val['test_areas'].to_s}"
@@ -221,8 +221,8 @@ end
 =end
 class SessionHandler
   public
-    
-    #Constructor of the class. Takes req_params a Hash containing: 
+
+    #Constructor of the class. Takes req_params a Hash containing:
     #                 rtp_path the path to the release test plan used in this test session (string)
     #                 view_drive letter associated with the view where the test script will be taken from (string)
     #                 results_path the path where the files with the session results will be stored (string)
@@ -233,7 +233,7 @@ class SessionHandler
     #                 img path of the image that will be loaded to the board for testing if any (string).
     def initialize(req_params, opt_params)
       params = {'rtp_path' =>nil, 'view_drive' => nil, 'bench_path' => nil, 'results_path' => nil, 'results_server' => nil}.merge(req_params)
-      raise "Required parameter missing in #{self.class.to_s}::initialize" if params.has_value?(nil)      
+      raise "Required parameter missing in #{self.class.to_s}::initialize" if params.has_value?(nil)
       params = params.merge({'target_source_drive' => nil, 'consec_non_pass' => nil, 'multi_sess_sum' => nil, 'platform' => nil, 'release_assets' => {}, 'results_file' => nil, 'staf_service_name' => nil}.merge(opt_params))
       @cli_params = params
       require params['bench_path'].gsub(/\.\w*$/,"")
@@ -243,7 +243,7 @@ class SessionHandler
       @session_results_base_directory = params['results_path'].strip.gsub("\\","/").sub(/(\\|\/)$/,'') if params['results_path']
       @session_results_base_url = @session_results_base_directory
       @session_results_base_url = params['results_server'].strip.gsub("\\","/").sub(/(\\|\/)$/,'') if params['results_server']
-      FileUtils.mkdir_p(@session_results_base_directory) unless File.exists?(@session_results_base_directory)     
+      FileUtils.mkdir_p(@session_results_base_directory) unless File.exists?(@session_results_base_directory)
       @rtp_path = params['rtp_path']
       case File.extname(@rtp_path)
         when ".xml"
@@ -261,14 +261,14 @@ class SessionHandler
       @consecutive_non_passed_tests = 0
       @old_keys = '';@new_keys = ''
     end
-    
+
     #This function starts a test session initializes the results counter creates the files and directories to store the session results. Takes
     # tester the name or id of the tester (string).
     def start_session(tester)
       @tester = tester
       @session_start_time = Time.now
       @test_sess_sum = [0,0,0]
-      @session_dir = File.join(@session_results_base_directory,tester+@session_start_time.strftime("%m_%d_%Y_%H_%M_%S"))  
+      @session_dir = File.join(@session_results_base_directory,tester+@session_start_time.strftime("%m_%d_%Y_%H_%M_%S"))
       FileUtils.mkdir_p(@session_dir) unless File.exists?(@session_dir)
       @session_html_path = File.join(@session_dir,"session.html")
       @session_html_url = @session_html_path.sub(@session_results_base_directory,@session_results_base_url)
@@ -279,7 +279,7 @@ class SessionHandler
       @session_html.add_multisession_summary_link(@multi_session_link) if @multi_session_summary
       @session_html.add_tests_info_table
     end
-    
+
     #This function initializes the iterations variables and iterations result counter for a test. Takes test_case_id the caseID of the test that will be run (number),
     #session_iter the session iteration number (number), and num_test_iterations the number of iterations to be run for this test (number).
     def init_test_iterations(test_case_id, session_iter, num_test_iterations)
@@ -303,17 +303,17 @@ class SessionHandler
           end
           start_test(test_iter) 
           sleep 1 #Added because some platforms can not handle a fast disconnections->connections operation
-        end  
+        end
       else
         @non_existent_tests[test_case_id]= test_case_id.to_s+", "
       end
       rescue Exception => e
         puts e.to_s+"\n"+e.backtrace.to_s
       ensure
-          save_iterations_result if @rtp_db.test_exists(test_case_id)  
-          
+          save_iterations_result if @rtp_db.test_exists(test_case_id)
+
     end
-    
+
     #This function starts the test. Takes iter the test iteration number (number)
     def start_test(iter)
       @current_test_iteration = iter
@@ -325,7 +325,7 @@ class SessionHandler
       @results_html_file.add_test_information_table(@tester)
       @results_html_file.add_summaries_links(@session_html_url.sub(/http:\/\//i,""), @test_iter_summary_html_path.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,""), @multi_session_link)
       @results_html_file.add_logs_table
-      @results_html_file.add_test_result_table  
+      @results_html_file.add_test_result_table
       @equipment = Hash.new
       @connection_handler = ConnectionHandler.new(@files_dir)
       @power_handler = PowerHandler.new()
@@ -337,16 +337,16 @@ class SessionHandler
       @test_params.image_path = @test_params.image_path.merge(@cli_params['release_assets']) if @test_params.image_path
       @test_params.platform = @cli_params['platform'] if @cli_params['platform']
       @test_params.target = @cli_params['release'] if @cli_params['release']
-      
+
       # if auto flag is not set, do not run this test
       raise "The auto flag is not set. Assuming this test case is manual. Skip to next test case" if !@rtp_db.get_auto_flag
-      
+
       if @consecutive_non_pass_allowed && @consecutive_non_pass_allowed <= @consecutive_non_passed_tests
          @old_keys = ''
-         puts "#{@consecutive_non_passed_tests} consecutive tests have not passed setting system for reboot" 
+         puts "#{@consecutive_non_passed_tests} consecutive tests have not passed setting system for reboot"
          @consecutive_non_passed_tests = 0
       end
-      
+
       begin
         case(@db_type)
           when "xml"
@@ -365,7 +365,7 @@ class SessionHandler
                 equip_class_type, equip_id = /([\w-]+)(?:[",\s]+([\w-]+)){0,1}/i.match(e_type).captures
                 equip_class_type = equip_class_type.downcase.strip
                 equip_id = equip_id.to_s.downcase.strip
-                if(!equipment_list[equip_class_type][equip_id]) 
+                if(!equipment_list[equip_class_type][equip_id])
                   equipment_list[equip_class_type][equip_id] = []
                 end
                 equipment_list[equip_class_type][equip_id] << var
@@ -397,15 +397,15 @@ class SessionHandler
                 end
               end
               raise "Unable to find asset #{equip_type} with #{req_caps} capabilities" if !$equipment_table[equip_type][eq_id] || !$equipment_table[equip_type][eq_id][i]
-              if $equipment_table[equip_type][eq_id][i].driver_class_name 
-                  if $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'           
+              if $equipment_table[equip_type][eq_id][i].driver_class_name
+                  if $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
                       @equipment[test_vars] = Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).new($equipment_table[equip_type][eq_id][i],equip_log)
                   else
                       @equipment[test_vars] = Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).new($equipment_table[equip_type][eq_id][i].telnet_ip)
                   end
               else
                   @equipment[test_vars] = test_vars
-              end 
+              end
               @connection_handler.load_switch_connections(@equipment[test_vars],equip_type,eq_id, i, iter)
               @power_handler.load_power_ports($equipment_table[equip_type][eq_id][i].power_port)
               if $equipment_table[equip_type][eq_id][i].params
@@ -430,7 +430,7 @@ class SessionHandler
       if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
         @rtp_db.monitor_log("\n===== Calling #{@rtp_db.get_test_script}'s setup() at time #{t_setup}")
       end
-      setup   
+      setup 
       t_run = Time.now.to_s
       puts "\n===== Calling "+@rtp_db.get_test_script+"'s run() at time "+t_run
       if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
@@ -487,7 +487,7 @@ class SessionHandler
         @connection_handler.disconnect if @connection_handler
 
     end
-    
+
     #This function is used inside the test script to set the result for the test. Takes test_result the result of the test (FrameworkConstants::Result), and comment a comment associated with the test result (string) as parameters.
     def set_result(test_result, comment = nil, perf_data = nil, max_dev = 0.05)
       @test_result.result = test_result
@@ -517,11 +517,11 @@ class SessionHandler
         @rtp_db.set_test_iterations_result(@rtp_db.get_test_script,@test_iter_sum[0],@test_iter_sum[1],@test_iter_sum[2],test_iter_summ_html_path,@session_iter,@test_iterations_start_time,@test_iterations_ended)
         @session_html.add_test_row([@session_iter.to_s,["Case ID: "+@rtp_db.get_test_id.to_s,test_iter_summ_html_path],@rtp_db.get_test_description,[@rtp_db.get_test_script.split(/[\\\/]/)[-1],"//"+@view_drive.gsub("\\","/")+@rtp_db.get_test_script.gsub("\\","/")],FrameworkConstants::Status[:complete],@test_iter_sum[0],@test_iter_sum[1],@test_iter_sum[2]])
     end
-    
+
     #This function save the result associated with a session. Takes session_iter_completed the session iteration number completed (number)
     def save_session_results(session_iter_completed)
       @session_ended = Time.now
-   
+
       if @non_existent_tests.values.length > 0
         @session_html.add_paragraph("Test case(s): "+@non_existent_tests.values.to_s+" do(es) not exist in the database",{:color => "#FF0000"})
       end
@@ -541,12 +541,12 @@ class SessionHandler
         end
         return @test_sess_sum
     end
-    
+
     #This function returns the path of the html page containing the results of the last test session excuted
     def get_session_html
         @session_html_url.to_s
     end
-    
+
     #This function returns an array witth all the caseIDs contained in the test matrix
     def get_all_test_cases
         @rtp_db.get_tcases_ids
@@ -559,7 +559,7 @@ class SessionHandler
         return false
       end
     end
-	
+
 	#This function uploads a file to the server and returns an array with the path of the file and the url of the file if successful, else return nil
     def upload_file(file_path)
       result = nil
@@ -571,15 +571,15 @@ class SessionHandler
       end
       result
     end
-    
-    # This function allows the user to add equipment to the @equipment hash within the test script. 
+
+    # This function allows the user to add equipment to the @equipment hash within the test script.
     # The functions takes the desired handle specified by the user in equip_var and a boolean specifying if a link to
     # the log of the equipment should be created in the result html. The function yields a path where the equipment object can
     # create a log file and expects a reference to the new Equipment object as the result of the yield.
     # An example call would be like (NewEquipmentDriver and InfoObject are place holders for the equipment driver needed for an
-    # equipment and the input parameters used by the constructor of the driver respectively) 
-    #   
-    #   equip_info = InfoObject.new  
+    # equipment and the input parameters used by the constructor of the driver respectively)
+    #
+    #   equip_info = InfoObject.new
     #   add_equipment('test_equip') do |log_path|
     #     NewEquipmentDriver.new(equip_info,log_path)
     #   end
@@ -594,16 +594,16 @@ class SessionHandler
       @logs_array << [equip_var, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if link_log
     end
 
-    private 
+    private
     class TestResult
       attr_accessor :result, :comment, :perf_data
-      
+
       def initialize
         @result = FrameworkConstants::Result[:fail]
         @comment = "This is the default result comment. Use function set_result to set this comment"
         @perf_data = nil
       end
-      
+
       def set_perf_data(data_vector=nil)
         if data_vector
           work_vector = data_vector
@@ -619,7 +619,7 @@ class SessionHandler
                     val = val[0..29]         # Testlink restrict metric names to 30 chars
                     val.gsub!(/\s/,'_')      # remove white spaces from metric names
                     val.gsub!(/[\/\\]/,'_')  # remove '/' and '\' from metric names
-                    current_hash[key]=val    
+                    current_hash[key]=val
                   elsif key.match(/^units/i)
                     val = val[0..9]         # Testlink restrict metric units to 10 chars
                     current_hash[key]=val
@@ -627,13 +627,13 @@ class SessionHandler
                     current_hash[key]=val
                   end
                }
-               @perf_data << current_hash if current_hash['s2']  
+               @perf_data << current_hash if current_hash['s2']
             end
           end
           @perf_data = nil if @perf_data.empty?
         end
       end
-      
+
       def get_stat_values(data)
         work_data = data
         work_data = [work_data] if !data.kind_of?(Array)
@@ -651,9 +651,5 @@ class SessionHandler
         end
         {'min' => work_data.min, 'max' => work_data.max, 's0' => s0, 's1' => s1, 's2' => s2}
       end
-      
     end
-    
-end 
-
-
+end
