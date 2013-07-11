@@ -19,29 +19,85 @@ class InfoTable < Hash
 end
 
 class AudioHardwareInfo
-  attr_accessor :analog_audio_inputs,:analog_audio_outputs,:digital_audio_inputs,:digital_audio_outputs, \
-        :midi_audio_inputs, :midi_audio_outputs
+    attr_accessor :analog_audio_inputs
+    attr_accessor :analog_audio_outputs
+    attr_accessor :digital_audio_inputs
+    attr_accessor :digital_audio_outputs
+    attr_accessor :midi_audio_inputs
+    attr_accessor :midi_audio_outputs
 end
 
 class VideoIOInfo
-  attr_accessor :vga_inputs, :vga_outputs, :component_inputs, :component_outputs, :composite_inputs, :composite_outputs, :svideo_inputs, \
-        :svideo_outputs, :hdmi_inputs, :hdmi_outputs, :sdi_inputs, :sdi_outputs, :dvi_inputs, :dvi_outputs, :scart_inputs, :scart_outputs
+    attr_accessor :vga_inputs
+    attr_accessor :vga_outputs
+    attr_accessor :component_inputs
+    attr_accessor :component_outputs
+    attr_accessor :composite_inputs
+    attr_accessor :composite_outputs
+    attr_accessor :svideo_inputs
+    attr_accessor :svideo_outputs
+    attr_accessor :hdmi_inputs
+    attr_accessor :hdmi_outputs
+    attr_accessor :sdi_inputs
+    attr_accessor :sdi_outputs
+    attr_accessor :dvi_inputs
+    attr_accessor :dvi_outputs
+    attr_accessor :scart_inputs
+    attr_accessor :scart_outputs
 end
 
 class AudioIOInfo
-  attr_accessor :rca_inputs, :rca_outputs, :xlr_inputs, :xlr_outputs, :optical_inputs, :optical_outputs, :mini35mm_inputs, :mini35mm_outputs, \
-        :mini25mm_inputs, :mini25mm_outputs, :phoneplug_inputs, :phoneplug_outputs
+    attr_accessor :rca_inputs
+    attr_accessor :rca_outputs
+    attr_accessor :xlr_inputs
+    attr_accessor :xlr_outputs
+    attr_accessor :optical_inputs
+    attr_accessor :optical_outputs
+    attr_accessor :mini35mm_inputs
+    attr_accessor :mini35mm_outputs
+    attr_accessor :mini25mm_inputs
+    attr_accessor :mini25mm_outputs
+    attr_accessor :phoneplug_inputs
+    attr_accessor :phoneplug_outputs
 end
 
 #Class to store equipment information:
 class EquipmentInfo
   public
-    attr_reader :name, :id
-    attr_accessor :telnet_ip, :telnet_port, :driver_class_name, :audio_hardware_info, :telnet_login, 
-            :telnet_passwd, :prompt, :first_boot_prompt, :boot_prompt, :executable_path, :nfs_root_path, :samba_root_path, \
-            :login, :login_prompt, :login_passwd, :power_port, :tftp_path, :tftp_ip, :video_io_info, :audio_io_info, :usb_ip, \
-            :serial_server_ip, :serial_server_port, :serial_port, :serial_params, :board_id, :boot_load_address, :params, \
-			:password_prompt, :timeout, :telnet_bin_mode
+    attr_reader :name
+    attr_reader :id
+    attr_accessor :telnet_ip
+    attr_accessor :telnet_port
+    attr_accessor :driver_class_name
+    attr_accessor :audio_hardware_info
+    attr_accessor :telnet_login
+    attr_accessor :telnet_passwd
+    attr_accessor :prompt
+    attr_accessor :first_boot_prompt
+    attr_accessor :boot_prompt
+    attr_accessor :executable_path
+    attr_accessor :nfs_root_path
+    attr_accessor :samba_root_path
+    attr_accessor :login
+    attr_accessor :login_prompt
+    attr_accessor :login_passwd
+    attr_accessor :power_port
+    attr_accessor :tftp_path
+    attr_accessor :tftp_ip
+    attr_accessor :video_io_info
+    attr_accessor :audio_io_info
+    attr_accessor :usb_ip
+    attr_accessor :serial_server_ip
+    attr_accessor :serial_server_port
+    attr_accessor :serial_port
+    attr_accessor :serial_params
+    attr_accessor :board_id
+    attr_accessor :boot_load_address
+    attr_accessor :params
+    attr_accessor :password_prompt
+    attr_accessor :timeout
+    attr_accessor :telnet_bin_mode
+
             
     #Constructor of the class            
     def initialize(name, id = nil)
