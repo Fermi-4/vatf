@@ -116,7 +116,8 @@ class EquipmentInfo
       end  
       $equipment_table[@name][@id] << self
     end
-  
+ 
+    private 
     def sort_caps(caps)
       caps_array = caps.split("_").sort
       result = caps_array[0].to_s
