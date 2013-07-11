@@ -22,6 +22,7 @@ require File.dirname(__FILE__)+'/external_systems/external_systems'
 require 'net/smtp'
 require File.dirname(__FILE__)+'/site_info'
 require File.dirname(__FILE__)+'/lib/pass_criteria'
+require 'socket'
 
 module Find
   def file(*paths)
@@ -53,13 +54,7 @@ class CmdLineParser
       options.rtp = nil
       options.session_iterations = 1
       options.tests_to_run = [['all', 1]]
-      if OsFunctions::is_windows?
-        options.tester = `set COMPUTERNAME`.strip.split('=')[1].strip
-      elsif OsFunctions::is_linux?
-        options.tester = `hostname`.strip
-      else
-        options.tester = 'hostname'
-      end
+      options.tester = Socket.gethostname
       options.drive = nil
       options.bench_path = SiteInfo::BENCH_FILE
       options.results_base_dir = SiteInfo::LOGS_FOLDER
