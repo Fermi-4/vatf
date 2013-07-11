@@ -9,17 +9,17 @@ include TestAreas
 From: #{from_alias} <#{from}>
 To: #{to_alias} <#{to}>
 Subject: #{subject}
-    	
+
 #{message}
 END_OF_MESSAGE
-    	
+
       Net::SMTP.start(SiteInfo::SITE_MAIL_SERVER) do |smtp|
         smtp.send_message msg, from, to
       end
     end
-    
+
 #main execution file
-def run_session 
+def run_session
   options = CmdLineParser.parse(ARGV) #getting the test session's parameters
   frame_id = 'hostname'
   if OsFunctions::is_windows?
@@ -42,22 +42,22 @@ def run_session
   multi_session_html_writer.add_sessions_info_table
   multi_session_passed_total = 0
   multi_session_failed_total = 0
-  multi_session_skip_total = 0  
+  multi_session_skip_total = 0
   end
   rtps.each do |current_rtp|
     begin
     session_iter_completed = 0
     session_runner = SessionHandler.new({'rtp_path' => current_rtp.path, 'view_drive' => options.drive, 'bench_path' => options.bench_path, 'results_path' => session_result_dir, 'results_server' => session_result_server}, {'target_source_drive' => options.target_source_drive, 'consec_non_pass' => options.num_fails_to_reboot, 'multi_sess_sum' => multi_session_html, 'platform' => options.platform, 'release_assets' => options.release_assets, 'email' => options.email,  'release' => options.release, 'results_file' => options.results_file, 'staf_service_name' => options.staf_service_name}) #creating a session handler instance
     session_runner.start_session(options.tester.strip.gsub(" ","").downcase) #running the test session
-    1.upto(options.session_iterations) do |session_iter| 
+    1.upto(options.session_iterations) do |session_iter|
     options.tests_to_run.each do |test| # running each test
     if test[0] == 'all'
         session_runner.get_all_test_cases.each do |test_id|
         session_runner.init_test_iterations(test_id, session_iter, test[1])
       end
-      else   
+      else
       session_runner.init_test_iterations(test[0].to_i, session_iter, test[1])
-      end      
+      end
     end
     session_iter_completed +=1
     end
@@ -74,15 +74,15 @@ def run_session
       multi_session_failed_total += session_results[1]
       multi_session_skip_total += session_results[2]
       multi_session_html_writer.add_session_row([[File.basename(current_rtp.path), current_session_html.gsub("\\","/")],session_results[0],session_results[1],session_results[2]])
-      end  
+      end
     end
     end
   end
   ensure
   if multi_session_html
       if rtps.length > 1 || options.rtp.values[0]['test_areas'].kind_of?(Array)
-      multi_session_html_writer.add_totals_information(multi_session_passed_total, multi_session_failed_total, multi_session_skip_total) 
-      multi_session_html_writer.add_summary_information(multi_session_start_time, Time.now)    
+      multi_session_html_writer.add_totals_information(multi_session_passed_total, multi_session_failed_total, multi_session_skip_total)
+      multi_session_html_writer.add_summary_information(multi_session_start_time, Time.now)
       multi_session_html_writer.write_file
     end
     if options.email
@@ -111,7 +111,6 @@ def run_session
       end
     end
   end
-  
 end
 
 run_session
