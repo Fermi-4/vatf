@@ -1,6 +1,6 @@
 require File.dirname(__FILE__)+'/atf_session_runner'
 require File.dirname(__FILE__)+'/test_areas'
-
+require 'socket'
 
 include TestAreas
 # This function sends an e-mail w/ the test results if an e-mail address (option -m) was specified in the command line
@@ -21,12 +21,7 @@ END_OF_MESSAGE
 #main execution file
 def run_session
   options = CmdLineParser.parse(ARGV) #getting the test session's parameters
-  frame_id = 'hostname'
-  if OsFunctions::is_windows?
-    frame_id = `set COMPUTERNAME`.strip.split('=')[1].strip
-  elsif OsFunctions::is_linux?
-    frame_id = `hostname`.strip
-  end
+  frame_id = Socket.gethostname
 
   session_result_dir = options.results_base_dir+'/'+options.tester+"/"+frame_id+"/"
   session_result_server = options.results_base_url+'/'+options.tester+"/"+frame_id+"/"
