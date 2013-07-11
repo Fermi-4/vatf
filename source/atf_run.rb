@@ -4,7 +4,7 @@ require 'socket'
 
 include TestAreas
 # This function sends an e-mail w/ the test results if an e-mail address (option -m) was specified in the command line
-    def send_email(subject, message, from, to, from_alias='TI Continous Integration & Test System', to_alias='CI Users')
+    def send_email(subject, message, from, to, from_alias='TI Continuous Integration & Test System', to_alias='CI Users')
       msg = <<END_OF_MESSAGE
 From: #{from_alias} <#{from}>
 To: #{to_alias} <#{to}>
