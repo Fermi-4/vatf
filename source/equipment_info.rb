@@ -118,9 +118,7 @@ class EquipmentInfo
  
     private 
     def sort_caps(caps)
-      caps_array = caps.split("_").sort
-      result = caps_array[0].to_s
-      1.upto(caps_array.length-1){|i| result += '_' + caps_array[i]}
+      result = caps.split("_").sort.join("_")
       result
     end
 end
