@@ -63,7 +63,6 @@ end
 
 #Class to store equipment information:
 class EquipmentInfo
-  public
     attr_reader :name
     attr_reader :id
     attr_accessor :telnet_ip
