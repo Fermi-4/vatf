@@ -23,6 +23,12 @@ module Equipment
     def instance_variable_defined?(symbol)
       __getobj__.instance_variable_defined?(symbol)
     end   
-end
+  end
+
+  def get_random_mac_address(locally_administered=true)
+    msb=32
+    msb=0 if !locally_administered
+    "%02x:%02x:%02x:%02x:%02x:%02x"%[msb,rand(256),rand(256),rand(256),rand(256),rand(256)]
+  end
 
 end
