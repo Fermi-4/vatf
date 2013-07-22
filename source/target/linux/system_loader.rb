@@ -427,7 +427,7 @@ module SystemLoader
     end
 
     def run(params)
-      send_cmd params, "boot", params['dut'].login_prompt, 900
+      send_cmd params, "boot", params['dut'].login_prompt, 300
       send_cmd params, params['dut'].login, params['dut'].prompt, 10 # login to the unit
     end
   end
