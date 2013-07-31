@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'rspec/mocks'
 require_relative File.join(File.expand_path(__FILE__), "..", "..", "power_handler")
 
 describe PowerHandler do
@@ -35,29 +36,47 @@ describe PowerHandler do
     end
   end
 
-  # Ideally we would be able to mock a power_controllers Hash and still
-  # have get_status(), switch_on(), switch_off(), reset() functionality,
-  # but mocking those objects will take too much work because of the way
-  # EquipmentInfo was designed.
-  #
-  # For these methods, we will stick to just checking that the object responds
-  # to them. Perhaps later someone can decide to 'fix' EquipmentInfo (and many
-  # of the classes in this Framework, for that matter) so that they have a
-  # cleaner API and are easier to mock.
-
   describe "#get_status" do
     it { @power.should respond_to(:get_status).with(1).argument }
+
+    it "doesn't raise and error" do
+      controller = double("power_controller", :get_status => "ON")
+      port = double("power_port", :each => controller)
+
+      expect { @power.get_status(port) }.to_not raise_error
+    end
   end
 
   describe "#switch_on" do
     it { @power.should respond_to(:switch_on).with(1).argument }
+
+    it "doesn't raise and error" do
+      controller = double("power_controller", :switch_on => 0)
+      port = double("power_port", :each => controller)
+
+      expect { @power.switch_on(port) }.to_not raise_error
+    end
   end
 
   describe "#switch_off" do
     it { @power.should respond_to(:switch_off).with(1).argument }
+
+    it "doesn't raise and error" do
+      controller = double("power_controller", :switch_off => 0)
+      port = double("power_port", :each => controller)
+
+      expect { @power.switch_off(port) }.to_not raise_error
+    end
   end
 
   describe "#reset" do
     it {@power.should respond_to(:reset).with(1).argument }
+
+    it "doesn't raise and error" do
+      controller = double("power_controller", :reset => 0)
+      port = double("power_port", :each => controller)
+
+      expect { @power.reset(port) }.to_not raise_error
+    end
   end
 end
