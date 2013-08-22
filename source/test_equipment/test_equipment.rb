@@ -10,6 +10,7 @@ require File.dirname(__FILE__)+'/usb_switch_controller'
 require File.dirname(__FILE__)+'/kvaser_canhsusb_driver'
 require File.dirname(__FILE__)+'/digital_loggers_din_relay_driver'
 require File.dirname(__FILE__)+'/devantech_relay_driver'
+require File.dirname(__FILE__)+'/hp_wave_gen_equipment_driver'
 
 # reference_file 'C:\Program Files\Automation Studio\test_equipment.dll'
 # reference_file 'C:\Program Files\Automation Studio\PesqCalculator.dll'
