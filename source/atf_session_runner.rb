@@ -231,7 +231,14 @@ class SessionHandler
       raise "Required parameter missing in #{self.class.to_s}::initialize" if params.has_value?(nil)
       params = params.merge({'target_source_drive' => nil, 'consec_non_pass' => nil, 'multi_sess_sum' => nil, 'platform' => nil, 'release_assets' => {}, 'results_file' => nil, 'staf_service_name' => nil}.merge(opt_params))
       @cli_params = params
-      require params['bench_path'].gsub(/\.\w*$/,"")
+      begin
+        require params['bench_path'].gsub(/\.\w*$/,"")
+      rescue Exception=>e
+        puts "Problem while trying to load bench file #{params['bench_path']}."
+        puts "Verify that file #{params['bench_path']} exists, and does not contain errors." 
+        puts e.to_s+"\n"+e.backtrace.to_s
+	exit(1)
+      end
       @view_drive = params['view_drive']
       @target_source_drive = params['view_drive']
       @target_source_drive = params['target_source_drive'] if params['target_source_drive']
