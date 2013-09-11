@@ -12,7 +12,6 @@ module Equipment
       end
 
       def run(params)
-        self.send_cmd params, "setenv usbethaddr #{get_random_mac_address()}", params['dut'].boot_prompt, 2
         self.send_cmd params, "usb start", params['dut'].boot_prompt, 30
       end
     end
