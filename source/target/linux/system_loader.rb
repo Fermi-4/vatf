@@ -392,10 +392,11 @@ module SystemLoader
         send_cmd params, "printenv", params['dut'].boot_prompt, 10
         # add extraargs to bootargs for all lines with bootm
         params['dut'].response.split(/\n/).each {|line|
-          if line.match(/;\s*bootm/)
+          if line.match(/boot[mz]\s+/)
             varname = line.split('=')[0]
             varvalue = line.sub(varname + '=', '')
-            newvalue = varvalue.sub(/;\s*bootm/, "; setenv bootargs ${bootargs} ${extraargs}; bootm")
+            newvalue = varvalue.gsub(/bootm\s+/, "setenv bootargs ${bootargs} ${extraargs}; bootm ")
+            newvalue = newvalue.gsub(/bootz\s+/, "setenv bootargs ${bootargs} ${extraargs}; bootz ")
             send_cmd params, "setenv #{varname} \'#{newvalue}\'", params['dut'].boot_prompt, 10
           end
         }
@@ -417,7 +418,8 @@ module SystemLoader
         ramdisk_addr = params['_env']['ramdisk_loadaddr']
       end
       dtb_addr = params['_env']['dtb_loadaddr'] if params['dtb_image_name'].strip != ''
-      append_text params, 'bootcmd', "bootm #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr} "
+      append_text params, 'bootcmd', "if iminfo #{params['_env']['kernel_loadaddr']}; then bootm #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr};"\
+                                     " else bootz #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr}; fi"
     end
   end
 
