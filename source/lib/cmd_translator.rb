@@ -6,11 +6,16 @@ module CmdTranslator
                     '2011.06' => 'mmc rescan'   },
     'printenv' => { '0.0'     => 'printenv', },
     'tftp'     => { '0.0'     => 'tftp', },
+    'dhcp'     => { '0.0'     => 'dhcp', },
     'wdt'     => { '0.0' => Hash.new('').merge!({'omap5-evm' => 'omap-wdt.kernelpet=0', })},
     'env default' => { '0.0'  => 'env default -f',
                        '2011.10' => 'env default -a -f',},
   }
   
+  @dict_ubuntu = {
+    'dhcp-server' => { '12.04'     => 'isc-dhcp-server'},
+  }
+
   # place holder for linux cmds vs. version
   @dict_linux = {
     'set_uart_to_gpio_standby' => { 
@@ -25,12 +30,17 @@ module CmdTranslator
                           {'am335x-evm'=>'cat standby_gpio_pad_conf', 
                            'am180x-evm' => 'am180x getcmd'} ),
     },
+
   }
   
   # Android cmd vs. version
   @dict_android = {
     'gallery_movie_cmp' => {  '2.3.4' => 'com.cooliris.media/.MovieView',
                               '4.0.1' => 'com.android.gallery3d/.app.MovieActivity' },
+    'launch_alarm_clock' => {  '2.3.4' => 'shell am start -W -a android.intent.action.MAIN -n com.android.deskclock/.AlarmClock',
+                              '4.0.1' => 'shell am start -W -a android.intent.action.MAIN -n com.android.deskclock/.AlarmClock',
+                              '4.1.1' => 'shell am start -W -a android.intent.action.MAIN -n com.android.deskclock/.AlarmClock',
+                              '4.2.2' => 'shell am start -W -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -n  com.android.deskclock/.DeskClock'},
                               
     'wifi_settings_enable_wifi' => {  '2.3.4' => ['__directional_pad_up__', '__directional_pad_center__'],
                                       '4.0.1' => ['__directional_pad_down__','__enter__'] },
@@ -40,12 +50,19 @@ module CmdTranslator
                                      '4.1.2' => ['DhcpInfoInternal', /makeLinkProperties\s*with\s*empty\s*dns2!/im]},
     
     'alarm_select_minute' => { '2.3.4' =>["__directional_pad_down__","__directional_pad_down__","__directional_pad_down__","__directional_pad_up__",    "__directional_pad_right__","__directional_pad_up__"],
-                                '4.0.1' => ["__directional_pad_up__","__enter__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_up__","__directional_pad_up__","__directional_pad_right__","__directional_pad_right__"]
+                               '4.0.1' => ["__directional_pad_up__","__enter__","__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_up__","__directional_pad_up__","__directional_pad_right__","__directional_pad_right__"],
+                               '4.2.2' => ["__tab__","__tab__","__tab__","__tab__","__tab__",
+"__enter__","__directional_pad_up__","__directional_pad_up__","__directional_pad_up__",
+"__directional_pad_left__","__directional_pad_left__","__directional_pad_left__",
+"__directional_pad_down__","__enter__","__directional_pad_down__","__directional_pad_down__",
+"__directional_pad_down__","__directional_pad_right__","__enter__","__enter__",
+"__directional_pad_down__","__enter__"]
                                },
 
     'alarm_save_minute' => { '2.3.4' =>["__directional_pad_down__", "__directional_pad_down__", "__directional_pad_left__", "__enter__", "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__",
 "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_left__", "__enter__"],
-                             '4.0.1' => ["__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__","__directional_pad_right__",  "__enter__", "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_right__", "__enter__"]
+                             '4.0.1' => ["__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__","__directional_pad_right__",  "__enter__", "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__", "__directional_pad_right__", "__enter__"],
+                              '4.2.2' => [" "]
                              },
     'disable_setting_stay_awake' => { '2.3.4' =>["__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__", "__enter__"],
                                       '4.0.1' => ["__directional_pad_down__", "__directional_pad_down__", "__directional_pad_down__", "__enter__"]
@@ -116,12 +133,22 @@ module CmdTranslator
   'bluetooth_filter' => { '2.3.4' => [" "],
                           '4.0.1' => "BluetoothAdapterStateMachine",
 			  '4.2.2' => "BluetoothAdapter"
+                        },
+'alarm_set_minute'  => { '2.3.4' => ["__directional_pad_up__","__enter__"],
+                          '4.0.1' => ["__directional_pad_up__","__enter__"],
+                          '4.2.2' => ["__tab__","__tab__","__tab__","__tab__","__enter__"],
                         }
          }
 
   # user pass params['cmd'] and params['version']
   def self.get_uboot_cmd(params)  
     params.merge!({'dict' => @dict_uboot})
+    get_cmd(params)
+    
+  end
+
+  def self.get_ubuntu_cmd(params)  
+    params.merge!({'dict' => @dict_ubuntu})
     get_cmd(params)
     
   end
