@@ -41,6 +41,7 @@ module Equipment
      'am335x-evm' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
      'am335x-sk' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
      'beaglebone' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
+     'beaglebone-black' => 'console=ttyO0,115200n8 ip=dhcp earlyprink ',
      'omap5-evm' => 'console=ttyO2,115200n8 ip=dhcp ',
      'tci6638-evm' => 'console=ttyS0,115200n8 rootwait=1 earlyprintk', 
      })
