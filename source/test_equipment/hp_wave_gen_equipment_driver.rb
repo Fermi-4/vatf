@@ -15,8 +15,6 @@ module TestEquipment
       send_cmd("*RST\r\n", ".*", 1, false)
       send_cmd("*CLS\r\n", ".*", 1, false)
       send_cmd("SYStem:Remote\r\n", ".*", 1, false)
-      cmd_status = response.match(/-1/)
-      raise 'wave generator tool initialization failed' if cmd_status == nil 
     end
 
     #Function sends individual command to wave generator.
