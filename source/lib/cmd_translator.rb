@@ -10,6 +10,8 @@ module CmdTranslator
     'wdt'     => { '0.0' => Hash.new('').merge!({'omap5-evm' => 'omap-wdt.kernelpet=0', })},
     'env default' => { '0.0'  => 'env default -f',
                        '2011.10' => 'env default -a -f',},
+    'fdt_board_name' => {'0.0' => '',
+                         '2013.10' => Hash.new('').merge!({'am335x-evm' => 'setenv board_name A33515BB','am335x-sk' => 'setenv board_name A335X_SK', 'beaglebone' => 'setenv board_name A335BONE', 'beaglebone-black' => 'setenv board_name A335BNLT', 'omap5-evm' => 'setenv board_name omap5_uevm', 'dra7xx-evm' => 'setenv board_name dra7xx'})},
   }
   
   @dict_ubuntu = {
