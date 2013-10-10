@@ -376,6 +376,7 @@ class SessionHandler
         rescue Exception => e
           raise e.to_s+"\n"+e.backtrace.to_s+"\nVerify that #{@rtp_db.get_config_script} contains valid bench file entries"
       end
+      vatf_default_features=$LOADED_FEATURES.dup
       begin
         current_etype = ''
         eq_id = ''
@@ -487,7 +488,7 @@ class SessionHandler
           val.disconnect if val.respond_to?(:disconnect) && val.respond_to?(:stop_logger)
         end
         @connection_handler.disconnect if @connection_handler
-
+        ($LOADED_FEATURES-vatf_default_features).each {|script| $LOADED_FEATURES.delete(script)}
     end
 
     #This function is used inside the test script to set the result for the test. Takes test_result the result of the test (FrameworkConstants::Result), and comment a comment associated with the test result (string) as parameters.
