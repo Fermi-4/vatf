@@ -16,6 +16,9 @@ module CmdTranslator
   
   @dict_ubuntu = {
     'dhcp-server' => { '12.04'     => 'isc-dhcp-server'},
+    'dhcp_conf_file' => { '12.04'     => '/etc/dhcp/dhcpd.conf'},
+    'dhcp_sever_setup_file' => { '12.04'     => '/etc/default/isc-dhcp-server'},
+    'dhcp_service_restart' => { '12.04'     => 'sudo service isc-dhcp-server restart'},
   }
 
   # place holder for linux cmds vs. version
