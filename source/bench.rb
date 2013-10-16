@@ -112,6 +112,9 @@ dut.nfs_root_path = '/home/a0850405/NFS_exports/linux/arago-test'
 dut.serial_port = '/dev/ttyUSB0'
 dut.serial_params = {"baud" => 115200}
 dut.power_port = {'apc.158.218.103.33' => 6}
+# if using multiple power_ports - one to power cycle, another to power reset for example
+# use an array as given below
+#dut.power_port = [{'apc.xxx.xxx.xxx.33' => 6},{'rly16.IP.ADDR' => 3}]
 dut.params = {'usb_port' => {'1' => 1}, 'multimeter1' => minfo}
 
 #pwr = EquipmentInfo.new("power_controller", 0)
