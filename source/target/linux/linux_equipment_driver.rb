@@ -42,9 +42,11 @@ module Equipment
      'am335x-sk' => 'console=ttyO0,115200n8 ip=dhcp earlyprintk rootwait',
      'beaglebone' => 'console=ttyO0,115200n8 ip=dhcp earlyprintk rootwait',
      'beaglebone-black' => 'console=ttyO0,115200n8 ip=dhcp earlyprintk rootwait',
-     'omap5-evm' => 'console=ttyO2,115200n8 ip=dhcp rootwait',
+     'omap5-evm' => 'console=ttyO2,115200n8 ip=dhcp earlyprintk rootwait',
      'tci6638-evm' => 'console=ttyS0,115200n8 rootwait=1 earlyprintk', 
      'dra7xx-evm' => 'console=ttyO0,115200n8 ip=dhcp earlyprintk rootwait',
+     'am43xx-gpevm' => 'console=ttyO0,115200n8 ip=dhcp earlyprintk rootwait',
+     'am43xx-epos' => 'console=ttyO0,115200n8 ip=dhcp earlyprintk rootwait',
      })
     
     def initialize(platform_info, log_path)
