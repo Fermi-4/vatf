@@ -105,7 +105,6 @@ module SystemLoader
     
     def load_file_from_eth_now(params, load_addr, filename, timeout=60)
         tftp_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'tftp', 'version'=>@@uboot_version})
-        set_ipaddr(params)
         self.send_cmd(params, "#{tftp_cmd} #{load_addr} #{params['server'].telnet_ip}:#{filename}", @boot_prompt, timeout)
         raise "load_file_from_eth_now failed to load #{filename}" if params['dut'].response.match(/error/i)
     end
@@ -114,17 +113,6 @@ module SystemLoader
       raise "load_file_from_mmc_now: no filename is provided." if !filename
       mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
       self.send_cmd(params, "#{mmc_init_cmd}; fatload mmc #{params['_env']['mmcdev']} #{load_addr} #{filename} ", @boot_prompt, timeout)
-    end
-
-    # if ipaddr was not set yet, set it using dhcp
-    # TODO: if needed in the future, it can be set statically here.
-    def set_ipaddr(params, static_ip=false)
-        self.send_cmd params, "print ipaddr"
-        if params['dut'].response.match(/error/i)
-          if !static_ip
-            self.send_cmd(params, "dhcp", @boot_prompt, 60)
-          end
-        end
     end
 
     def erase_nand(params, nand_loc, size, timeout=60)
@@ -218,7 +206,7 @@ module SystemLoader
       get_uboot_version params
       send_cmd params, "setenv bootargs '#{params['bootargs']} '"
       send_cmd params, "setenv bootcmd  ''"
-      send_cmd params, "setenv autoload 'yes'"
+      send_cmd params, "setenv autoload 'no'"
       send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'"
       if  params.has_key?'uboot_user_cmds'
         params['uboot_user_cmds'].each{|uboot_cmd|
@@ -226,6 +214,23 @@ module SystemLoader
         }
       end
       get_environment(params)
+    end
+  end
+
+  class SetIpStep < UbootStep
+    def initialize
+      super('setip')
+    end
+
+    def run(params)
+      if params['dut'].instance_variable_defined?(:@telnet_ip) and params['dut'].telnet_ip.to_s != ''
+        append_text params, 'bootargs', "ip=#{params['dut'].telnet_ip} "
+        send_cmd params, "setenv ipaddr #{params['dut'].telnet_ip}"
+      else
+        append_text params, 'bootargs', "ip=dhcp "
+        send_cmd params, "setenv ipaddr dhcp"
+        send_cmd params, "dhcp", @boot_prompt, 60
+      end
     end
   end
 
@@ -254,7 +259,7 @@ module SystemLoader
 
     def load_kernel_from_eth(params)
       send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'"
-      append_text params, 'bootcmd', "dhcp #{params['_env']['kernel_loadaddr']} #{params['server'].telnet_ip}:#{params['kernel_image_name']}; "
+      append_text params, 'bootcmd', "tftp #{params['_env']['kernel_loadaddr']} #{params['server'].telnet_ip}:#{params['kernel_image_name']}; "
     end
    
     def load_kernel_from_ubi(params)
@@ -492,6 +497,7 @@ module SystemLoader
     def initialize
       super
       add_step( PrepStep.new )
+      add_step( SetIpStep.new )
       add_step( KernelStep.new )
       add_step( DTBStep.new )
       add_step( FSStep.new )
