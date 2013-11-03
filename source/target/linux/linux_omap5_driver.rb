@@ -18,10 +18,18 @@ module Equipment
 
     # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
-      @system_loader = SystemLoader::UbootSystemLoader.new
-      @system_loader.insert_step_before('kernel', Omap5ExtrasStep.new)
+      if params.has_key?("var_use_default_env") and params['var_use_default_env'].to_s == '1'
+        @system_loader = SystemLoader::UbootDefaultEnvSystemLoader.new
+      elsif params.has_key?("var_use_default_env") and params['var_use_default_env'].to_s == '2'
+        @system_loader = SystemLoader::UbootLetItGoSystemLoader.new
+      else
+        @system_loader = SystemLoader::UbootSystemLoader.new
+        @system_loader.insert_step_before('kernel', Omap5ExtrasStep.new)
+      end
+      if params.has_key?("bootargs_append")
+        @system_loader.insert_step_before('boot', SetExtraArgsStep.new) 
+      end
     end
   end
-
 end
 
