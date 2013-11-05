@@ -24,7 +24,7 @@ module Equipment
         @system_loader = SystemLoader::UbootLetItGoSystemLoader.new
       else
         @system_loader = SystemLoader::UbootSystemLoader.new
-        @system_loader.insert_step_before('kernel', Omap5ExtrasStep.new)
+        @system_loader.insert_step_before('setip', Omap5ExtrasStep.new)
       end
       if params.has_key?("bootargs_append")
         @system_loader.insert_step_before('boot', SetExtraArgsStep.new) 
