@@ -382,16 +382,18 @@ class SessionHandler
         eq_id = ''
         current_instance = ''
         current_var = ''
+        # To be safe load equipment_table from original source on each test
+        local_equipment_table = Marshal.load( Marshal.dump($equipment_table) )
         equipment_list.each do |equip_type, equip_info|
           current_etype = equip_type
-          assets_caps = $equipment_table[equip_type].keys.clone.sort.reverse
+          assets_caps = local_equipment_table[equip_type].keys.clone.sort.reverse
           equip_info.keys.sort.reverse.each do |req_caps|
             equip_info[req_caps].each_with_index do |test_vars, i|
               current_var = test_vars
               current_instance = i
               equip_log = File.join(@files_dir,test_vars.strip+"_"+iter.to_s+"_log.txt")
               eq_id = req_caps
-              if !$equipment_table[equip_type][eq_id] || !$equipment_table[equip_type][eq_id][i]
+              if !local_equipment_table[equip_type][eq_id] || !local_equipment_table[equip_type][eq_id][i]
                 assets_caps.each do |current_asset_caps|
                   if req_caps == '' || (current_asset_caps.downcase.split('_') & req_caps.split('_')).sort == req_caps.split('_').sort
                     eq_id = current_asset_caps
@@ -399,25 +401,25 @@ class SessionHandler
                   end
                 end
               end
-              raise "Unable to find asset #{equip_type} with #{req_caps} capabilities" if !$equipment_table[equip_type][eq_id] || !$equipment_table[equip_type][eq_id][i]
-              if $equipment_table[equip_type][eq_id][i].driver_class_name
-                  if $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
-                      @equipment[test_vars] = Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).new($equipment_table[equip_type][eq_id][i],equip_log)
+              raise "Unable to find asset #{equip_type} with #{req_caps} capabilities" if !local_equipment_table[equip_type][eq_id] || !local_equipment_table[equip_type][eq_id][i]
+              if local_equipment_table[equip_type][eq_id][i].driver_class_name
+                  if local_equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
+                      @equipment[test_vars] = Object.const_get(local_equipment_table[equip_type][eq_id][i].driver_class_name).new(local_equipment_table[equip_type][eq_id][i],equip_log)
                   else
-                      @equipment[test_vars] = Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).new($equipment_table[equip_type][eq_id][i].telnet_ip)
+                      @equipment[test_vars] = Object.const_get(local_equipment_table[equip_type][eq_id][i].driver_class_name).new(local_equipment_table[equip_type][eq_id][i].telnet_ip)
                   end
               else
                   @equipment[test_vars] = test_vars
               end
               @connection_handler.load_switch_connections(@equipment[test_vars],equip_type,eq_id, i, iter)
-              @power_handler.load_power_ports($equipment_table[equip_type][eq_id][i].power_port)
-              if $equipment_table[equip_type][eq_id][i].params
-                $equipment_table[equip_type][eq_id][i].params.each do |key,val|
+              @power_handler.load_power_ports(local_equipment_table[equip_type][eq_id][i].power_port)
+              if local_equipment_table[equip_type][eq_id][i].params
+                local_equipment_table[equip_type][eq_id][i].params.each do |key,val|
                   next if !key.match(/^usb.*_port$/i)
                   @usb_switch_handler.load_usb_ports(val)
                 end
               end
-              @logs_array << [test_vars, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if $equipment_table[equip_type][eq_id][i].driver_class_name && $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
+              @logs_array << [test_vars, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if local_equipment_table[equip_type][eq_id][i].driver_class_name && local_equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
             end
           end
         end
