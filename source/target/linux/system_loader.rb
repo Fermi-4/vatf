@@ -17,15 +17,15 @@ module SystemLoader
   class UbootStep < Step
     @@uboot_version = nil
 
-    def send_cmd(params, cmd, expect=nil, timeout=20)
+    def send_cmd(params, cmd, expect=nil, timeout=20, check_cmd_echo=true)
       expect = params['dut'].boot_prompt if !expect
-      params['dut'].send_cmd(cmd, expect, timeout)
+      params['dut'].send_cmd(cmd, expect, timeout, check_cmd_echo)
       raise "Error executing #{cmd}" if params['dut'].timeout?
     end
 
     def get_uboot_version(params)
       return @@uboot_version if @@uboot_version
-      params['dut'].send_cmd("", params['dut'].boot_prompt, 5)
+      params['dut'].send_cmd("", params['dut'].boot_prompt, 5, false)
       raise "Trying to load system before #{params['dut'].name} is at boot prompt" if params['dut'].timeout?
       params['dut'].send_cmd("version", params['dut'].boot_prompt, 10)
       @@uboot_version = /U-Boot\s+([\d\.]+)\s*/.match(params['dut'].response).captures[0]
@@ -204,13 +204,13 @@ module SystemLoader
 
     def run(params)
       get_uboot_version params
-      send_cmd params, "setenv bootargs '#{params['bootargs']} '"
-      send_cmd params, "setenv bootcmd  ''"
-      send_cmd params, "setenv autoload 'no'"
-      send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'"
+      send_cmd params, "setenv bootargs '#{params['bootargs']} '", nil, 2, false
+      send_cmd params, "setenv bootcmd  ''", nil, 2, false
+      send_cmd params, "setenv autoload 'no'", nil, 2, false
+      send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'", nil, 2, false
       if  params.has_key?'uboot_user_cmds'
         params['uboot_user_cmds'].each{|uboot_cmd|
-          send_cmd params, uboot_cmd
+          send_cmd params, uboot_cmd, nil, 2, false
         }
       end
       get_environment(params)
