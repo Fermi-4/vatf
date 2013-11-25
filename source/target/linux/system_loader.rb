@@ -425,7 +425,7 @@ module SystemLoader
       end
       dtb_addr = params['_env']['dtb_loadaddr'] if params['dtb_image_name'].strip != ''
       append_text params, 'bootcmd', "if iminfo #{params['_env']['kernel_loadaddr']}; then bootm #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr};"\
-                                     " else bootz #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr}; fi"
+                                     " else bootz #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr}; bootm #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr}; fi"
     end
   end
 
