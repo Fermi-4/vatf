@@ -1,10 +1,12 @@
 require File.dirname(__FILE__)+'/video_clarity'
 
 class VideoClarityInfo
-  attr_reader :telnet_ip, :samba_root_path
+  attr_reader :telnet_ip, :samba_root_path, :telnet_port, :params
   
   def initialize
-    @telnet_ip = '10.0.0.57'
+    @telnet_ip = '192.168.0.23'
+    @telnet_port = '7'
+    @params = {'mnt_pt' => '/mnt/vc'}
   end
 end
 
@@ -39,11 +41,12 @@ def run_test(test_num, a)
  				a.stop_video
 			when 1
 				puts 'VIDEO OUT TO VIDEO IN TEST'
-				puts a.video_out_to_video_in_test({'ref_clip' => 'C:\Video_tools\bus_176x144_420p_75frames.yuv', 'test_clip' => 'C:\\atest.avi', 'data_format' => '420p', 'video_height' => 144 , 'video_width' => 176, 'num_frames' => 75, 'metric_window' => [0,0,176,144]}){}
+				puts a.video_out_to_video_in_test({'ref_clip' => '/home/a0133055/tmp/akiyo_qcif.yuv', 'test_clip' => '/home/a0133055/tmp/atest.avi', 'data_format' => '420p', 'video_height' => 144 , 'video_width' => 176, 'num_frames' => 300, 'metric_window' => [0,0,176,144]}){}
 				get_scores(a)
 			when 2
 				puts 'FILE TO VIDEO IN TEST'
-				puts a.file_to_video_in_test({'ref_clip' => 'C:\Video_tools\4CIF_football_704x480_MPp_1mbps_30fps_150frames.264', 'test_clip' => 'C:\\test.avi', 'metric_window' => [0,0,704,480]}){}
+				#puts a.file_to_video_in_test({'ref_clip' => 'C:\Video_tools\4CIF_football_704x480_MPp_1mbps_30fps_150frames.264', 'test_clip' => 'C:\\test.avi', 'metric_window' => [0,0,704,480]}){}
+				puts a.file_to_video_in_test({'ref_clip' => '/home/a0133055/tmp/akiyo_qcif.yuv', 'test_clip' => '/home/a0133055/tmp/atest.avi', 'data_format' => '420p', 'video_height' => 144 , 'video_width' => 176, 'num_frames' => 300, 'metric_window' => [0,0,176,144]}){}
 				get_scores(a)
 			when 3
 				puts 'FILE TO FILE TEST NORMAL FORMAT'
@@ -61,7 +64,7 @@ def run_test(test_num, a)
 end
 
 num_times = 1
-a = TestEquipment::VideoClarity.new(VideoClarityInfo.new, "C:/vc_log.txt")
+a = TestEquipment::VideoClarity.new(VideoClarityInfo.new, "/home/a0133055/vc_log.txt")
 num_times.times do |iter|
     puts 'TEST '+iter.to_s 
     #run_test(rand(6),a)

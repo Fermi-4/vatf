@@ -1,27 +1,27 @@
 require 'net/telnet'
 require 'fileutils'
 require File.dirname(__FILE__)+'/video_tester'
+require 'socket'
 
 module TestEquipment
    
   class VideoClarity < VideoTester
     Logger = Log4r::Logger
+    include Socket::Constants
     attr_reader :response
     
     #Constructor of the class set all the values needed to use video clarity: shared drives, ip address, video clarity's client path, etc.
     def initialize(video_clarity_info, log_path =nil)
-      @vc_exe = '"C:\\Program Files\\Automation Studio\\VideoClarity\\cv"'
-      @vc_config = "C:\\Program Files\\Automation Studio\\VideoClarity\\config"
       @vc_test_dir = "H:\\Recorded"
       @vc_src_dir = "G:\\Source"
+      @vc_mnt_pt = "\\\\#{@telnet_ip}"
+      @vc_mnt_pt = video_clarity_info.params["mnt_pt"] if video_clarity_info.params.has_key?("mnt_pt")
+      @vc_res_dir = File.join(@vc_mnt_pt,"Recorded")
       @response = ''
+      @telnet_port = 7 if !@telnet_port
       super(video_clarity_info)
-      @vc_res_dir = "\\\\#{@telnet_ip}\\Recorded\\"
       start_logger(log_path) if log_path
       log_info('Starting Video Clarity test session')
-        config_file = File.new(@vc_config,'w+')
-      config_file.puts video_clarity_info.telnet_ip.strip
-      config_file.close
       raise 'Unable to reset Video Clarity' if !reset
       set_video_output
       rescue Exception => e
@@ -223,14 +223,14 @@ module TestEquipment
     #     - 'seq_name' => <sequence name> string containing the name given to clip once it has been uploaded into the library
     def import_video(import_params = {})
       params = {'src_clip' => '', 'data_format' => nil, 'video_height' => nil, 'video_width' => nil, 'num_frames' => 0, 'frame_rate' => 30, 'type' => 1, 'lib_path' => @vc_src_dir, 'seq_name' => 'ref_sequence'}.merge(import_params)
-      clip_base_name = File.basename(params['src_clip'])
-      src_clip = "\\\\#{@telnet_ip}\\#{params['lib_path'].sub(/^[\w:]+/,'')}\\#{clip_base_name}"
+      clip_base_name = File.basename(params['src_clip'].gsub(/\\/,'/'))
+      src_clip = File.join(@vc_mnt_pt, params['lib_path'].sub(/^[\w:]+\\{0,1}/,''), clip_base_name)
       seq_name = params['seq_name']
       delete_video_sequence({'lib_path' => params['lib_path'], 'seq_name' => seq_name})
       FileUtils.rm(src_clip) if File.exists?(src_clip) && params['lib_path'] == @vc_test_dir
       FileUtils.cp(params['src_clip'],src_clip) if File.exists?(params['src_clip']) && File.size?(src_clip) != File.size(params['src_clip'])
       if params['data_format'] && params['video_height'] && params['video_width'] && params['type'] && params['frame_rate']
-          info_file = File.new(File.dirname(src_clip)+'\default.hdr','w+')
+          info_file = File.new(File.join(File.dirname(src_clip),'default.hdr'),'w+')
           file_content = [   '% Color Format (YUV420, YUV422, YUV422P, YUV422_10, RGB, RGBA)',
                     get_video_data_format(params['data_format'].to_s),
                     '% Image Size (NbRows,NbCols) (576 720, 486 720, 720 1280, 1080 1920)',
@@ -279,36 +279,23 @@ module TestEquipment
     #     - 'lib_path' => <path> string containing the path of hte video library where the clip will be uploaded.
     #     - 'seq_name' => <sequence name> string containing the name given to clip once it has been uploaded into the library    
     def create_source_sequence(source_params)
-      params = {'pattern_file' => @vc_src_dir+"\\Test.bmp" ,'src_clip' => '', 'data_format' => nil, 'video_height' => nil, 'video_width' => nil, 'num_frames' => 0, 'frame_rate' => 30, 'type' => 1, 'lib_path' => @vc_src_dir, 'seq_name' => 'source_sequence'}.merge(source_params)
+      params = {'pattern_file' => "Test.bmp" ,'src_clip' => '', 'data_format' => nil, 'video_height' => nil, 'video_width' => nil, 'num_frames' => 0, 'frame_rate' => 30, 'type' => 1, 'lib_path' => @vc_src_dir, 'seq_name' => 'source_sequence'}.merge(source_params)
       source_seq = import_video(params)
       pattern_seq = import_video({'src_clip' => params['pattern_file'], 'seq_name' => 'vc_pattern_sequence'})
       seq_name = 'ref_sequence'
       temp_seq = 'intermediate_'+seq_name
-      FileUtils.rm("\\\\#{@telnet_ip}\\Source\\#{temp_seq}.cvp") if File.exists?("\\\\#{@telnet_ip}\\Source\\#{temp_seq}.cvp")
-      playlist = File.new("\\\\#{@telnet_ip}\\Source\\#{temp_seq}.cvp",'w+')
+      FileUtils.rm(File.join(@vc_mnt_pt, "Source","#{temp_seq}.cvp")) if File.exists?(File.join(@vc_mnt_pt, "Source", "#{temp_seq}.cvp"))
+      playlist = File.new(File.join(@vc_mnt_pt, "Source", "#{temp_seq}.cvp"),'w+')
       playlist.puts(pattern_seq+"\t-1\t-1\t1")
       playlist.puts(source_seq+"\t-1\t-1\t1")
       playlist.close
       play_list_cmds = [',','Viewport ', 'Received: ', 'Failures = ', 'Failures = ', 'Failures = ', ',', ',', ':']
-      vc_telnet = @target = Net::Telnet::new( "Host" => @telnet_ip, "Port" => 23, "Waittime" => 0, "Telnetmode" => true, "Binmode" => false, "Prompt" => />/)
-      vc_telnet.login({"PasswordPrompt" => /password[: ]*/i, "Name" => 'User', "Password" => 'gguser', "LoginPrompt" => /login/i })
-      play_list_cmds.each do |current_cmd|
-        response = ''
-        command = "echo Received: Success: Viewport = 0: First = 0 Last = #{params['num_frames'].to_i - 1} | #{@vc_src_dir}\\sbs2.com 1 \"#{current_cmd}\" \"\""
-        log_info('Command: '+command)
-        vc_telnet.cmd(command){ |rec_data|
-          response += rec_data
-        }
-        log_info('Response: '+response)
-      end
       delete_video_sequence({'lib_path' => params['lib_path'], 'seq_name' => seq_name})
       delete_video_sequence({'lib_path' => params['lib_path'], 'seq_name' => temp_seq})
       raise 'Unable to create source sequence' if !vc_exec('import', "\"#{@vc_src_dir}\\#{temp_seq}.cvp\"", "\"#{temp_seq}\"", params['to_disk'])
-      load_video({'port' => 'A', 'video' => temp_seq}) && set_viewing_mode({'mode' => 'A'}) && set_video_input({'type' => 'clearView', 'rec_mode' => 'single'})
+      load_video({'port' => 'A', 'video' => temp_seq}) && set_viewing_mode({'mode' => 'A'}) && set_video_input({'type' => 'clearView', 'rec_mode' => 'single', 'sync_src'=>'HDMI'})
       record_video({'files' => [{'lib_path' => params['lib_path'], 'seq_name' => seq_name}], 'num_frames' => params['num_frames']+1})
       seq_name
-      ensure
-        vc_telnet.close if vc_telnet
     end
     
     # This function is used to obtain the alignment frame between two videos loaded into the video ports when there is no distinctive frame in the video sequences. Takes seq_params a hash containing the following key => <value> pairs:
@@ -328,7 +315,7 @@ module TestEquipment
       temp_results = Array.new
       seq_hash = {params['ref_seq'] => params['ref_seq_1st_frame'], params['test_seq'] => params['test_seq_1st_frame']}
       seq_hash.each do |current_seq, first_frame|
-          res_path = @vc_res_dir+current_seq+'.temporal'
+          res_path = File.join(@vc_res_dir, current_seq+'.temporal')
           load_video({'port' => 'A','video' => current_seq})
           load_video({'port' => 'B','video' => current_seq})
           set_first_frame({'port' => 'A', 'frame' => first_frame})
@@ -436,7 +423,7 @@ module TestEquipment
     #       - 'src_format' => <signal format> string specifying the type of io signal, valid values (depending of the type of video board in the system) are:
     #               SDI Input Options:
     #              'SDI': for SDI Input 1. 
-    #              'SDI2' – SDI Input 2'SDI2', 'audio_input' => 'None'
+    #              'SDI2' SDI Input 2'SDI2', 'audio_input' => 'None'
     #               Analog Input Options (Only for LH Configuration):
     #              '525ComponentBetaUS': for 525 Component Beta US
     #              '525ComponentSMPTEUS': for 525 Component SMPTE US
@@ -461,8 +448,8 @@ module TestEquipment
     #              'AES': for AES
     #              'Analog': for generic analog signals
     def set_video_input(dev_params = {})
-      params = {'type' => 'broadcast', 'rec_mode' => 'InOut', 'input' => 0, 'board' => 0, 'src_format' => 'SDI', 'audio_input' => 'None'}.merge(dev_params)
-      vc_exec('videoInput', params['type'].downcase, params['rec_mode'], params['input'], params['board'], params['src_format'].upcase, params['audio_input'])
+      params = {'type' => 'broadcast', 'rec_mode' => 'InOut', 'input' => 0, 'board' => 0, 'src_format' => 'HDMI', 'audio_input' => 'None', 'sync_src' => 'HDMI'}.merge(dev_params)
+      vc_exec('videoInput', params['type'].downcase, params['rec_mode'], params['input'], params['board'], params['src_format'].upcase, params['audio_input'], params['sync_src'].upcase)
     end
     
     # This functions causes video clarity to start recording video. Takes rec_params a hash containing the following key => value pairs:
@@ -473,7 +460,8 @@ module TestEquipment
     def record_video(rec_params = {})
       file_args = ''
       params = {'files' => [{'lib_path' => '', 'seq_name' => ''}], 'num_frames' => 1, 'abort_on_drop' => 0, 'save_to_mem' => 0}.merge(rec_params)
-      params['files'].each do |current_params| 
+      file_args = "\"#{params['files'][0]['lib_path']}\" \"#{params['files'][0]['seq_name']}\""
+      params['files'][1..-1].each do |current_params| 
         delete_video_sequence({'lib_path' => current_params['lib_path'], 'seq_name' => current_params['seq_name']})
         file_args += " \"#{current_params['lib_path']}\" \"#{current_params['seq_name']}\""
       end
@@ -538,7 +526,7 @@ module TestEquipment
       get_dmos_results({'res_path' => @vc_test_dir+'\\'+'dmos_results.mos'}) if result
       result = result && stop_video 
       export_video_file({'dst_file' => test_clip+'_exp.avi', 'seq_name' => test_seq, 'first_frame' => 0, 'last_frame' => params['num_frames'].to_i - 1, 'type' => 'AVI' , 'frame_rate' => params['frame_rate']}) 
-      FileUtils.cp(@vc_res_dir+test_seq+'_exp.avi', params['test_clip']) if File.exists?(@vc_res_dir+test_seq+'_exp.avi') 
+      FileUtils.cp(File.join(@vc_res_dir, test_seq+'_exp.avi'), params['test_clip']) if File.exists?(File.join(@vc_res_dir, test_seq+'_exp.avi')) 
       result
     end
     
@@ -587,7 +575,7 @@ module TestEquipment
       dummy_test_seq, test_seq_ref, dummy_test_clip, ref_result = get_ref_file(params)
       test_seq =  'current_test'
       test_clip = @vc_test_dir+'\\'+test_seq
-      FileUtils.rm(@vc_res_dir+test_seq+'_exp.avi') if File.exists?(@vc_res_dir+test_seq+'_exp.avi')
+      FileUtils.rm(File.join(@vc_res_dir, test_seq+'_exp.avi')) if File.exists?(File.join(@vc_res_dir, test_seq+'_exp.avi'))
       result = result && ref_result && activate_lib({'lib_path' => @vc_test_dir}) && set_video_input({'rec_mode' => params['rec_mode']})  
       yield
       sleep [params['rec_delay'].to_f,0.1].max
@@ -602,7 +590,7 @@ module TestEquipment
       get_jnd_results({'res_path' => @vc_test_dir+'\\'+'jnd_results.jnd'}) if result
       get_dmos_results({'res_path' => @vc_test_dir+'\\'+'dmos_results.mos'}) if result
       result = result && stop_video
-      FileUtils.cp(@vc_res_dir+test_seq+'_exp.avi', params['test_clip']) if File.exists?(@vc_res_dir+test_seq+'_exp.avi') && result 
+      FileUtils.cp(File.join(@vc_res_dir, test_seq+'_exp.avi'), params['test_clip']) if File.exists?(File.join(@vc_res_dir, test_seq+'_exp.avi')) && result 
       result     
     end
     
@@ -792,7 +780,7 @@ module TestEquipment
                     'avg' => -1
                     }, 
               }
-      res_path = @vc_res_dir+File.basename(params['res_path'])
+      res_path = File.join(@vc_res_dir, File.basename(params['res_path'].gsub(/\\/,'/')))
       FileUtils.rm(res_path) if File.exists?(res_path)
       if yield params
         result_file = File.new(res_path,'r')
@@ -843,7 +831,7 @@ module TestEquipment
                     'avg' => -1
                    }, 
               }
-      res_path = @vc_res_dir+File.basename(params['res_path'])
+      res_path = File.join(@vc_res_dir, File.basename(params['res_path'].gsub(/\\/,'/')))
       FileUtils.rm(res_path) if File.exists?(res_path)         
       if vc_exec('psnr', "\"#{params['res_path']}\"", params['y_thresh'], params['cb_thresh'], params['cr_thresh'], params['no_ref'], params['use_spatial'], params['normalize']) 
         psnr_file = File.new(res_path,'r')
@@ -1036,17 +1024,26 @@ module TestEquipment
     private
     #Generic execution commmand. Takes command_args the arguments that will be used to execute a command, and command (string)  as parameters.
     def vc_exec(*command_params)
-      cmd = ''
-      command_params.each do |cmd_param|
+      buffer_size = 2080
+      vc_socket = nil
+      cmd = command_params[0]
+      command_params[1..-1].each do |cmd_param|
         cmd+=" #{cmd_param.to_s}"
       end
-      log_info('Command: cv'+cmd)
-      @response = `#{@vc_exe}#{cmd}`
+      log_info('Command: '+cmd)
+      vc_socket = Socket.new(AF_INET, SOCK_STREAM, IPPROTO_TCP)
+      vc_addr = Socket.pack_sockaddr_in(@telnet_port, @telnet_ip)
+      vc_socket.connect(vc_addr)
+      vc_socket.puts(cmd)
+      resp, server_info = vc_socket.recvfrom(buffer_size)
+      @response = resp.gsub(/[^\w\s=]+/,'')
       log_info('Response '+@response)
-      /Received:\s+Success/im.match(@response) != nil
+      /Success/im.match(@response) != nil
       rescue Exception => e
         log_error(e.to_s)
         raise
+      ensure
+        vc_socket.close() if vc_socket
     end
     
     # This function is used to convert TI's yuv values to video clarity yuv values. Takes chroma_format a string specifying a TI yuv value. return a video clarity yuv value
@@ -1079,8 +1076,8 @@ module TestEquipment
       test_seq =  'current_test'
       test_seq_ref = 'current_test_ref'
       test_clip = @vc_test_dir+'\\'+test_seq
-      File.delete(@vc_res_dir+test_seq+'_exp.avi') if File.exists?(@vc_res_dir+test_seq+'_exp.avi')
-      result = result && set_play_mode({'play_type'=>params['play_type']}) && load_video({'video' => src_clip}) && set_video_input && play_video
+      File.delete(File.join(@vc_res_dir, test_seq+'_exp.avi')) if File.exists?(File.join(@vc_res_dir, test_seq+'_exp.avi'))
+      result = result && set_play_mode({'play_type'=>params['play_type']}) && load_video({'video' => src_clip}) && set_video_input({'sync_src' => 'FREE'}) && play_video
       sleep 1
       result = result && stop_video && goto_frame({'port' => 'A', 'frame' => 0}) && record_video({'files' => [{'lib_path' => @vc_test_dir, 'seq_name' => test_seq_ref}], 'num_frames' => params['num_frames'].to_i})
       [test_seq, test_seq_ref, test_clip, result]
@@ -1142,4 +1139,3 @@ module TestEquipment
     end
   end
 end
-
