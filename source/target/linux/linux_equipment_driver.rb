@@ -23,7 +23,7 @@ module Equipment
      'dm365-evm'  => 'console=ttyS0,115200n8 noinitrd mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
      'dm368-evm'  => 'console=ttyS0,115200n8 noinitrd mem=80M video=davincifb:vid0=OFF:vid1=OFF:osd0=720x576x16,4050K dm365_imp.oper_mode=0 davinci_capture.device_type=4',
      'am3730' => 'console=ttyO0,115200n8 ',
-     'am37x-evm' => 'console=ttyO0,115200n8 ',
+     'am37x-evm' => 'console=ttyO0,115200n8 earlyprintk ',
      'dm3730' => 'console=ttyO0,115200n8 ',
      'dm373x-evm' => 'console=ttyO0,115200n8 ',
      'am1808'  => 'console=ttyS2,115200n8 noinitrd ',
