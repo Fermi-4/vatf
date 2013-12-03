@@ -6,7 +6,7 @@ require File.dirname(__FILE__)+'/system_loader'
 
 module Equipment
   class LinuxEquipmentDriver < EquipmentDriver
-    attr_accessor :boot_loader, :system_loader, :boot_args
+    attr_accessor :boot_loader, :system_loader, :boot_args, :boot_log
 
     include CmdTranslator
     include BootLoader
