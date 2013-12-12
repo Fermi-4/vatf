@@ -364,7 +364,7 @@ class SessionHandler
             if config_matches && (var, e_type = config_matches.captures)[1]
                 var = var.strip
                 e_type = e_type.strip
-                equip_class_type, equip_id = /([\w-]+)(?:[",\s]+([\w-]+)){0,1}/i.match(e_type).captures
+                equip_class_type, equip_id = /([\w-]+)(?:[",\s]+([\.\w-]+)){0,1}/i.match(e_type).captures
                 equip_class_type = equip_class_type.downcase.strip
                 equip_id = equip_id.to_s.downcase.strip
                 if(!equipment_list[equip_class_type][equip_id])
