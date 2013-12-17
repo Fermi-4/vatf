@@ -12,9 +12,7 @@ require File.dirname(__FILE__)+'/power_handler'
 require File.dirname(__FILE__)+'/usb_switch_handler'
 require File.dirname(__FILE__)+'/media_equipment/media_equipment'
 require File.dirname(__FILE__)+'/test_equipment/test_equipment'
-# require File.dirname(__FILE__)+'/rubyclr'
 require File.dirname(__FILE__)+'/file_converters/file_converters'
-# require File.dirname(__FILE__)+'/win_forms/win_forms'
 require 'find'
 require 'facets'
 require File.dirname(__FILE__)+'/target/targets'
@@ -23,6 +21,22 @@ require 'net/smtp'
 require File.dirname(__FILE__)+'/site_info'
 require File.dirname(__FILE__)+'/lib/pass_criteria'
 require 'socket'
+begin
+  require File.dirname(__FILE__)+'/win_forms/win_forms'
+rescue Exception => e
+  puts "WARNING: Problem loading win_forms, test cases that use" \
+       "ResultWindow class will throw an exception. Make sure gem" \
+       "wxruby-ruby19 (wxruby for 32-bits systems) has been installed.\n" \
+       "#{e.to_s}"
+end
+begin
+  require 'net/ssh'
+  require 'net/scp'
+rescue Exception => e
+  puts "WARNING: Problem loading net/ssh and/or net/scp, test cases that use" \
+       "scp file transfers will throw an exception. Make sure gems net-ssh and net-scp" \
+       "have been installed.\n#{e.to_s}"
+end
 
 module Find
   def file(*paths)
