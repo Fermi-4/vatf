@@ -36,6 +36,18 @@ module CmdTranslator
                           {'am335x-evm'=>'cat standby_gpio_pad_conf', 
                            'am180x-evm' => 'am180x getcmd'} ),
     },
+    'enable_uart_wakeup' => { 
+                    '0.0' => Hash.new('').merge!(
+                          {'dra7xx-evm' => 'echo enabled > /sys/devices/ocp.3/4806a000.serial/tty/ttyO0/power/wakeup',} ),
+    },
+    'disable_usb_wakeup' => { 
+                    '0.0' => Hash.new('').merge!(
+                          {'am335x-evm' => 'lst=`find /sys/devices/ocp.2/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
+    },
+    'disable_tsc_wakeup' => { 
+                    '0.0' => Hash.new('').merge!(
+                          {'am335x-evm' => 'echo disabled > /sys/devices/ocp.2/44e0d000.tscadc/power/wakeup',} ),
+    },
 
   }
   
