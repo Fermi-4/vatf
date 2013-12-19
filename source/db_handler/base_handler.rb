@@ -57,22 +57,23 @@ module ATFDBHandlers
       
       #Constructor of the class takes 1 or no arguments
     def initialize (type = nil, staf_srv_name = nil) 
-      @staf_handle = STAFHandle.new("staf_xml") 
+      staf_handle = STAFHandle.new("staf_xml") 
       @staf_service_name = staf_srv_name
-      staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR auto/tee/monitor") 
+      staf_req = staf_handle.submit("local","VAR","GET SHARED VAR auto/tee/monitor") 
       if(staf_req.rc == 0)
         @monitor = staf_req.result
       else
         @monitor = nil
       end
+      @staf_handle = nil
       rescue
-        @staf_handle = nil
         puts "STAF handle not initialized"
     end
     
     def monitor_log(message)
       if(@monitor != nil)
-        @staf_handle.submit("local","#{@monitor}","LOG MESSAGE '#{message}' NAME #{@staf_service_name}_status")
+        staf_handle = STAFHandle.new("staf_xml") 
+        staf_handle.submit("local","#{@monitor}","LOG MESSAGE '#{message}' NAME #{@staf_service_name}_status")
       else
         puts "STAF monitor not set"
       end
@@ -86,7 +87,6 @@ module ATFDBHandlers
       test_param_klass = silent_const_assignment("TestParameters",Class.new)
       # tcase_attr = @db_tcase
       img_path = get_image_path
-      temp_staf_handle = @staf_handle
       staf_srv_name = @staf_service_name
       test_param_klass.class_eval do
         attr_reader :params_chan, :params_equip, :params_control
@@ -97,7 +97,7 @@ module ATFDBHandlers
           @params_chan = ParamsChan.new()  
           @params_equip = ParamsEquip.new()
           @params_control = ParamsControl.new()
-          @staf_handle = temp_staf_handle
+          @staf_handle = STAFHandle.new("staf_tc") 
 		  @image_path = {}
           tcase_attr.each do |tc_attr, val|
             next if tc_attr.to_s.match(/params_{0,1}(Equip|Chan|Control)/i) 
@@ -160,6 +160,6 @@ module ATFDBHandlers
       end
       TestParameters.new() 
     end
-    
+
   end
 end

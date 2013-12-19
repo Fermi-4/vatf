@@ -21,22 +21,6 @@ require 'net/smtp'
 require File.dirname(__FILE__)+'/site_info'
 require File.dirname(__FILE__)+'/lib/pass_criteria'
 require 'socket'
-begin
-  require File.dirname(__FILE__)+'/win_forms/win_forms'
-rescue Exception => e
-  puts "WARNING: Problem loading win_forms, test cases that use" \
-       "ResultWindow class will throw an exception. Make sure gem" \
-       "wxruby-ruby19 (wxruby for 32-bits systems) has been installed.\n" \
-       "#{e.to_s}"
-end
-begin
-  require 'net/ssh'
-  require 'net/scp'
-rescue Exception => e
-  puts "WARNING: Problem loading net/ssh and/or net/scp, test cases that use" \
-       "scp file transfers will throw an exception. Make sure gems net-ssh and net-scp" \
-       "have been installed.\n#{e.to_s}"
-end
 
 module Find
   def file(*paths)
@@ -390,24 +374,21 @@ class SessionHandler
         rescue Exception => e
           raise e.to_s+"\n"+e.backtrace.to_s+"\nVerify that #{@rtp_db.get_config_script} contains valid bench file entries"
       end
-      vatf_default_features=$LOADED_FEATURES.dup
       begin
         current_etype = ''
         eq_id = ''
         current_instance = ''
         current_var = ''
-        # To be safe load equipment_table from original source on each test
-        local_equipment_table = Marshal.load( Marshal.dump($equipment_table) )
         equipment_list.each do |equip_type, equip_info|
           current_etype = equip_type
-          assets_caps = local_equipment_table[equip_type].keys.clone.sort.reverse
+          assets_caps = $equipment_table[equip_type].keys.clone.sort.reverse
           equip_info.keys.sort.reverse.each do |req_caps|
             equip_info[req_caps].each_with_index do |test_vars, i|
               current_var = test_vars
               current_instance = i
               equip_log = File.join(@files_dir,test_vars.strip+"_"+iter.to_s+"_log.txt")
               eq_id = req_caps
-              if !local_equipment_table[equip_type][eq_id] || !local_equipment_table[equip_type][eq_id][i]
+              if !$equipment_table[equip_type][eq_id] || !$equipment_table[equip_type][eq_id][i]
                 assets_caps.each do |current_asset_caps|
                   if req_caps == '' || (current_asset_caps.downcase.split('_') & req_caps.split('_')).sort == req_caps.split('_').sort
                     eq_id = current_asset_caps
@@ -415,25 +396,25 @@ class SessionHandler
                   end
                 end
               end
-              raise "Unable to find asset #{equip_type} with #{req_caps} capabilities" if !local_equipment_table[equip_type][eq_id] || !local_equipment_table[equip_type][eq_id][i]
-              if local_equipment_table[equip_type][eq_id][i].driver_class_name
-                  if local_equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
-                      @equipment[test_vars] = Object.const_get(local_equipment_table[equip_type][eq_id][i].driver_class_name).new(local_equipment_table[equip_type][eq_id][i],equip_log)
+              raise "Unable to find asset #{equip_type} with #{req_caps} capabilities" if !$equipment_table[equip_type][eq_id] || !$equipment_table[equip_type][eq_id][i]
+              if $equipment_table[equip_type][eq_id][i].driver_class_name
+                  if $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
+                      @equipment[test_vars] = Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).new($equipment_table[equip_type][eq_id][i],equip_log)
                   else
-                      @equipment[test_vars] = Object.const_get(local_equipment_table[equip_type][eq_id][i].driver_class_name).new(local_equipment_table[equip_type][eq_id][i].telnet_ip)
+                      @equipment[test_vars] = Object.const_get($equipment_table[equip_type][eq_id][i].driver_class_name).new($equipment_table[equip_type][eq_id][i].telnet_ip)
                   end
               else
                   @equipment[test_vars] = test_vars
               end
               @connection_handler.load_switch_connections(@equipment[test_vars],equip_type,eq_id, i, iter)
-              @power_handler.load_power_ports(local_equipment_table[equip_type][eq_id][i].power_port)
-              if local_equipment_table[equip_type][eq_id][i].params
-                local_equipment_table[equip_type][eq_id][i].params.each do |key,val|
+              @power_handler.load_power_ports($equipment_table[equip_type][eq_id][i].power_port)
+              if $equipment_table[equip_type][eq_id][i].params
+                $equipment_table[equip_type][eq_id][i].params.each do |key,val|
                   next if !key.match(/^usb.*_port$/i)
                   @usb_switch_handler.load_usb_ports(val)
                 end
               end
-              @logs_array << [test_vars, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if local_equipment_table[equip_type][eq_id][i].driver_class_name && local_equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
+              @logs_array << [test_vars, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if $equipment_table[equip_type][eq_id][i].driver_class_name && $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
             end
           end
         end
@@ -443,20 +424,53 @@ class SessionHandler
       @connection_handler.media_switches.each{|key,val| @logs_array << ["MediaSwitch"+key.to_s, val[1].sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")]}
       test_script_found = false
       #require @view_drive+@rtp_db.get_test_script.gsub(".rb","")
-      load File.join(@view_drive,@rtp_db.get_test_script)
-      t_setup = Time.now.to_s
-      puts "\n===== Calling "+@rtp_db.get_test_script+"'s setup() at time "+t_setup
-      if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
-        @rtp_db.monitor_log("\n===== Calling #{@rtp_db.get_test_script}'s setup() at time #{t_setup}")
+      t_case_read, t_case_write = IO.pipe()
+      t_proc_pid = Process.fork() do
+        t_case_read.close()
+        Signal.trap('INT') do
+          Kernel.exit!()
+        end
+        begin
+          load File.join(@view_drive,@rtp_db.get_test_script)
+          t_setup = Time.now.to_s
+          puts "\n===== Calling "+@rtp_db.get_test_script+"'s setup() at time "+t_setup
+          if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
+            @rtp_db.monitor_log("\n===== Calling #{@rtp_db.get_test_script}'s setup() at time #{t_setup}")
+          end
+          setup
+          t_run = Time.now.to_s
+          puts "\n===== Calling "+@rtp_db.get_test_script+"'s run() at time "+t_run
+          if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
+           @rtp_db.monitor_log("\n===== Calling #{@rtp_db.get_test_script}'s run() at time #{t_run}")
+          end
+          run
+          test_script_found = true
+          Marshal.dump([@new_keys, @test_result, @results_html_file] ,t_case_write)
+        rescue Exception => e
+          Marshal.dump([@new_keys, e, e.backtrace.to_s.gsub(/\s+/," ")] , t_case_write)
+        ensure
+          clean if test_script_found
+        end
       end
-      setup 
-      t_run = Time.now.to_s
-      puts "\n===== Calling "+@rtp_db.get_test_script+"'s run() at time "+t_run
-      if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
-       @rtp_db.monitor_log("\n===== Calling #{@rtp_db.get_test_script}'s run() at time #{t_run}")
+      t_case_write.close()
+      ['EXIT','INT','QUIT','ABRT','KILL','TERM','STOP'].each do |s|
+        Signal.trap(s) do
+          Process.kill('INT',t_proc_pid)
+          Process.wait(t_proc_pid)
+          Kernel.exit!;
+        end
       end
-      run
-      test_script_found = true
+      t_proc_result = t_case_read.read()
+      Process.wait(t_proc_pid)
+      t_proc_result = Marshal.load(t_proc_result)
+      @new_keys = t_proc_result[0]
+      if t_proc_result[1].is_a?(TestResult)
+        @test_result = t_proc_result[1]
+        @results_html_file = t_proc_result[2]
+      else
+        raise (t_proc_result[1].to_s+"\n"+t_proc_result[2])
+      end
+      t_case_read.close()
       case(@test_result.result)
         when FrameworkConstants::Result[:pass]
           @test_iter_sum[0] += 1
@@ -496,15 +510,13 @@ class SessionHandler
         if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
           @rtp_db.monitor_log("===== Calling #{@rtp_db.get_test_script}'s clean() at time #{t_clean}")
         end
-        clean if test_script_found
-        @connection_handler.media_switches.each {|key,val| val[0].stop_logger} if @connection_handler
-        @equipment.each_value do |val|
-          # puts val.class.to_s+" = "+ObjectSpace.each_object(val.class){}.to_s  # DEBUG: Uncomment this line to get a print out of the number of test equipment objects
-          val.stop_logger if val.respond_to?(:stop_logger)
-          val.disconnect if val.respond_to?(:disconnect) && val.respond_to?(:stop_logger)
-        end
-        @connection_handler.disconnect if @connection_handler
-        ($LOADED_FEATURES-vatf_default_features).each {|script| $LOADED_FEATURES.delete(script)}
+      @connection_handler.media_switches.each {|key,val| val[0].stop_logger} if @connection_handler
+      @equipment.each_value do |val|
+        # puts val.class.to_s+" = "+ObjectSpace.each_object(val.class){}.to_s  # DEBUG: Uncomment this line to get a print out of the number of test equipment objects
+        val.stop_logger if val.respond_to?(:stop_logger)
+        val.disconnect if val.respond_to?(:disconnect) && val.respond_to?(:stop_logger)
+      end
+      @connection_handler.disconnect if @connection_handler
     end
 
     #This function is used inside the test script to set the result for the test. Takes test_result the result of the test (FrameworkConstants::Result), and comment a comment associated with the test result (string) as parameters.

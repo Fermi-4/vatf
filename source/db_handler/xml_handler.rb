@@ -247,7 +247,7 @@ module ATFDBHandlers
     end
 
     def is_staf_enabled
-      if @staf_handle
+      if @monitor
         return true
       else
         return false
