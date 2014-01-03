@@ -97,7 +97,7 @@ module ATFDBHandlers
           @params_chan = ParamsChan.new()  
           @params_equip = ParamsEquip.new()
           @params_control = ParamsControl.new()
-          @staf_handle = STAFHandle.new("staf_tc") 
+          @staf_handle = STAFHandle.new("staf_tc") if defined?(STAFHandle)
 		  @image_path = {}
           tcase_attr.each do |tc_attr, val|
             next if tc_attr.to_s.match(/params_{0,1}(Equip|Chan|Control)/i) 
