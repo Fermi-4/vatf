@@ -224,6 +224,7 @@ module TestEquipment
     def import_video(import_params = {})
       params = {'src_clip' => '', 'data_format' => nil, 'video_height' => nil, 'video_width' => nil, 'num_frames' => 0, 'frame_rate' => 30, 'type' => 1, 'lib_path' => @vc_src_dir, 'seq_name' => 'ref_sequence'}.merge(import_params)
       clip_base_name = File.basename(params['src_clip'].gsub(/\\/,'/'))
+      clip_base_name = clip_base_name.gsub(/[^\.]+$/,'yuv') if params['data_format'] && params['video_height'] && params['video_width'] && params['type'] && params['frame_rate']
       src_clip = File.join(@vc_mnt_pt, params['lib_path'].sub(/^[\w:]+\\{0,1}/,''), clip_base_name)
       seq_name = params['seq_name']
       delete_video_sequence({'lib_path' => params['lib_path'], 'seq_name' => seq_name})
@@ -617,13 +618,14 @@ module TestEquipment
     #     - 'frame_rate' => <frame rate> number specifying the frame rate (in frames per second) associated with the clip if any.
     def file_to_file_test(test_params = {})
       params = {'ref_file' => '', 'test_file' =>'', 'image_format' => 'YCbCr8', 'format' => [720,486,30], 'data_format' => nil, 'video_height' => nil, 'video_width' => nil, 'num_frames' => 300, 'frame_rate' => 30}.merge(test_params)
+      params['tst_data_format'] = params['data_format'] if !params['tst_data_format']
       test_seq =  'current_test'
       test_clip = @vc_test_dir+'\\'+test_seq
       result = activate_lib && set_video_output({'device' => 'None'}) && set_output_format({'format' => params['format']}) && set_image_format({'format' => params['image_format']})
       src_clip = params['ref_file']
       src_clip = import_video({'src_clip' => params['ref_file'], 'data_format' => params['data_format'], 'video_height' => params['video_height'], 'video_width' => params['video_width'], 'num_frames' => [params['num_frames'].to_i,1000].max, 'frame_rate' => params['frame_rate']})
       result = result && activate_lib({'lib_path' => @vc_test_dir})
-      tst_clip = import_video({'lib_path' => @vc_test_dir, 'seq_name' => test_seq,'src_clip' => params['test_file'], 'data_format' => params['data_format'], 'video_height' => params['video_height'], 'video_width' => params['video_width'], 'num_frames' => [params['num_frames'].to_i,1000].max, 'frame_rate' => params['frame_rate']})
+      tst_clip = import_video({'lib_path' => @vc_test_dir, 'seq_name' => test_seq,'src_clip' => params['test_file'], 'data_format' => params['tst_data_format'], 'video_height' => params['video_height'], 'video_width' => params['video_width'], 'num_frames' => [params['num_frames'].to_i,1000].max, 'frame_rate' => params['frame_rate']})
       result = result && activate_lib && load_video({'port' => 'B','video' => src_clip})&& set_first_frame({'port' => 'B', 'frame' => 0})
       get_psnr_results({'res_path' => @vc_test_dir+'\\'+'psnr_results.psnr'}) if result
       get_jnd_results({'res_path' => @vc_test_dir+'\\'+'jnd_results.jnd'})  if result
@@ -1057,12 +1059,16 @@ module TestEquipment
             'YUV422P'
           when '411i'
             'YUV411'
-          when '422i'
+          when '422i', /uyvy/i
             'YUV422'
           when '422i_10'
             'YUV422_10'
           when '444i'
             'YUVA444'
+          when /rgb24/i
+            'RGB'
+          when /argb32/i
+            'RGBA'
           else
             chroma_format.strip.upcase
       end
