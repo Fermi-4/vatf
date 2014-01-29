@@ -56,6 +56,11 @@ module Equipment
         params['nand_eraseblock_size'] = 0x800 # which is page size for tci6614
         params['mtdparts'] = "davinci_nand.0:1024k(bootloader),512k(params),4096k(kernel),-(filesystem)"
         params['offset'] = 0
+        if params['secdev'] == true 
+          params['dtb_loadaddr'] = "0x87000200"
+          params['fs_loadaddr'] = "0x92000000"
+          params['keygen_loadaddr'] = "0x91000000"
+        end
         # Calculate bytes to be written (in hex)
         params['size'] = params['dut'].get_write_mem_size(params['secondary_bootloader'],params['nand_eraseblock_size'])
         params['extra_cmds'] = []
@@ -102,8 +107,12 @@ module Equipment
       
       def write_ubi_image_to_nand_via_mtdparts(params)
         ubi_filesize = File.size(params['kernel']).to_s(16)
-        puts " >>> UBI filesize is #{ubi_filesize}"
-        append_text params, 'bootargs', "mem=512M rootwait=1 rootfstype=ubifs root=ubi0:rootfs rootflags=sync rw ubi.mtd=2,2048" 
+        puts "UBI filesize is #{ubi_filesize}"
+        if params['secdev'] == true
+            append_text params, 'bootargs', "root=/dev/ram0 rw console=ttyS0,115200n8 initrd=0x92000060,32M rdinit=/sbin/init ubi.mtd=2,2048"
+        else
+            append_text params, 'bootargs', "mem=512M rootwait=1 rootfstype=ubifs root=ubi0:rootfs rootflags=sync rw ubi.mtd=2,2048" 
+        end
         self.send_cmd(params,"setenv mtdparts mtdparts=davinci_nand.0:1024k(bootloader),512k(params)ro,129536k(ubifs)", @boot_prompt, 20)
         self.send_cmd(params,"nand erase.part ubifs", @boot_prompt, 20)
         self.load_file_from_eth_now(params,params['_env']['kernel_loadaddr'],params['kernel_image_name'],600)
@@ -119,7 +128,17 @@ module Equipment
     end
 
     def run(params)
-      send_cmd params, "setenv bootcmd 'ubi part ubifs; ubifsmount boot; ubifsload ${addr_kernel} uImage; ubifsload ${addr_fdt} tci6614-evm.dtb; bootm ${addr_kernel} - ${addr_fdt} '"
+    if params['secdev'] == true
+        send_cmd params, "setenv ubiload 'ubi part ubifs;ubifsmount boot;ubifsload 0x81000000 secserver.dsp.bin ; load_dsp_magic 0x81000000;run verify_kernel verify_dtb verify_fs verify_load_keygen '"
+        send_cmd params, "setenv bootcmd 'run ubiload boot_kernel'"
+        send_cmd params, "setenv boot_kernel 'bootm 0x88000060 - 0x87000260'"
+        send_cmd params, "setenv verify_dtb 'ubifsload #{params['dtb_loadaddr']} tci6614-evm.dtb; secure_srv #{params['dtb_loadaddr']}'"
+        send_cmd params, "setenv verify_fs 'ubifsload #{params['fs_loadaddr']} fs.gz; secure_srv #{params['fs_loadaddr']}'"
+        send_cmd params, "setenv verify_kernel 'ubifsload #{params['_env']['kernel_loadaddr']} uImage; secure_srv #{params['_env']['kernel_loadaddr']}'"
+        send_cmd params, "setenv verify_load_keygen 'ubifsload #{params['keygen_loadaddr']} keygen.dsp.bin.sec;secure_srv #{params['keygen_loadaddr']};run_dsp_app 0x91000060; ubifsload 0x81000000 secserver.dsp.bin ; load_dsp_magic 0x81000000'"
+      else
+        send_cmd params, "setenv bootcmd 'ubi part ubifs; ubifsmount boot; ubifsload ${addr_kernel} uImage; ubifsload ${addr_fdt} tci6614-evm.dtb; bootm ${addr_kernel} - ${addr_fdt} '"
+      end
     end
     end
     # reboot is needed the first time so user will be able to power cycle the board without corrupting the file system.
@@ -142,7 +161,15 @@ module Equipment
     end
     
     # Select SystemLoader's Steps implementations based on params
-    def set_systemloader(params)
+    def set_systemloader(params)  
+      super    
+      if @id.include? "secdev"
+        puts "This is a secure device"
+        params['secdev'] = true
+      end
+      if params.has_key?("var_use_default_env")
+      # do nothing
+      else
       @system_loader = SystemLoader::UbootSystemLoader.new
       @system_loader.insert_step_before('kernel', KeystoneExtrasStep.new)
       @system_loader.insert_step_before('kernel', PrepStep.new)
@@ -153,6 +180,7 @@ module Equipment
         @system_loader.remove_step('fs')
         @system_loader.replace_step('boot_cmd', KeystoneUBIBootCmdStep.new)
 #        @system_loader.add_step(KeystoneUBIRebootStep.new)
+      end
       end
     end
 
