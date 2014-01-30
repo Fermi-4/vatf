@@ -18,8 +18,9 @@ module Equipment
           ip_regex = Regexp.new(/DHCP\sclient\sbound\sto\saddress\s(?:\d{1,3}\.){3}\d{1,3}/)
           raise "Could not get IP addr from DHCP" if (ip_regex.match(params['dut'].response) == nil)
           write_bootloader_to_nand_via_mtdparts(params)
-          params['dut'].power_cycle(params)
-          params['dut'].stop_boot()
+          self.send_cmd params, "dhcp"
+          ip_regex = Regexp.new(/DHCP\sclient\sbound\sto\saddress\s(?:\d{1,3}\.){3}\d{1,3}/)
+          raise "Could not get IP addr from DHCP" if (ip_regex.match(params['dut'].response) == nil)
           @@uboot_version = nil      
         end
         
@@ -153,7 +154,17 @@ module Equipment
     end
     end
      
+    class KeystoneBootCmdStep < SystemLoader::UbootStep
+    def initialize
+      super('keystone_boot_cmd')
+    end
 
+    def run(params)
+      dtb_addr     = ''
+      dtb_addr = params['_env']['dtb_loadaddr'] if params['dtb_image_name'].strip != ''
+      append_text params, 'bootcmd', "bootm #{params['_env']['kernel_loadaddr']} - #{dtb_addr};"
+    end
+    end
  
   
     def set_bootloader(params)
@@ -173,6 +184,7 @@ module Equipment
       @system_loader = SystemLoader::UbootSystemLoader.new
       @system_loader.insert_step_before('kernel', KeystoneExtrasStep.new)
       @system_loader.insert_step_before('kernel', PrepStep.new)
+      @system_loader.insert_step_before('kernel', SetIpStep.new)
       @system_loader.insert_step_before('boot', SaveEnvStep.new)
       if params['fs_type'] == 'ubifs'
         puts "*********** Setting system loader to UBI "
@@ -181,6 +193,7 @@ module Equipment
         @system_loader.replace_step('boot_cmd', KeystoneUBIBootCmdStep.new)
 #        @system_loader.add_step(KeystoneUBIRebootStep.new)
       end
+      @system_loader.replace_step('boot_cmd', KeystoneBootCmdStep.new)
       end
     end
 

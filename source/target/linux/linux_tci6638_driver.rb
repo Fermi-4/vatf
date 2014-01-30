@@ -48,8 +48,7 @@ module Equipment
         when /ramfs/i
           fs_sizeMB = bytesToMeg(File.size(File.new(params['fs']))).to_i
           params['fs_size'] = fs_sizeMB + 10
-          # params['fs_size'] = 80
-          puts " >>> fs filesize is #{params['fs_size']}"
+          puts " fs filesize is #{params['fs_size']}"
           params['fs_options'] = " rdinit=/sbin/init initrd=0x802000000,#{params['fs_size']}M"
           params['ram_id'] = 0
         when /nfs/i
@@ -165,7 +164,7 @@ module Equipment
       end
 
       def run(params)
-        send_cmd params, "setenv bootcmd 'dhcp #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']}; tftp #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']}; \
+        send_cmd params, "setenv bootcmd 'tftp #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']}; tftp #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']}; \
                             tftp #{params['_env']['ramdisk_loadaddr']} #{params['fs_image_name']}; tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
                             mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}'" 
       end
@@ -177,7 +176,7 @@ module Equipment
       end
 
       def run(params)
-        send_cmd params, "setenv bootcmd 'dhcp #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']}; tftp #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']}; \
+        send_cmd params, "setenv bootcmd 'tftp #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']}; tftp #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']}; \
                             tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
                             mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}'" 
       end
@@ -192,7 +191,6 @@ module Equipment
     # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
       super
-      #@system_loader = SystemLoader::UbootSystemLoader.new
       if params.has_key?("var_use_default_env")
       # do nothing
       else
