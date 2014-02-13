@@ -42,11 +42,15 @@ module CmdTranslator
     },
     'disable_usb_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
-                          {'am335x-evm' => 'lst=`find /sys/devices/ocp.2/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
+                          {'am335x-evm' => 'lst=`find /sys/devices/ocp.2/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
+                           'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3_2/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
+                           'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3_2/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
     },
     'disable_tsc_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
-                          {'am335x-evm' => 'echo disabled > /sys/devices/ocp.2/44e0d000.tscadc/power/wakeup',} ),
+                          {'am335x-evm' => 'echo disabled > /sys/devices/ocp.2/44e0d000.tscadc/power/wakeup',
+                           'am43xx-epos'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',
+                           'am43xx-gpevm'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',} ),
     },
 
   }
