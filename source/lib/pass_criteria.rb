@@ -67,6 +67,7 @@ module PassCriteria
       data << Math.sqrt((s0*s2 - s1**2) / (s0 * (s0-1)));
     else
       data << response.match(/#{operator}=([\-\d\.]+)/).captures[0].to_f
+      data << 1E-20 # Practically zero but allow division
     end
     return data
   rescue
