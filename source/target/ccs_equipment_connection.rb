@@ -5,7 +5,7 @@ module BoardController
     def get_command(options=nil)
     end
   end
-  
+
   class Ccsv4Command < Command
     def initialize
       super
@@ -52,24 +52,24 @@ module BoardController
         'xml_log'       => {'name' => '-x',   'values' => ''},
       }
       @dss_options = {}
-      
-      if OsFunctions::is_linux? 
+
+      if OsFunctions::is_linux?
         @is_linux = true
       else
         @is_linux = false
       end
-      
+
     end
-    
+
     private
     def translate_options(options, dictionary)
       command=''
-      if options.kind_of?(Hash) 
-        options.each { |key,value| 
+      if options.kind_of?(Hash)
+        options.each { |key,value|
           if dictionary[key]
-            param_value = (dictionary[key]['values'].kind_of?(Hash) and dictionary[key]['values'].has_key?(value)) ? "#{dictionary[key]['values'][value]}" : value.kind_of?(Array) ? (value.map{|v| v + ' '}).to_s : value 
+            param_value = (dictionary[key]['values'].kind_of?(Hash) and dictionary[key]['values'].has_key?(value)) ? "#{dictionary[key]['values'][value]}" : value.kind_of?(Array) ? (value.map{|v| v + ' '}).to_s : value
             command += "#{dictionary[key]['name']} #{param_value} "
-          end 
+          end
         }
       elsif options.kind_of?(String)
         command = options
@@ -79,14 +79,14 @@ module BoardController
       command
     end
   end
-  
+
   class Ccsv5Command < Ccsv4Command
     def initialize
       super
       if @is_linux
         @CCS_EXECUTABLE    = ' eclipse -noSplash '
         @LOADTI_EXECUTABLE = 'auto_loadti.sh '
-        @DSS_EXECUTABLE    = 'dss.sh ' 
+        @DSS_EXECUTABLE    = 'dss.sh '
       else
         @CCS_EXECUTABLE    = ' eclipsec -noSplash '
         @LOADTI_EXECUTABLE = 'auto_loadti.bat '
@@ -94,71 +94,71 @@ module BoardController
       end
     end
   end
-  
+
   class Ccsv4CreateCommand < Ccsv4Command
     def get_command(options)
       @CCS_EXECUTABLE+'-application com.ti.ccstudio.apps.projectCreate '+translate_options(options, @ccs_options)
     end
   end
-  
+
   class Ccsv4BuildCommand < Ccsv4Command
     def get_command(options)
-      @CCS_EXECUTABLE+'-application com.ti.ccstudio.apps.projectBuild -ccs.projects'+" #{options['project_name']} "+translate_options(options, @ccs_options)    
+      @CCS_EXECUTABLE+'-application com.ti.ccstudio.apps.projectBuild -ccs.projects'+" #{options['project_name']} "+translate_options(options, @ccs_options)
     end
   end
-  
+
   class Ccsv4LoadCommand < Ccsv4Command
     def get_command(options)
       @LOADTI_EXECUTABLE+translate_options(options.merge({'load_only'=>'yes'}), @loadti_options)+" #{options['outfile']} #{options['usr_args']}"
     end
   end
-  
+
   class Ccsv4RunCommand < Ccsv4Command
     def get_command(options)
       @LOADTI_EXECUTABLE+translate_options(options, @loadti_options)+" #{options['outfile']} #{options['usr_args']}"
     end
   end
-  
+
   class Ccsv4RunDssCommand < Ccsv4Command
     def get_command(options)
       @DSS_EXECUTABLE+translate_options(options, @dss_options)+" #{options['script']} #{options['usr_args']}"
     end
   end
-  
+
   class Ccsv5CreateCommand < Ccsv5Command
     def get_command(options)
       @CCS_EXECUTABLE+'-application com.ti.ccstudio.apps.projectCreate '+translate_options(options, @ccs_options)
     end
   end
-  
+
   class Ccsv5BuildCommand < Ccsv5Command
     def get_command(options)
-      @CCS_EXECUTABLE+'-application com.ti.ccstudio.apps.projectBuild -ccs.projects'+" #{options['project_name']} "+translate_options(options, @ccs_options)    
+      @CCS_EXECUTABLE+'-application com.ti.ccstudio.apps.projectBuild -ccs.projects'+" #{options['project_name']} "+translate_options(options, @ccs_options)
     end
   end
-  
+
   class Ccsv5LoadCommand < Ccsv5Command
     def get_command(options)
       @LOADTI_EXECUTABLE+translate_options(options.merge({'load_only'=>'yes'}), @loadti_options)+" #{options['outfile']} #{options['usr_args']}"
     end
   end
-  
+
   class Ccsv5RunCommand < Ccsv5Command
     def get_command(options)
       @LOADTI_EXECUTABLE+translate_options(options, @loadti_options)+" #{options['outfile']} #{options['usr_args']}"
     end
   end
-  
+
   class Ccsv5RunDssCommand < Ccsv5Command
     def get_command(options)
       @DSS_EXECUTABLE+translate_options(options, @dss_options)+" #{options['script']} #{options['usr_args']}"
     end
   end
-  
-  class CcsController 
+
+  class CcsController
     attr_reader :result
     attr_accessor :workspace, :logfp, :jsEnvArgsFile, :tempdir
-    
+
     def initialize(params)
       @ccs_type = params['ccs_type'] ? params['ccs_type'] : 'Ccsv5'
       @ccs_type = @ccs_type[0].upcase + @ccs_type[1..-1].downcase
@@ -168,7 +168,7 @@ module BoardController
       setenv()
       switch_type(@ccs_type)
     end
-    
+
     def setenv
       if @ccs_type == 'Ccsv4'
         @loadti_dir = "#{@INSTALL_DIR}/../scripting/examples/loadti"
@@ -180,7 +180,7 @@ module BoardController
 
     def disconnect
     end
-  
+
     def switch_type(type)
       @create_cmd = BoardController.const_get("#{type}CreateCommand").new
       @build_cmd = BoardController.const_get("#{type}BuildCommand").new
@@ -188,19 +188,19 @@ module BoardController
       @run_cmd = BoardController.const_get("#{type}RunCommand").new
       @run_dss_cmd = BoardController.const_get("#{type}RunDssCommand").new
     end
- 
+
     def create(*params)
       timeout = params[0]
       options = params[1]
-      send_cmd("#{@INSTALL_DIR}/#{@create_cmd.get_command(options.merge({'workspace' => @workspace}))}", timeout) 
+      send_cmd("#{@INSTALL_DIR}/#{@create_cmd.get_command(options.merge({'workspace' => @workspace}))}", timeout)
     end
-    
+
     def build(*params)
       timeout = params[0]
       options = params[1]
       send_cmd("#{@INSTALL_DIR}/#{@build_cmd.get_command(options.merge({'workspace' => @workspace}))}", timeout)
     end
-    
+
     def load(*params)
       outfile = params[0]
       timeout = params[1]
@@ -212,7 +212,7 @@ module BoardController
       appendAutotestEnv("#{@loadti_dir}/main.js")
       send_cmd("export AUTO_ENV_ARGS=#{@jsEnvArgsFile}; #{@loadti_dir}/#{@load_cmd.get_command(options.merge({'outfile' => outfile, 'usr_args' => args}))}", timeout)
     end
-    
+
     def run(*params)
       outfile = params[0]
       timeout = params[1]
@@ -222,9 +222,9 @@ module BoardController
       extras.each{|v| args = "#{args} #{v}"}
       create_auto_loadti
       appendAutotestEnv("#{@loadti_dir}/main.js")
-      send_cmd("export AUTO_ENV_ARGS=#{@jsEnvArgsFile}; #{@loadti_dir}/#{@run_cmd.get_command(options.merge({'outfile' => outfile, 'usr_args' => args}))}", timeout)  
+      send_cmd("export AUTO_ENV_ARGS=#{@jsEnvArgsFile}; #{@loadti_dir}/#{@run_cmd.get_command(options.merge({'stdout_file' => "#{@tempdir}/cioOutput", 'outfile' => outfile, 'usr_args' => args}))}", timeout)
     end
-    
+
     def run_dss(*params)
       script = params[0]
       timeout = params[1]
@@ -232,12 +232,12 @@ module BoardController
       args = ''
       extras.each{|v| args = "#{args} #{v}"}
       auto_file = appendAutotestEnv(script)
-      send_cmd("export AUTO_ENV_ARGS=#{@jsEnvArgsFile}; #{@dss_dir}/#{@run_dss_cmd.get_command('')} #{auto_file} #{args}", timeout)  
+      send_cmd("export AUTO_ENV_ARGS=#{@jsEnvArgsFile}; #{@dss_dir}/#{@run_dss_cmd.get_command('')} #{auto_file} #{args}", timeout)
     end
-    
+
     def build_and_run(*params)
       options = params[0]
-      outfile = params[1] 
+      outfile = params[1]
       args = params[2] ? params[2] : ''
       puts "\n Creating project"
       create(options)
@@ -247,7 +247,7 @@ module BoardController
       run(options, outfile, args, true)
       puts @response
     end
-    
+
     def send_cmd(command, timeout=10, expected_match=/.*/)
       begin
         @timeout = false
@@ -258,34 +258,44 @@ module BoardController
           @logfp.call "Target: \n" + @response
         }
         @timeout = @response.match(expected_match) == nil
-      rescue Timeout::Error 
+      rescue Timeout::Error
         puts "TIMEOUT executing #{command}"
         @timeout = true
-        raise 
+        raise
       end
     end
-    
+
     def send_cmd_nonblock(command, timeout=10, expected_match=/.*/)
       Thread.new(command, timeout, expected_match) do |a,b,c|
         send_cmd(a,b,c)
       end
       sleep 1   # Make sure the new thread starts before returning to calling thread
     end
-    
+
     def response
       x=`cat #{@tempdir}/response`
       x
     end
-    
+
+    def cioFile
+      x="#{@tempdir}/cioOutput"
+      x
+    end
+
+    def cio
+      x=`cat #{@tempdir}/cioOutput`
+      x
+    end
+
     def timeout?
       @timeout
     end
-    
+
     def update_response(type='default')
       x=`cat #{@tempdir}/response`
       x
     end
-    
+
     # Load javascript with test automation parameters
     def appendAutotestEnv(js_script)
       outfile_name = File.join(File.dirname(js_script), "auto_#{File.basename(js_script)}")
@@ -305,14 +315,15 @@ module BoardController
       end
       outfile_name
     end
-    
+
     # Create loadti version that uses automation variables
     def create_auto_loadti()
       if !File.exists?("#{@loadti_dir}/auto_loadti.sh")
         `cd #{@loadti_dir}; cat loadti.sh | sed 's+\$LOADTI_PATH/../../bin/dss.sh.*+\$LOADTI_PATH/../../bin/dss.sh \$LOADTI_PATH/auto_main.js \$@+' > auto_loadti.sh; chmod +x auto_loadti.sh`
       end
+      `cat /dev/null > "#{@tempdir}/cioOutput"`
     end
-    
+
     def send_ipc_data(data, timeout=-1)
       begin
         if timeout > 1
@@ -322,17 +333,17 @@ module BoardController
         else
           `echo #{data} > #{@tempdir}/in`
         end
-      rescue Timeout::Error 
+      rescue Timeout::Error
         puts "TIMEOUT sending ipc data:#{data}"
-        raise 
+        raise
       end
     end
-      
-    
-    
+
+
+
     def read_ipc_data(timeout=-1)
       begin
-        data='' 
+        data=''
         if timeout > 0
           Timeout::timeout(timeout) {
             data = `read line < #{@tempdir}/out; echo $line`
@@ -340,8 +351,8 @@ module BoardController
         else
           data = `read line < #{@tempdir}/out; echo $line`
         end
-        return data  
-      rescue Timeout::Error 
+        return data
+      rescue Timeout::Error
         puts "TIMEOUT receiving ipc data"
         raise
       end
@@ -380,5 +391,5 @@ module BoardController
     end
 
   end
-  
+
 end
