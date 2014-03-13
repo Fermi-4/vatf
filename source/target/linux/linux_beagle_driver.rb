@@ -20,7 +20,7 @@ module Equipment
     # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
       @system_loader = SystemLoader::UbootSystemLoader.new
-      @system_loader.insert_step_before('kernel', BeagleExtrasStep.new)
+      @system_loader.insert_step_before('setip', BeagleExtrasStep.new)
     end
   end
 
