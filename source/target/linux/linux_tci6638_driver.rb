@@ -42,8 +42,7 @@ module Equipment
       end   
       def setup_params(params=nil)
         params['mem_addr'] = 0xc300000 
-        params['nand_eraseblock_size'] = 0x800 # which is page size for tci6638
-        params['mtdparts'] = "davinci_nand.0:1024k(bootloader),512k(params),4096k(kernel),-(filesystem)"
+        params['nand_eraseblock_size'] = 0x800 # which is page size for tci6638 
         case params['fs_type']
         when /ramfs/i
           fs_sizeMB = bytesToMeg(File.size(File.new(params['fs']))).to_i
@@ -136,7 +135,6 @@ module Equipment
       def write_ubi_image_to_nand_via_mtdparts(params)
         ubi_filesize = File.size(params['kernel']).to_s(16)
         puts " >>> UBI filesize is #{ubi_filesize}"
-        self.send_cmd(params,"setenv mtdparts mtdparts=davinci_nand.0:1024k(bootloader),512k(params)ro,129536k(ubifs)", @boot_prompt, 20)
         self.send_cmd(params,"nand erase.part ubifs", @boot_prompt, 20)
         self.load_file_from_eth_now(params,params['_env']['kernel_loadaddr'],params['kernel_image_name'],600)
         self.send_cmd(params,"nand write #{params['_env']['kernel_loadaddr']} ubifs 0x#{ubi_filesize}", @boot_prompt, 600)
@@ -154,7 +152,6 @@ module Equipment
       send_cmd params, "env default -a -f"
       send_cmd params, "setenv boot ubi"
       send_cmd params, "setenv no_post 1"
-      send_cmd params, "setenv mtdparts mtdparts=davinci_nand.0:1024k(bootloader),512k(params)ro,129536k(ubifs)"
     end
     end
     
@@ -194,8 +191,10 @@ module Equipment
       if params.has_key?("var_use_default_env")
       # do nothing
       else
+          @system_loader.insert_step_before('prep', SetDefaultEnvStep.new)
           @system_loader.insert_step_before('kernel', Keystone2ExtrasStep.new)
           @system_loader.insert_step_before('kernel', PrepStep.new)
+	  @system_loader.insert_step_before('kernel', SetIpStep.new)
           @system_loader.insert_step_before('fs', SkernStep.new)
           @system_loader.insert_step_before('boot', SaveEnvStep.new)
           @system_loader.insert_step_before('fs', Keystone2InstallMon.new)
