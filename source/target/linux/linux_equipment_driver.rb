@@ -48,6 +48,7 @@ module Equipment
      'am43xx-gpevm' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'am43xx-epos' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'craneboard' => 'console=ttyO2,115200n8 earlyprintk rootwait nohlt',
+     'pandaboard-es' => 'console=ttyO2,115200n8 vram=16M earlyprintk rootwait',
      })
     
     def initialize(platform_info, log_path)
