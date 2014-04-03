@@ -149,7 +149,6 @@ module Equipment
     end
 
     def run(params)
-      send_cmd params, "env default -a -f"
       send_cmd params, "setenv boot ubi"
       send_cmd params, "setenv no_post 1"
     end
@@ -162,8 +161,8 @@ module Equipment
 
       def run(params)
         send_cmd params, "setenv bootcmd 'tftp #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']}; tftp #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']}; \
-                            tftp #{params['_env']['ramdisk_loadaddr']} #{params['fs_image_name']}; tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
-                            mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}'" 
+tftp #{params['_env']['ramdisk_loadaddr']} #{params['fs_image_name']}; tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
+mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}'" 
       end
     end
     
@@ -174,8 +173,8 @@ module Equipment
 
       def run(params)
         send_cmd params, "setenv bootcmd 'tftp #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']}; tftp #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']}; \
-                            tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
-                            mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}'" 
+tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
+mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}'" 
       end
     end
 
@@ -191,7 +190,7 @@ module Equipment
       if params.has_key?("var_use_default_env")
       # do nothing
       else
-          @system_loader.insert_step_before('prep', SetDefaultEnvStep.new)
+          @system_loader.insert_step_before('setip', SetDefaultEnvStep.new)
           @system_loader.insert_step_before('kernel', Keystone2ExtrasStep.new)
           @system_loader.insert_step_before('kernel', PrepStep.new)
 	  @system_loader.insert_step_before('kernel', SetIpStep.new)
