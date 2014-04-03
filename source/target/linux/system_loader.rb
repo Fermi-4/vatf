@@ -441,6 +441,25 @@ module SystemLoader
     end
   end
 
+  class UserCmdsStep < UbootStep
+    def initialize
+      super('user_cmds')
+    end
+
+    def run(params)
+      params['serverip'] = params['server'].telnet_ip
+      File.open(params['boot_cmds'], "r") do |file_handle|
+        file_handle.each_line do |line|
+          next if line.strip.length == 0 or line.match(/^\s*#/)
+          a = eval('['+line+']')
+          send_cmd(params, *a)
+        end
+      end
+      params['dut'].boot_log = params['dut'].response
+      send_cmd params, params['dut'].login, params['dut'].prompt, 10 # login to the unit
+    end
+  end
+
   
   class BaseSystemLoader < Step
     attr_accessor :steps
@@ -574,6 +593,16 @@ module SystemLoader
       add_step( FlashSecondaryBootloaderStep.new )
       add_step( FlashKernelStep.new )
       add_step( FlashFSStep.new )
+    end
+
+  end
+
+  class UbootUserSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( UserCmdsStep.new )
     end
 
   end

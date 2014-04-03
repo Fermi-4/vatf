@@ -77,7 +77,10 @@ module Equipment
 
     # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
-      if params.has_key?("var_use_default_env") and params['var_use_default_env'].to_s == '1'
+      if params['boot_cmds'] != ''
+        @system_loader = SystemLoader::UbootUserSystemLoader.new
+        return
+      elsif params.has_key?("var_use_default_env") and params['var_use_default_env'].to_s == '1'
         @system_loader = SystemLoader::UbootDefaultEnvSystemLoader.new
       elsif params.has_key?("var_use_default_env") and params['var_use_default_env'].to_s == '2'
         @system_loader = SystemLoader::UbootLetItGoSystemLoader.new
