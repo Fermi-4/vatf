@@ -118,4 +118,62 @@ module TestEquipment
  
   end
 
+  # Client-side of FTDI's FT2232-based power meter card.
+  # This client-side driver requires server-side to be properly running.
+  # Due to limitations on FTDI libraries, it is not possible to run the server side
+  # on the Linux host machine that connects to DUTs (e.g. dra7xx-evm).
+  # See test_equipment/usb_to_i2c_controller/README for more details
+  class FtdiMultimeterDriver 
+    attr_reader :number_of_channels, :dut_power_domains, :dut_domain_resistors
+
+    def initialize(platform_info, log_path = nil)
+      platform_info.instance_variables.each {|var|
+        if platform_info.instance_variable_get(var).to_s.size > 0   
+          self.class.class_eval {attr_reader *(var.to_s.gsub('@',''))}
+          self.instance_variable_set(var, platform_info.instance_variable_get(var))
+        end
+      }
+    end
+
+    def configure_multimeter(power_info)
+      @number_of_channels = [@params['number_of_channels'].to_i, power_info['power_domains'].length * 2].min
+      @dut_power_domains = power_info['power_domains'] 
+      @dut_domain_resistors = power_info['domain_resistors']  
+    end
+
+    #Function collects data from multimeter.
+    # Input parameters: 
+    #    loop_count: Integer defining the number of times to perform channel measurements
+    #    timeout: Integer defining the read timeout in sec
+    # Return Parameter: Array containing all voltage reading for all domains. 
+    def get_multimeter_output(loop_count, timeout)
+      h = Hash.new
+      @dut_power_domains.each {|d|
+          h["domain_" + d + "_volt_readings"] = Array.new()
+          h["domain_" + d + "drop_volt_readings"] = Array.new()
+          h["domain_" + d + "_current_readings"] = Array.new()
+      }
+      
+      s = TCPSocket.open(@telnet_ip, @telnet_port)
+      # Send params to server
+      s.puts @params['executable_path']
+      s.puts loop_count   # number of samples
+      s.puts '0'          # samples delay 
+      # Read data from server
+      while line = s.gets
+          puts line.chop
+          m = line.match(/^Measure\s+([A-Z0-9_]+)\s*,\s+Bus = ([\d\.]+)mV, Shunt = ([\d\.]+)uV,/)
+          if m
+              domain, bus, shunt = m.captures
+              h["domain_"+ domain + "drop_volt_readings"] << shunt.to_f * 10**-6
+              h["domain_"+ domain + "_current_readings"] << (shunt.to_f * 10**-6)/(@dut_domain_resistors[domain]).to_f
+              h["domain_"+ domain + "_volt_readings"]  << bus.to_f * 10**-3
+          end
+      end
+      s.close               # Close the socket when done
+      h
+    end
+
+  end
+
 end  
