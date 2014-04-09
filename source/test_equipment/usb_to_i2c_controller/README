@@ -1,0 +1,30 @@
+This folder contains required files to setup a server that will drive the 
+FTDI's FT2232-based USB_to_I2C power meter card that is available for 
+J5/J6 EVMs.
+
+The USB to I2C Controller can be ordered under SD part # 703782-0001 at
+http://support.spectrumdigital.com/boards/vayuevm/
+
+=== Contents ===
+ * USB_to_I2C_Controller_517300.1A.zip: Microsoft Visual Studio solution
+ with source code for USB to I2C controller
+ * ina_j5eco.exe: Windows executable for USB to I2C controller
+ * usb_i2c_powermeter.rb: Ruby wrapper for USB to I2C cotroller that 
+   implements TCP server so that remote clients can request power
+   measurements.
+
+=== Setup Instructions ===
+  * Find a windows machine to host the server
+  * Install ruby on it, if not already installed
+  * Copy ina_j5eco.exe to server
+  * Copy usb_i2c_powermeter.rb to server
+  * Edit usb_i2c_powermeter.rb to match IP address and desired TCP port
+    for server application
+  * Add FTDI USB-to-I2C power meter entry in your bench file. For more 
+    info, see <vatf>/source/bench.rb
+  * Start server from command line with following command:
+    ruby usb_i2c_powermeter.rb
+
+
+
+
