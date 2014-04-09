@@ -92,10 +92,49 @@ module SystemLoader
       end
     end
 
+    def create_serial_load_script(params, load_address, filename, timeout)
+      script = File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],'serial_load_script')
+      File.open(script, "w") do |file|
+        sleep 1  
+        file.puts "#!/bin/bash"
+        # Run stty to set the baud rate.
+        file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
+        file.puts "if [ $? -ne 0 ]; then exit 1; fi"
+        # Start loady
+        file.puts "echo \'loady #{load_address}\' > #{params['dut'].serial_port}"
+        # Send kernel as ymodem, <timeout> timeout (in seconds).
+        file.puts "/usr/bin/timeout #{timeout} /usr/bin/sb -v --ymodem #{filename} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+        # If we timeout or don't return cleanly (transfer failed), return 1
+        file.puts "if [ $? -ne 0 ]; then exit 1; fi"
+        # Return success.
+        file.puts "exit 0"
+      end
+      File.chmod(0755, script)
+    end
+    
+    def run_serial_load_script(params,timeout)
+      # Disconnect serial prior to sending binaries through ymodem.
+      serial_connected = false
+      if params['dut'].target.serial
+         params['dut'].disconnect('serial') 
+         serial_connected = true
+      end
+      params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],'serial_load_script'), params['server'].prompt, timeout) 
+      params['dut'].connect({'type'=>'serial'}) if serial_connected
+    end
+
     def load_file_from_mmc(params, load_addr, filename)
       mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
       append_text params, 'bootcmd', "#{mmc_init_cmd}; "
       append_text params, 'bootcmd', "fatload mmc #{params['_env']['mmcdev']} #{load_addr} #{filename}; "
+    end
+
+
+    def load_file_from_serial_now(params, load_addr, filename, timeout)
+      # create a file with required commands
+      create_serial_load_script(params, load_addr, filename, timeout)
+      # send file to serial port
+      run_serial_load_script(params, timeout)
     end
 
     def load_file_from_eth(params, load_addr, filename)
@@ -247,6 +286,8 @@ module SystemLoader
         load_kernel_from_eth params
       when 'ubi'
         load_kernel_from_ubi params
+      when 'serial'
+        load_kernel_from_serial params
       else
         raise "Don't know how to load kernel from #{params['kernel_dev']}"
       end
@@ -255,6 +296,10 @@ module SystemLoader
     private
     def load_kernel_from_mmc(params)
       load_file_from_mmc params, params['_env']['kernel_loadaddr'], params['kernel_image_name']
+    end
+
+    def load_kernel_from_serial(params)
+      load_file_from_serial_now params, params['_env']['kernel_loadaddr'], params['kernel'], 1720
     end
 
     def load_kernel_from_eth(params)
@@ -281,6 +326,8 @@ module SystemLoader
         load_dtb_from_eth params
       when 'ubi'
         load_dtb_from_ubi params
+      when 'serial'
+        load_dtb_from_serial params
       when 'none'
         # Do nothing
       else
@@ -291,6 +338,10 @@ module SystemLoader
     private
     def load_dtb_from_mmc(params)
       load_file_from_mmc params, params['_env']['dtb_loadaddr'], params['dtb_image_name']
+    end
+
+    def load_dtb_from_serial(params)
+      load_file_from_serial_now params, params['_env']['dtb_loadaddr'], params['dtb'],160
     end
 
     def load_dtb_from_eth(params)
