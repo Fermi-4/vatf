@@ -146,11 +146,19 @@ svr.prompt = /@@/
 ################ Other Test Equipment Samples ###############
 #############################################################
 # Keithley Multimeter
-minfo = EquipmentInfo.new("multimeter1")
+minfo = EquipmentInfo.new("multimeter")
 minfo.serial_port = '/dev/ttyUSB5'
 minfo.serial_params = {"baud" => 19200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
 minfo.driver_class_name = 'KeithleyMultiMeterDriver'
 minfo.params = {'number_of_channels' => 40}
+
+# FTDI USB-to-I2C power meter integrated in J5/J6 boards
+minfo = EquipmentInfo.new("multimeter")
+minfo.telnet_ip = '158.218.101.68'   # IP Address of Server connected to USB-to-I2C power meter board
+minfo.telnet_port = 2000             # TCP Port where Server is listening 
+minfo.driver_class_name = 'FtdiMultimeterDriver'
+minfo.params = {'number_of_channels' => 24, 
+                'executable_path' => 'C:\code\usb_power\test\ina_j5eco\Debug\ina_j5eco.exe'}  # Path to executable on Server
 
 # MSP430-Based USB switch
 usb = EquipmentInfo.new("usb_switch_controller", "1")
