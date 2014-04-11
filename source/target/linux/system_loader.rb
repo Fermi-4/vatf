@@ -396,7 +396,7 @@ module SystemLoader
 
       # Avoid relocation of ramfs and device tree data
       send_cmd params, "setenv initrd_high '0xffffffff'"
-      send_cmd params, "setenv fdt_high '0xffffffff'"
+      send_cmd params, "setenv fdt_high '0x88000000'"
       
       case params['fs_dev']
       when /eth/i
