@@ -1,15 +1,4 @@
-$equipment_table = nil #table containing information for all the equipment
-
-#Singleton hash table. $equipment_table is an instance of this class
-class InfoTable < Hash
-  private_class_method :new #making the defualt constructor private
-  @@table = nil #variable to hold the singleton
-
-  def InfoTable.create(defaultVal = nil)
-    @@table = Hash.new(defaultVal) unless @@table
-    @@table
-  end
-end
+$equipment_table = Hash.new
 
 class AudioHardwareInfo
     attr_accessor :analog_audio_inputs
@@ -99,19 +88,18 @@ class EquipmentInfo
       @port_master = Array.new
       @video_io_info = VideoIOInfo.new
       @audio_io_info = AudioIOInfo.new
-      $equipment_table = InfoTable.create
       if !$equipment_table[@name]
         $equipment_table[@name] = Hash.new
       end
-      if !$equipment_table[@name][@id] 
+      if !$equipment_table[@name][@id]
         $equipment_table[@name][@id] = []
-      end  
+      end
       $equipment_table[@name][@id] << self
 
       instance_eval &block if block_given?
     end
- 
-    private 
+
+    private
     def sort_caps(caps)
       result = caps.split("_").sort.join("_")
       result
