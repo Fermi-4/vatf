@@ -97,9 +97,9 @@ class EquipmentInfo
     attr_accessor :timeout
     attr_accessor :telnet_bin_mode
 
-            
-    #Constructor of the class            
-    def initialize(name, id = nil)
+
+    #Constructor of the class
+    def initialize(name, id = nil, &block)
       @name = name.downcase.strip
       @id = sort_caps(id.to_s.strip.downcase)
       @audio_hardware_info = AudioHardwareInfo.new
@@ -114,6 +114,8 @@ class EquipmentInfo
         $equipment_table[@name][@id] = []
       end  
       $equipment_table[@name][@id] << self
+
+      instance_eval &block if block_given?
     end
  
     private 
