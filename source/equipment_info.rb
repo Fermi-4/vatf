@@ -88,12 +88,8 @@ class EquipmentInfo
       @port_master = Array.new
       @video_io_info = VideoIOInfo.new
       @audio_io_info = AudioIOInfo.new
-      if !$equipment_table[@name]
-        $equipment_table[@name] = Hash.new
-      end
-      if !$equipment_table[@name][@id]
-        $equipment_table[@name][@id] = []
-      end
+      $equipment_table[@name] ||= Hash.new
+      $equipment_table[@name][@id] ||= []
       $equipment_table[@name][@id] << self
 
       instance_eval &block if block_given?
