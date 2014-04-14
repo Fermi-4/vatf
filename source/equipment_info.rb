@@ -5,15 +5,8 @@ class InfoTable < Hash
   private_class_method :new #making the defualt constructor private
   @@table = nil #variable to hold the singleton
 
-  #method to create the table with default value
-  def InfoTable.create(defaultVal)
+  def InfoTable.create(defaultVal = nil)
     @@table = Hash.new(defaultVal) unless @@table
-    @@table
-  end
-  
-  #method to create the table
-  def InfoTable.create
-    @@table = Hash.new unless @@table
     @@table
   end
 end
