@@ -11,7 +11,7 @@
 #                               Zero or more capabilities can be specified, capabalities are separated by underscore '_'
 #                               For more information about acceptable values see http://automation.telogy.design.ti.com/wiki/index.php?title=Cheat_Sheet
 
-# MUST-HAVE DUT Equipment Properties (sorted by importance):
+# MUST-HAVE DUT EquipmentInfo Properties (sorted by importance):
 #   driver_class_name: string containing the name of the driver used to control an equipment.
 #     dut = EquipmentInfo("am335x-evm", "linux")
 #     dut.driver_class_name = "LinuxEquipmentDriver"   
@@ -98,190 +98,210 @@
 #############################################################
 ################# Most Typicall entries #####################
 #############################################################
-dut = EquipmentInfo.new("am335x-evm", "linux_sd_sdhc_usbhostmsc_usbhosthid_power")
-dut.driver_class_name='LinuxEquipmentDriver'
-dut.prompt = /[\w\d]+@.+[@:#]+/
-dut.boot_prompt = /U-Boot#/
-dut.first_boot_prompt = /TI-MIN/
-dut.boot_load_address = '0x81000000'
-dut.login = 'root'
-dut.telnet_login = 'root'
-dut.login_prompt = /login:/
-dut.board_id='20100720'
-dut.nfs_root_path = '/home/a0850405/NFS_exports/linux/arago-test'
-dut.serial_port = '/dev/ttyUSB0'
-dut.serial_params = {"baud" => 115200}
-dut.power_port = {'apc.158.218.103.33' => 6}
-# if using multiple power_ports - one to power cycle, another to power reset for example
-# use an array as given below
-#dut.power_port = [{'apc.xxx.xxx.xxx.33' => 6},{'rly16.IP.ADDR' => 3}]
-dut.params = {'usb_port' => {'1' => 1}, 'multimeter1' => minfo}
+EquipmentInfo.new("am335x-evm", "linux_sd_sdhc_usbhostmsc_usbhosthid_power") do
+  driver_class_name='LinuxEquipmentDriver'
+  prompt = /[\w\d]+@.+[@:#]+/
+  boot_prompt = /U-Boot#/
+  first_boot_prompt = /TI-MIN/
+  boot_load_address = '0x81000000'
+  login = 'root'
+  telnet_login = 'root'
+  login_prompt = /login:/
+  board_id='20100720'
+  nfs_root_path = '/home/a0850405/NFS_exports/linux/arago-test'
+  serial_port = '/dev/ttyUSB0'
+  serial_params = {"baud" => 115200}
+  power_port = {'apc.158.218.103.33' => 6}
+  # if using multiple power_ports - one to power cycle, another to power reset for example
+  # use an array as given below
+  #power_port = [{'apc.xxx.xxx.xxx.33' => 6},{'rly16.IP.ADDR' => 3}]
+  params = {'usb_port' => {'1' => 1}, 'multimeter1' => minfo}
+end
 
-#pwr = EquipmentInfo.new("power_controller", 0)
-pwr = EquipmentInfo.new("power_controller", "apc.158.218.103.33")
-pwr.telnet_ip = '158.218.103.45'
-pwr.telnet_port = 23
-#pwr.driver_class_name = 'ApcPowerController'
-pwr.driver_class_name = 'StafApcPowerController'
-pwr.telnet_login = 'apc'
-pwr.telnet_passwd = 'apc'
-pwr.params = {'staf_ip' => 'local'}
+EquipmentInfo.new("power_controller", "apc.158.218.103.33") do
+  telnet_ip = '158.218.103.45'
+  telnet_port = 23
+  #driver_class_name = 'ApcPowerController'
+  driver_class_name = 'StafApcPowerController'
+  telnet_login = 'apc'
+  telnet_passwd = 'apc'
+  params = {'staf_ip' => 'local'}
+end
 
 # Devantech / robot-electronics.co.uk relay.  Uses default port and user/pass
 # This device is used to trigger the reset signal on a board, and the board
 # is powered by something else.
-pwr = EquipmentInfo.new("power_controller", "rly16.IP.ADDR")
-pwr.telnet_ip = 'IP.ADDR'
-pwr.driver_class_name = 'DevantechRelayController'
+EquipmentInfo.new("power_controller", "rly16.IP.ADDR") do
+  telnet_ip = 'IP.ADDR'
+  driver_class_name = 'DevantechRelayController'
+end
 
-svr = EquipmentInfo.new("linux_server")
-svr.tftp_path = '/tftpboot'
-svr.driver_class_name = 'LinuxLocalHostDriver'
-svr.telnet_login = 'a0850405'
-svr.telnet_passwd = '95yMy512'
-svr.telnet_ip = '158.218.103.10'
-svr.prompt = /@@/
+EquipmentInfo.new("linux_server") do
+  tftp_path = '/tftpboot'
+  driver_class_name = 'LinuxLocalHostDriver'
+  telnet_login = 'a0850405'
+  telnet_passwd = '95yMy512'
+  telnet_ip = '158.218.103.10'
+  prompt = /@@/
+end
 
 #############################################################
-################ Other Test Equipment Samples ###############
+################ Other Test EquipmentInfo Samples ###############
 #############################################################
 # Keithley Multimeter
-minfo = EquipmentInfo.new("multimeter")
-minfo.serial_port = '/dev/ttyUSB5'
-minfo.serial_params = {"baud" => 19200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
-minfo.driver_class_name = 'KeithleyMultiMeterDriver'
-minfo.params = {'number_of_channels' => 40}
+minfo = EquipmentInfo.new("multimeter") do
+  serial_port = '/dev/ttyUSB5'
+  serial_params = {"baud" => 19200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+  driver_class_name = 'KeithleyMultiMeterDriver'
+  params = {'number_of_channels' => 40}
+end
 
 # FTDI USB-to-I2C power meter integrated in J5/J6 boards
-minfo = EquipmentInfo.new("multimeter")
-minfo.telnet_ip = '158.218.101.68'   # IP Address of Server connected to USB-to-I2C power meter board
-minfo.telnet_port = 2000             # TCP Port where Server is listening 
-minfo.driver_class_name = 'FtdiMultimeterDriver'
-minfo.params = {'number_of_channels' => 24, 
-                'executable_path' => 'C:\code\usb_power\test\ina_j5eco\Debug\ina_j5eco.exe'}  # Path to executable on Server
+minfo = EquipmentInfo.new("multimeter") do
+  telnet_ip = '158.218.101.68'   # IP Address of Server connected to USB-to-I2C power meter board
+  telnet_port = 2000             # TCP Port where Server is listening 
+  driver_class_name = 'FtdiMultimeterDriver'
+  params = {'number_of_channels' => 24, 
+                  'executable_path' => 'C:\code\usb_power\test\ina_j5eco\Debug\ina_j5eco.exe'}  # Path to executable on Server
+end
 
 # MSP430-Based USB switch
-usb = EquipmentInfo.new("usb_switch_controller", "1")
-usb.serial_port = '/dev/ttyACM0'
-usb.serial_params = {"baud" => 9600, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
-usb.driver_class_name = 'TiUsbSwitch'
+EquipmentInfo.new("usb_switch_controller", "1") do
+  serial_port = '/dev/ttyACM0'
+  serial_params = {"baud" => 9600, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+  driver_class_name = 'TiUsbSwitch'
+end
 
 #Objective Speech Tester information
-aud = EquipmentInfo.new("speech_tester")
-aud.driver_class_name = "OperaForClr"
-aud.telnet_ip = "10.218.111.209"
+EquipmentInfo.new("speech_tester") do
+  driver_class_name = "OperaForClr"
+  telnet_ip = "10.218.111.209"
+end
 
 # Kvaser CAN Server
-can_kvaser_host = EquipmentInfo.new("can","kvaser")
-can_kvaser_host.telnet_bin_mode = false
-can_kvaser_host.driver_class_name = "LinuxEquipmentDriver"
-can_kvaser_host.telnet_ip = '10.218.103.117'
-can_kvaser_host.telnet_port = 2424
-can_kvaser_host.password_prompt = /password:.*/i
-can_kvaser_host.prompt = /Documents/
-can_kvaser_host.telnet_login = 'admintest'
-can_kvaser_host.telnet_passwd = 'admin123Test'
-can_kvaser_host.login_prompt = /login:/i
+EquipmentInfo.new("can","kvaser") do
+  telnet_bin_mode = false
+  driver_class_name = "LinuxEquipmentDriver"
+  telnet_ip = '10.218.103.117'
+  telnet_port = 2424
+  password_prompt = /password:.*/i
+  prompt = /Documents/
+  telnet_login = 'admintest'
+  telnet_passwd = 'admin123Test'
+  login_prompt = /login:/i
+end
 
 # DUT controlled via CCS/JTAG
-dut = EquipmentInfo.new("am180x-evm", "ccs")
-dut.driver_class_name='EquipmentDriver'
-dut.prompt = /[\w\d]+@.+[@:#]+/
-dut.telnet_ip='158.218.103.93'
-dut.telnet_port=23
-dut.boot_prompt = /U-Boot\s*>/m
-dut.login = 'root'
-dut.telnet_login = 'root'
-dut.login_prompt = /login:/
-dut.board_id='20100720'
-dut.nfs_root_path = '/home/a0850405/NFS_exports/linux/4.01/am18x'
-dut.power_port = {'apc.158.218.103.33' => 1}
-dut.params = {'ccs_type'        => 'Ccsv5',
-              'ccs_install_dir' => '/opt/ti/ccsv5',
-              'ccs_workspace'   => '/home/a0850405/workspace_v5_1',
-              'ccsConfig'       => '/home/a0850405/ti/CCSTargetConfigurations/c6748.ccxml',
-              'gelFile'         => '/home/a0850405/ti/CCSTargetConfigurations/C6748.gel',
-              'ccsPlatform'     => 'Spectrum Digital XDS510USB Emulator_0',
-              'ccsCpu'          => 'C674X_0'}
+EquipmentInfo.new("am180x-evm", "ccs") do
+  driver_class_name='EquipmentInfoDriver'
+  prompt = /[\w\d]+@.+[@:#]+/
+  telnet_ip='158.218.103.93'
+  telnet_port=23
+  boot_prompt = /U-Boot\s*>/m
+  login = 'root'
+  telnet_login = 'root'
+  login_prompt = /login:/
+  board_id='20100720'
+  nfs_root_path = '/home/a0850405/NFS_exports/linux/4.01/am18x'
+  power_port = {'apc.158.218.103.33' => 1}
+  params = {'ccs_type'        => 'Ccsv5',
+                'ccs_install_dir' => '/opt/ti/ccsv5',
+                'ccs_workspace'   => '/home/a0850405/workspace_v5_1',
+                'ccsConfig'       => '/home/a0850405/ti/CCSTargetConfigurations/c6748.ccxml',
+                'gelFile'         => '/home/a0850405/ti/CCSTargetConfigurations/C6748.gel',
+                'ccsPlatform'     => 'Spectrum Digital XDS510USB Emulator_0',
+                'ccsCpu'          => 'C674X_0'}
+end
 
 #############################################################
 ########## Media connection equipment information ###########
 #############################################################
 #Composite switch Rack2
-te = EquipmentInfo.new("media_switch",0)
-te.telnet_ip = "10.0.0.200"
-te.telnet_port = 23
-te.driver_class_name = "VideoSwitch"
+EquipmentInfo.new("media_switch",0) do
+  telnet_ip = "10.0.0.200"
+  telnet_port = 23
+  driver_class_name = "VideoSwitch"
+end
 
 #Component switch Rack 3
-te = EquipmentInfo.new("media_switch",1)
-te.telnet_ip = "10.0.0.101"
-te.telnet_port = 23
-te.driver_class_name = "VideoSwitch"
+EquipmentInfo.new("media_switch",1) do
+  telnet_ip = "10.0.0.101"
+  telnet_port = 23
+  driver_class_name = "VideoSwitch"
+end
 
 #SDI switch Rack3
-te = EquipmentInfo.new("media_switch",2)
-te.telnet_ip = "10.0.0.102"
-te.telnet_port = 23
-te.driver_class_name = "VideoSwitch"
+EquipmentInfo.new("media_switch",2) do
+  telnet_ip = "10.0.0.102"
+  telnet_port = 23
+  driver_class_name = "VideoSwitch"
+end
 
 #TVs information
-tv = EquipmentInfo.new("tv") #left tv
-tv.video_io_info.composite_inputs = {0 => [25]}
-tv.video_io_info.svideo_inputs = {0 => [25]}
-tv.audio_io_info.mini35mm_inputs = {0 => [23]}
-tv.video_io_info.component_inputs = {1 => [11]}
+EquipmentInfo.new("tv") do #left tv
+  video_io_info.composite_inputs = {0 => [25]}
+  video_io_info.svideo_inputs = {0 => [25]}
+  audio_io_info.mini35mm_inputs = {0 => [23]}
+  video_io_info.component_inputs = {1 => [11]}
+end
 
-tv = EquipmentInfo.new("tv")  #right tv
-tv.video_io_info.composite_inputs = {0 => [27]}
-tv.video_io_info.svideo_inputs = {0 => [27]}
-tv.audio_io_info.mini35mm_inputs = {0 => [23]}
-tv.video_io_info.component_inputs = {1 => [12]}
+EquipmentInfo.new("tv") do #right tv
+  video_io_info.composite_inputs = {0 => [27]}
+  video_io_info.svideo_inputs = {0 => [27]}
+  audio_io_info.mini35mm_inputs = {0 => [23]}
+  video_io_info.component_inputs = {1 => [12]}
+end
 
 # Camera Info
-tv = EquipmentInfo.new("camera")
-tv.video_io_info.composite_outputs = {0 => [28]}
-tv.video_io_info.svideo_outputs = {0 => [28]}
-tv.audio_io_info.mini35mm_outputs = {0 => [27]}  
+EquipmentInfo.new("camera") do
+  video_io_info.composite_outputs = {0 => [28]}
+  video_io_info.svideo_outputs = {0 => [28]}
+  audio_io_info.mini35mm_outputs = {0 => [27]}
+end
 
 # DVD players info
-dvd = EquipmentInfo.new("dvd","pal")
-dvd.video_io_info.composite_outputs = {0 => ["26"]}
-dvd.video_io_info.svideo_outputs = {0 => ["26"]}
-dvd.audio_io_info.mini35mm_outputs = {0 => ["26"]}
+EquipmentInfo.new("dvd","pal") do
+  video_io_info.composite_outputs = {0 => ["26"]}
+  video_io_info.svideo_outputs = {0 => ["26"]}
+  audio_io_info.mini35mm_outputs = {0 => ["26"]}
+end
 
-dvd = EquipmentInfo.new("dvd", "hd") # blue-ray
-dvd.video_io_info.composite_outputs = {0 => ["26"]}
-dvd.video_io_info.svideo_outputs = {0 => ["26"]}
-dvd.video_io_info.component_outputs = {1 => ["15"]}
-dvd.audio_io_info.mini35mm_outputs = {0 => ["7"]}
+EquipmentInfo.new("dvd", "hd") do # blue-ray
+  video_io_info.composite_outputs = {0 => ["26"]}
+  video_io_info.svideo_outputs = {0 => ["26"]}
+  video_io_info.component_outputs = {1 => ["15"]}
+  audio_io_info.mini35mm_outputs = {0 => ["7"]}
+end
 
 #Video clarity on Rack3
-video_tester = EquipmentInfo.new("video_tester")
-video_tester.telnet_ip = "10.0.0.57"
-video_tester.driver_class_name = "VideoClarity"
-video_tester.video_io_info.sdi_inputs = {2 => [16]}
-video_tester.video_io_info.sdi_outputs = {2 => [16]}
+EquipmentInfo.new("video_tester") do
+  telnet_ip = "10.0.0.57"
+  driver_class_name = "VideoClarity"
+  video_io_info.sdi_inputs = {2 => [16]}
+  video_io_info.sdi_outputs = {2 => [16]}
+end
 
 #video clarity converters
-conv = EquipmentInfo.new("component_converter","0")
-conv.video_io_info.sdi_inputs = {2 => [15]}
-conv.video_io_info.sdi_outputs = {2 => [15]}
-conv.video_io_info.component_inputs = {1 => [16]}
-conv.video_io_info.component_outputs = {1 => [16]}
+EquipmentInfo.new("component_converter","0") do
+  video_io_info.sdi_inputs = {2 => [15]}
+  video_io_info.sdi_outputs = {2 => [15]}
+  video_io_info.component_inputs = {1 => [16]}
+  video_io_info.component_outputs = {1 => [16]}
+end
 
-conv = EquipmentInfo.new("composite_converter","0")
-conv.video_io_info.sdi_inputs = {2 => [1]}
-conv.video_io_info.sdi_outputs = {2 => [1]}
-conv.video_io_info.composite_inputs = {0 => [26]}
-conv.video_io_info.composite_outputs = {0 => [27]}
-conv.video_io_info.svideo_inputs = {0 => [26]}
-conv.video_io_info.svideo_outputs = {0 => [27]}
+EquipmentInfo.new("composite_converter","0") do
+  video_io_info.sdi_inputs = {2 => [1]}
+  video_io_info.sdi_outputs = {2 => [1]}
+  video_io_info.composite_inputs = {0 => [26]}
+  video_io_info.composite_outputs = {0 => [27]}
+  video_io_info.svideo_inputs = {0 => [26]}
+  video_io_info.svideo_outputs = {0 => [27]}
 
-conv = EquipmentInfo.new("svideo_converter","0")
-conv.video_io_info.sdi_inputs = {2 => [1]}
-conv.video_io_info.sdi_outputs = {2 => [1]}
-conv.video_io_info.svideo_inputs = {0 => [26]}
-conv.video_io_info.svideo_outputs = {0 => [27]}
-conv.video_io_info.composite_inputs = {0 => [26]}
-conv.video_io_info.composite_outputs = {0 => [27]}
+EquipmentInfo.new("svideo_converter","0") do
+  video_io_info.sdi_inputs = {2 => [1]}
+  video_io_info.sdi_outputs = {2 => [1]}
+  video_io_info.svideo_inputs = {0 => [26]}
+  video_io_info.svideo_outputs = {0 => [27]}
+  video_io_info.composite_inputs = {0 => [26]}
+  video_io_info.composite_outputs = {0 => [27]}
+end
