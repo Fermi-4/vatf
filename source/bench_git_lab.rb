@@ -1,122 +1,132 @@
 require 'equipment_info'
 
-dut = EquipmentInfo.new("dm644x",0)
-dut.driver_class_name = "LspTargetController"
-dut.telnet_ip = '10.218.103.16'
-dut.telnet_port = 7001
-dut.telnet_login = ''
-dut.login_prompt = /login/
-dut.login = 'root'
-dut.prompt = /#/
-dut.boot_prompt = /#/
-dut.power_port = 1
-dut.usb_ip = '10.10.10.1' 
+EquipmentInfo.new("dm644x", 0) do
+  driver_class_name = "LspTargetController"
+  telnet_ip = '10.218.103.16'
+  telnet_port = 7001
+  telnet_login = ''
+  login_prompt = /login/
+  login = 'root'
+  prompt = /#/
+  boot_prompt = /#/
+  power_port = 1
+  usb_ip = '10.10.10.1'
+end
 
-dut = EquipmentInfo.new("dm355",0)
-dut.driver_class_name = "LspTargetController"
-dut.telnet_ip = '192.168.1.2'
-dut.telnet_port = 6001
-dut.telnet_login = ''
-dut.login_prompt = /login/
-dut.login = 'root'
-dut.prompt = /#/
-dut.boot_prompt = />/
-dut.power_port = 6
-dut.usb_ip = '10.10.10.1' 
+EquipmentInfo.new("dm355", 0) do
+  driver_class_name = "LspTargetController"
+  telnet_ip = '192.168.1.2'
+  telnet_port = 6001
+  telnet_login = ''
+  login_prompt = /login/
+  login = 'root'
+  prompt = /#/
+  boot_prompt = />/
+  power_port = 6
+  usb_ip = '10.10.10.1'
+end
 
-dut = EquipmentInfo.new("da8xx",0)
-dut.driver_class_name = "LspTargetController"
-dut.telnet_ip = '192.168.1.2'
-dut.telnet_port = 6003
-dut.telnet_login = ''
-dut.login_prompt = /login/
-dut.login = 'root'
-dut.prompt = /#/
-dut.boot_prompt = />/
-dut.power_port = 4
-dut.usb_ip = '10.10.10.1' 
+EquipmentInfo.new("da8xx", 0) do
+  driver_class_name = "LspTargetController"
+  telnet_ip = '192.168.1.2'
+  telnet_port = 6003
+  telnet_login = ''
+  login_prompt = /login/
+  login = 'root'
+  prompt = /#/
+  boot_prompt = />/
+  power_port = 4
+  usb_ip = '10.10.10.1'
+end
 
-dut = EquipmentInfo.new("dm357",0)
-dut.driver_class_name = "LspTargetController"
-dut.telnet_ip = '192.168.1.2'
-dut.telnet_port = 6001
-dut.telnet_login = ''
-dut.login_prompt = /login/
-dut.login = 'root'
-dut.prompt = /#/
-dut.boot_prompt = /#/
-dut.power_port = 6
-dut.usb_ip = '10.10.10.1' 
+EquipmentInfo.new("dm357", 0) do
+  driver_class_name = "LspTargetController"
+  telnet_ip = '192.168.1.2'
+  telnet_port = 6001
+  telnet_login = ''
+  login_prompt = /login/
+  login = 'root'
+  prompt = /#/
+  boot_prompt = /#/
+  power_port = 6
+  usb_ip = '10.10.10.1'
+end
 
-dut = EquipmentInfo.new("dm365",0)
-dut.driver_class_name = "LspTargetController"
-dut.telnet_ip = '10.218.103.16'
-dut.telnet_port = 7004
-dut.telnet_login = ''
-dut.login_prompt = /login/
-dut.login = 'root'
-dut.prompt = /#/  # when nand as root fs, this is not going to work.
-dut.boot_prompt = />/
-dut.power_port = 3
-dut.usb_ip = '10.10.10.1' 
+EquipmentInfo.new("dm365", 0) do
+  driver_class_name = "LspTargetController"
+  telnet_ip = '10.218.103.16'
+  telnet_port = 7004
+  telnet_login = ''
+  login_prompt = /login/
+  login = 'root'
+  prompt = /#/  # when nand as root fs, this is not going to work.
+  boot_prompt = />/
+  power_port = 3
+  usb_ip = '10.10.10.1'
+end
 
-dut = EquipmentInfo.new("dm6467",0)
-dut.driver_class_name = "LspTargetController"
-dut.telnet_ip = '192.168.1.2'
-dut.telnet_port = 6002
-dut.telnet_login = ''
-dut.login_prompt = /login/
-dut.login = 'root'
-dut.prompt = /#/
-dut.boot_prompt = /#/
-dut.power_port = 3
-dut.usb_ip = '10.10.10.1' 
+EquipmentInfo.new("dm6467", 0) do
+  driver_class_name = "LspTargetController"
+  telnet_ip = '192.168.1.2'
+  telnet_port = 6002
+  telnet_login = ''
+  login_prompt = /login/
+  login = 'root'
+  prompt = /#/
+  boot_prompt = /#/
+  power_port = 3
+  usb_ip = '10.10.10.1'
+end
 
+EquipmentInfo.new("raven2", 0) do
+  driver_class_name = "LspTargetController"
+  telnet_ip = '192.168.1.2'
+  telnet_port = 6002
+  telnet_login = ''
+  login_prompt = /login/
+  login = 'root'
+  prompt = /#/
+  executable_path = '/usr/local/bin'
+  power_port = 7
+end
 
-dut = EquipmentInfo.new("raven2",0)
-dut.driver_class_name = "LspTargetController"
-dut.telnet_ip = '192.168.1.2'
-dut.telnet_port = 6002
-dut.telnet_login = ''
-dut.login_prompt = /login/
-dut.login = 'root'
-dut.prompt = /#/
-dut.executable_path = '/usr/local/bin'
-dut.power_port = 7
+EquipmentInfo.new("linux_server", 0) do
+  driver_class_name = "LspTargetController"
+  telnet_ip = '10.218.103.36'
+  telnet_port = 23
+  telnet_login = 'a0133059'
+  telnet_passwd = 'mbpGH7Gn'
+  prompt = /@/
+  nfs_root_path = '/usr/workdir/filesys/mv_pro5'
+  samba_root_path = "filesys\\mv_pro5"
+  tftp_path = '/tftpboot'
+end
 
-linux_server = EquipmentInfo.new("linux_server", 0) 
-linux_server.driver_class_name = "LspTargetController"
-linux_server.telnet_ip = '10.218.103.36'
-linux_server.telnet_port = 23
-linux_server.telnet_login = 'a0133059'
-linux_server.telnet_passwd = 'mbpGH7Gn'
-linux_server.prompt = /@/
-linux_server.nfs_root_path = '/usr/workdir/filesys/mv_pro5'
-linux_server.samba_root_path = "filesys\\mv_pro5"
-linux_server.tftp_path = '/tftpboot'
-
-te = EquipmentInfo.new("apc_power_controller", 0) 
-te.telnet_ip = '10.218.103.184'
-te.telnet_port = 23
-te.driver_class_name = "ApcPowerController"
-te.telnet_login  = 'apc'
-te.telnet_passwd = 'apc'
+EquipmentInfo.new("apc_power_controller", 0) do
+  telnet_ip = '10.218.103.184'
+  telnet_port = 23
+  driver_class_name = "ApcPowerController"
+  telnet_login  = 'apc'
+  telnet_passwd = 'apc'
+end
 
 # for usb slave linux test
-linux_server = EquipmentInfo.new("host", 0)
-linux_server.driver_class_name = "HostController"
-linux_server.telnet_ip = '10.218.103.12'
-linux_server.telnet_port = 23
-linux_server.telnet_login = 'a0133059'
-linux_server.telnet_passwd = 'Yy4uuHT8'
-linux_server.prompt = /\[a0133059@gtad8005 ~\]/
-linux_server.nfs_root_path = '/usr/workdir/filesys/mv_pro5'
-linux_server.samba_root_path = 'filesys\mv_pro5'
-linux_server.tftp_path = '/tftpboot'
-linux_server.executable_path = '/data'
+EquipmentInfo.new("host", 0) do
+  driver_class_name = "HostController"
+  telnet_ip = '10.218.103.12'
+  telnet_port = 23
+  telnet_login = 'a0133059'
+  telnet_passwd = 'Yy4uuHT8'
+  prompt = /\[a0133059@gtad8005 ~\]/
+  nfs_root_path = '/usr/workdir/filesys/mv_pro5'
+  samba_root_path = 'filesys\mv_pro5'
+  tftp_path = '/tftpboot'
+  executable_path = '/data'
+end
 
-hst = EquipmentInfo.new("host",1)
-hst.telnet_ip = "localhost"
-hst.driver_class_name = "HostController"
-hst.prompt = '>'
-hst.executable_path = "C:\\VATF\\usbslave"
+EquipmentInfo.new("host", 1) do
+  telnet_ip = "localhost"
+  driver_class_name = "HostController"
+  prompt = '>'
+  executable_path = "C:\\VATF\\usbslave"
+end
