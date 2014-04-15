@@ -185,12 +185,13 @@ module Equipment
 
     def power_cycle(params)
       @power_handler = params['power_handler'] if !@power_handler
+      connect({'type'=>'serial'}) if !target.serial
       if @power_port !=nil
         puts 'Resetting @using power switch'
+        poweroff(params) if at_prompt?({'prompt'=>@prompt})
         @power_handler.reset(@power_port)
       else
         puts "Soft reboot..."
-        connect({'type'=>'serial'}) if !target.serial
         send_cmd(@login,@prompt, 3)
         send_cmd('', @prompt, 3)
         if timeout?
@@ -200,8 +201,13 @@ module Equipment
           # at linux prompt
           send_cmd('reboot', /(Restarting|Rebooting|going\s+down)/i, 40)
         end
-        disconnect({'type'=>'serial'})
       end
+      disconnect({'type'=>'serial'})
+    end
+
+    # Gracefully bring down the system to avoid FS corruption
+    def poweroff(params)
+      send_cmd("sync;poweroff",/reboot:\s*System halted/i,30)
     end
     
     ###############################################################################################
