@@ -38,6 +38,7 @@ module Equipment
      'ti813x-evm' => 'console=ttyO0,115200n8 mem=166M earlyprintk vram=50M',
      'am389x-evm' => 'console=ttyO2,115200n8 mem=166M earlyprintk vram=50M ',
      'beagleboard' => 'console=ttyO2,115200n8  earlyprintk rootwait',
+     'beagleboard-vanilla' => 'console=ttyO2,115200n8  earlyprintk rootwait',
      'am335x-evm' => 'console=ttyO0,115200n8 earlyprintk rootwait ',
      'am335x-sk' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'beaglebone' => 'console=ttyO0,115200n8 earlyprintk rootwait',
@@ -49,7 +50,9 @@ module Equipment
      'am43xx-epos' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'craneboard' => 'console=ttyO2,115200n8 earlyprintk rootwait nohlt',
      'pandaboard-es' => 'console=ttyO2,115200n8 vram=16M earlyprintk rootwait',
+     'pandaboard-vanilla' => 'console=ttyO2,115200n8 vram=16M earlyprintk rootwait',
      'sdp4430' => 'console=ttyO2,115200n8 vram=16M earlyprintk rootwait',
+     'n900' => 'console=ttyO2,57600n8 vram=16M earlyprintk rootwait',
      })
     
     def initialize(platform_info, log_path)
