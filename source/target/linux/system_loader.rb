@@ -510,8 +510,17 @@ module SystemLoader
       send_cmd params, params['dut'].login, params['dut'].prompt, 10 # login to the unit
     end
   end
-
   
+  class BoardInfoStep < UbootStep
+    def initialize
+      super('board_info')
+    end
+
+    def run(params)
+      send_cmd params, 'bdinfo'
+    end
+  end
+
   class BaseSystemLoader < Step
     attr_accessor :steps
 
@@ -573,6 +582,7 @@ module SystemLoader
       add_step( DTBStep.new )
       add_step( FSStep.new )
       add_step( BootCmdStep.new )
+      add_step( BoardInfoStep.new )
       add_step( BootStep.new )
     end
 
@@ -585,6 +595,7 @@ module SystemLoader
       super
       add_step( PrepStep.new )
       add_step( SetDefaultEnvStep.new )
+      add_step( BoardInfoStep.new )
       add_step( BootStep.new )
     end
 
@@ -595,6 +606,7 @@ module SystemLoader
 
     def initialize
       super
+      add_step( BoardInfoStep.new )
       add_step( BootStep.new )
     end
 
