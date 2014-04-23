@@ -31,9 +31,9 @@ module Equipment
       
         # write new U-Boot to NOR
         self.send_cmd(params,"sf probe", @boot_prompt, 20)
-        self.load_file_from_eth_now(params, params['mem_addr'].to_s(16), params['secondary_bootloader_image_name'])
+        self.load_file_from_eth_now(params, params['mem_addr'], params['secondary_bootloader_image_name'])
         self.send_cmd(params,"sf erase 0 0x100000", @boot_prompt, 60)
-        self.send_cmd(params,"sf write #{params['mem_addr'].to_s(16)} 0 ${filesize}", @boot_prompt, 60)
+        self.send_cmd(params,"sf write #{params['mem_addr']} 0 ${filesize}", @boot_prompt, 60)
         self.send_cmd(params,"reset", /.*/, 1)
 
       end
@@ -41,7 +41,7 @@ module Equipment
         bytes /  MEGABYTE  
       end   
       def setup_params(params=nil)
-        params['mem_addr'] = 0xc300000 
+        params['mem_addr'] = "${addr_uboot}"
         params['nand_eraseblock_size'] = 0x800 # which is page size for tci6638 
         case params['fs_type']
         when /ramfs/i
@@ -54,7 +54,7 @@ module Equipment
           params['fs_options'] = ",v3,tcp,rsize=4096,wsize=4096 ip=dhcp rootfstype=nfs"
         when /ubifs/i
           params['ubi_mtd_partition'] = 2
-		  params['ubi_root'] = 'ubi0:rootfs'
+	  params['ubi_root'] = 'ubi0:rootfs'
         end
         params['extra_cmds'] = []
         params['extra_cmds'] << "saveenv"
@@ -193,7 +193,8 @@ mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadad
           @system_loader.insert_step_before('setip', SetDefaultEnvStep.new)
           @system_loader.insert_step_before('kernel', Keystone2ExtrasStep.new)
           @system_loader.insert_step_before('kernel', PrepStep.new)
-	  @system_loader.insert_step_before('kernel', SetIpStep.new)
+          @system_loader.insert_step_before('kernel', SetDefaultEnvStep.new)
+          @system_loader.insert_step_before('kernel', SetIpStep.new)
           @system_loader.insert_step_before('fs', SkernStep.new)
           @system_loader.insert_step_before('boot', SaveEnvStep.new)
           @system_loader.insert_step_before('fs', Keystone2InstallMon.new)
