@@ -2,6 +2,7 @@ module STAF
   class STAFException < Exception
     def initialize(rc, text, name='STAFException')
       super(text)
+      @text = text
       @rc = rc
       @name = name
     end
@@ -11,7 +12,7 @@ module STAF
     def message
       "Error code: #{@rc}\n" +
       "Name      : #{@name}\n" +
-      "Error text: #{super}\n"
+      "Error text: #{@text}\n"
     end
 
     def to_s
