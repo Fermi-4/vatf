@@ -163,6 +163,11 @@ module Equipment
       !timeout?
     end
 
+    def at_login_prompt?()
+      send_cmd("", @login_prompt, 2)
+      !timeout?
+    end
+
     # stop the bootloader after a reboot
     def stop_boot()
       0.upto 30 do
@@ -189,13 +194,13 @@ module Equipment
     def power_cycle(params)
       @power_handler = params['power_handler'] if !@power_handler
       connect({'type'=>'serial'}) if !target.serial
+      send_cmd(@login,@prompt, 3) if at_login_prompt?
       if @power_port !=nil
         puts 'Resetting @using power switch'
         poweroff(params) if at_prompt?({'prompt'=>@prompt})
         @power_handler.reset(@power_port)
       else
         puts "Soft reboot..."
-        send_cmd(@login,@prompt, 3)
         send_cmd('', @prompt, 3)
         if timeout?
           # assume at u-boot prompt
