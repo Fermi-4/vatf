@@ -34,48 +34,25 @@ include Log4r
     def logout
     end
     
-    # Turns ON/Close Relay at the specified address
-    # * address - the port/relay to turn ON
+    # Close NC/Open NO contact (passive state) at the specified address
+    # * address - the port/relay to toggle
     def switch_on(address)
-      _switch("ON", address)
+      _switch("OFF", address) #Set relay to passive state
     end
     
-    # Turns OFF/Open the Relay at the specified address
-    # * address - the port/reay to turn OFF
+    # Open NC/Close NO contact (active state) at the specified address
+    # * address - the port/relay to toggle
     def switch_off(address)
-      _switch("OFF", address)
-    end
-
-    def _switch(type, address)
-      status_cmd = 0x5b
-      base_add = 0x64
-      base_add = 0x6e if type == "OFF"
-      sock = TCPSocket.open(@host, @port)
-      status = Timeout::timeout(10) {
-        if sock == nil
-          raise "Could not connect to power controller"
-        end
-        addr = base_add + address
-        sock.write(addr.chr)
-        sock.write(status_cmd.chr)
-        result = ((sock.read(1).unpack('C')[0]  >> (address - 1)) & 0x01)
-        if (result == 0 and type == "ON") or (result == 1 and type == "OFF")
-          raise "Power controller did not set relay properly"
-        end
-      }
-      rescue Timeout::Error 
-        raise "Timeout communicating with power controller"
-      ensure
-          sock.close if sock
+      _switch("ON", address) #Set relay to active state
     end
 		
-    # Cycle (Turn OFF and ON) the port/relay at the specified address
+    # Cycle (switch_off, switch_on) the port/relay at the specified address
     # * address - the port/relay address to cycle
     # * waittime - how long to wait between cycling (default: 5 seconds)
     def reset(address, waittime=1)
-      switch_on(address) 
+      switch_off(address) 
       sleep(waittime)
-      switch_off(address)
+      switch_on(address)
     end
 
     #Starts the logger for the session. Takes the log file path as parameter.
@@ -100,6 +77,29 @@ include Log4r
     end
     
     private
+    
+    def _switch(type, address)
+      status_cmd = 0x5b
+      base_add = 0x64
+      base_add = 0x6e if type == "OFF"
+      sock = TCPSocket.open(@host, @port)
+      status = Timeout::timeout(10) {
+        if sock == nil
+          raise "Could not connect to power controller"
+        end
+        addr = base_add + address
+        sock.write(addr.chr)
+        sock.write(status_cmd.chr)
+        result = ((sock.read(1).unpack('C')[0]  >> (address - 1)) & 0x01)
+        if (result == 0 and type == "ON") or (result == 1 and type == "OFF")
+          raise "Power controller did not set relay properly"
+        end
+      }
+      rescue Timeout::Error 
+        raise "Timeout communicating with power controller"
+      ensure
+          sock.close if sock
+    end
     
     def log_info(info)
       @relay_log.info(info) if @relay_log
