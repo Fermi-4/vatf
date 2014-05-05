@@ -199,6 +199,9 @@ module Equipment
         puts 'Resetting @using power switch'
         poweroff(params) if at_prompt?({'prompt'=>@prompt})
         @power_handler.reset(@power_port)
+        while (@serial_port && !File.exist?(@serial_port))
+          sleep 0.1
+        end
       else
         puts "Soft reboot..."
         send_cmd('', @prompt, 3)
@@ -210,7 +213,7 @@ module Equipment
           send_cmd('reboot', /(Restarting|Rebooting|going\s+down)/i, 40)
         end
       end
-      disconnect({'type'=>'serial'})
+      disconnect('serial')
     end
 
     # Gracefully bring down the system to avoid FS corruption
