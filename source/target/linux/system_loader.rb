@@ -406,7 +406,7 @@ module SystemLoader
       else
         raise "Don't know how to get ramfs image from #{params['fs_dev']}"
       end
-      append_text params, 'bootargs', "root=/dev/ram rw "
+      append_text params, 'bootargs', "root=/dev/ram0 rw "
     end
     
     def set_mmcfs(params)
