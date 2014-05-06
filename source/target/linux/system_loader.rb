@@ -304,7 +304,7 @@ module SystemLoader
 
     def load_kernel_from_eth(params)
       send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'"
-      append_text params, 'bootcmd', "tftp #{params['_env']['kernel_loadaddr']} #{params['server'].telnet_ip}:#{params['kernel_image_name']}; "
+      load_file_from_eth_now params, params['_env']['kernel_loadaddr'], params['kernel_image_name']
     end
    
     def load_kernel_from_ubi(params)
@@ -345,7 +345,7 @@ module SystemLoader
     end
 
     def load_dtb_from_eth(params)
-      load_file_from_eth params, params['_env']['dtb_loadaddr'], params['dtb_image_name']
+      load_file_from_eth_now params, params['_env']['dtb_loadaddr'], params['dtb_image_name']
     end
     
     def load_dtb_from_ubi(params)
@@ -400,7 +400,7 @@ module SystemLoader
       
       case params['fs_dev']
       when /eth/i
-        load_file_from_eth params, params['_env']['ramdisk_loadaddr'], params['fs_image_name']
+        load_file_from_eth_now params, params['_env']['ramdisk_loadaddr'], params['fs_image_name']
       when /mmc/i
         load_file_from_mmc params, params['_env']['ramdisk_loadaddr'], params['fs_image_name']
       else
