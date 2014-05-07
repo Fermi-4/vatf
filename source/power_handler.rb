@@ -1,9 +1,9 @@
 
 class PowerHandler
-	attr_reader :power_controllers
-	def initialize()
-		@power_controllers = Hash.new
-	end
+  attr_reader :power_controllers
+  def initialize()
+    @power_controllers = Hash.new
+  end
 	
   def load_power_ports(lio_info)
     return if !lio_info
@@ -20,52 +20,52 @@ class PowerHandler
       raise e.to_s+"\nUnable to create power controller: " + io_info.to_s
   end
 
-	def disconnect
-		@power_controllers.each_value { |val| val.disconnect()}
-	end
+  def disconnect
+    @power_controllers.each_value { |val| val.disconnect()}
+  end
 	
-	def get_status(p_port)
-	  power_port = p_port
-	  power_port = [p_port] if !p_port.kind_of?(Array)
-		power_port.each {
-		  port_info.each{|key,val|
-			  @power_controllers[key.to_s.downcase].get_status(val)
-			}
-		}
-	end
+  def get_status(p_port)
+    power_port = p_port
+    power_port = [p_port] if !p_port.kind_of?(Array)
+    power_port.each {
+      port_info.each{|key,val|
+        @power_controllers[key.to_s.downcase].get_status(val)
+      }
+    }
+  end
 	
-	def switch_on(p_port)
-	  power_port = p_port
-	  power_port = [p_port] if !p_port.kind_of?(Array)
-		power_port.each {
-		  port_info.each{|key,val|
-			  @power_controllers[key.to_s.downcase].switch_on(val)
-			}
-		}
-	end
+  def switch_on(p_port)
+    power_port = p_port
+    power_port = [p_port] if !p_port.kind_of?(Array)
+    power_port.each {
+      port_info.each{|key,val|
+        @power_controllers[key.to_s.downcase].switch_on(val)
+      }
+    }
+  end
 	
-	def switch_off(p_port)
-	  power_port = p_port
-	  power_port = [p_port] if !p_port.kind_of?(Array)
-		power_port.each {
-		  port_info.each{|key,val|
-			  @power_controllers[key.to_s.downcase].switch_off(val)
-		  }
-		}
-	end
+  def switch_off(p_port)
+    power_port = p_port
+    power_port = [p_port] if !p_port.kind_of?(Array)
+    power_port.each {
+      port_info.each{|key,val|
+        @power_controllers[key.to_s.downcase].switch_off(val)
+      }
+    }
+  end
 	
-	def reset(p_port)
-	  power_port = p_port
-	  power_port = [p_port] if !p_port.kind_of?(Array)
+  def reset(p_port)
+    power_port = p_port
+    power_port = [p_port] if !p_port.kind_of?(Array)
     power_port.each {|power_port_element|
       power_port_element.each {|key,val|
         puts "Turning off port #{val} at #{key}\n"
-	      @power_controllers[key.to_s.downcase].switch_off(val)
+        @power_controllers[key.to_s.downcase].switch_off(val)
       }
-    sleep 2
+    sleep 0.5
       power_port_element.each {|key,val|
         puts "Turning on port #{val} at #{key}\n"
-	      @power_controllers[key.to_s.downcase].switch_on(val)
+        @power_controllers[key.to_s.downcase].switch_on(val)
       }
     }
   end
