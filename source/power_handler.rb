@@ -62,9 +62,7 @@ class PowerHandler
         puts "Turning off port #{val} at #{key}\n"
 	      @power_controllers[key.to_s.downcase].switch_off(val)
       }
-    }
     sleep 2
-    power_port.each {|power_port_element|
       power_port_element.each {|key,val|
         puts "Turning on port #{val} at #{key}\n"
 	      @power_controllers[key.to_s.downcase].switch_on(val)
