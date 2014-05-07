@@ -199,9 +199,12 @@ module Equipment
         puts 'Resetting @using power switch'
         poweroff(params) if at_prompt?({'prompt'=>@prompt})
         @power_handler.reset(@power_port)
-        while (@serial_port && !File.exist?(@serial_port))
+        trials = 0
+        while (@serial_port && !File.exist?(@serial_port) && trials < 600)
           sleep 0.1
+          trials += 1
         end
+        raise "Unable to detect serial node for the dut" if trials >= 600
       else
         puts "Soft reboot..."
         send_cmd('', @prompt, 3)
