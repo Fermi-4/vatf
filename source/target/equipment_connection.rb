@@ -31,6 +31,7 @@ class EquipmentConnection
         if @platform_info.serial_port.to_s.strip != ''
           @serial = SerialEquipmentConnection.new(@platform_info) 
         else
+          sleep 1
           @serial = SerialServerConnection.new(@platform_info)
         end
         @serial.start_listening
