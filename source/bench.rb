@@ -115,7 +115,9 @@ EquipmentInfo.new("am335x-evm", "linux_sd_sdhc_usbhostmsc_usbhosthid_power") do
   # if using multiple power_ports - one to power cycle, another to power reset for example
   # use an array as given below
   #power_port = [{'apc.xxx.xxx.xxx.33' => 6},{'rly16.IP.ADDR' => 3}]
-  params = {'usb_port' => {'1' => 1}, 'multimeter1' => minfo}
+  params = {'usb_port' => {'1' => 1}, #to specify the usb switch connected to the board 
+            'multimeter1' => minfo, #to specify the multimeter connected to the board
+            'usbethaddr' => '11:22:33:44:55'} #to specify (if the adapter does not have a mac address) the mac address of a usb to ethernet adapter connected to the board
 end
 
 EquipmentInfo.new("power_controller", "apc.158.218.103.33") do
