@@ -13,6 +13,7 @@ module Equipment
 
       def run(params)
         self.send_cmd params, "dcache off"
+        self.send_cmd params, "setenv usbethaddr #{params['dut'].params['usbethaddr']}", params['dut'].boot_prompt
         self.send_cmd params, "usb start", params['dut'].boot_prompt, 30
       end
     end
