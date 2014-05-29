@@ -410,7 +410,52 @@ module SystemLoader
     end
     
     def set_mmcfs(params)
-      append_text params, 'bootargs', "root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait "
+      part_uuid = get_part_uuid(params)
+      append_text params, 'bootargs', "root=PARTUUID=#{part_uuid} rw rootfstype=ext4 rootwait "
+    end
+
+    def translate_fsdev_interface(params)
+      case params['fs_dev']
+      when /mmc|emmc/i
+        params['interface'] = 'mmc'
+      when /usb|sata/i
+        params['interface'] = 'scsi'
+      else
+        params['interface'] = params['fs_dev']
+      end
+    end
+
+    def get_fs_part(params, fs_dev_ins)
+      for i in 1..5
+        send_cmd params, "ls #{params['interface']} #{fs_dev_ins}:#{i}"
+        if params['dut'].response.match(/etc/i) and params['dut'].response.match(/dev/i)
+          fs_part = i
+          break
+        end
+      end
+      return fs_part
+    end
+
+    def get_part_uuid(params)
+      raise "The support for #{params['fs_dev']} is not added yet" if params['fs_dev'] != 'mmc'
+      begin
+        # hard-coded to 0 for now; we can get this value from evm_data later on if needed
+        # dev_ins is which device instance to boot rootfs from, ex, 0 is for mmc and 1 is for emmc.
+        fs_dev_ins = 0 
+        translate_fsdev_interface(params)
+        fs_part = get_fs_part(params, fs_dev_ins)
+        this_cmd = "part uuid #{params['interface']} #{fs_dev_ins}:#{fs_part}"
+        send_cmd params, this_cmd
+        
+        part_uuid = /#{this_cmd}.*?([\d\w\-]+)/im.match(params['dut'].response).captures[0].strip
+        raise "PARTUUID should not be empty" if part_uuid == ''
+
+      rescue Exception => e
+        puts "get_part_uuid: unable to get PARTUUID: " + e.to_s 
+        raise
+      end
+  
+      return part_uuid 
     end
     
   end
