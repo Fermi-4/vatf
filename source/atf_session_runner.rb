@@ -445,7 +445,7 @@ class SessionHandler
           end
           run
           test_script_found = true
-          Marshal.dump([@new_keys, @test_result, @results_html_file] ,t_case_write)
+          Marshal.dump([@new_keys, @test_result, @results_html_file, @logs_array] ,t_case_write)
         rescue Exception => e
           Marshal.dump([@new_keys, e, e.backtrace.to_s.gsub(/\s+/," ")] , t_case_write)
         ensure
@@ -467,6 +467,7 @@ class SessionHandler
       if t_proc_result[1].is_a?(TestResult)
         @test_result = t_proc_result[1]
         @results_html_file = t_proc_result[2]
+        @logs_array = t_proc_result[3]
       else
         raise (t_proc_result[1].to_s+"\n"+t_proc_result[2])
       end
