@@ -410,7 +410,11 @@ module SystemLoader
     end
     
     def set_mmcfs(params)
-      part_uuid = get_part_uuid(params)
+      if params['dut'].params.key?('rootfs_partuuid') and params['dut'].params['rootfs_partuuid'].to_s != ""
+        part_uuid = params['dut'].params['rootfs_partuuid'].to_s
+      else
+        part_uuid = get_part_uuid(params)
+      end
       append_text params, 'bootargs', "root=PARTUUID=#{part_uuid} rw rootfstype=ext4 rootwait "
     end
 
