@@ -410,7 +410,7 @@ module SystemLoader
     end
     
     def set_mmcfs(params)
-      if params['dut'].params.key?('rootfs_partuuid') and params['dut'].params['rootfs_partuuid'].to_s != ""
+      if params['dut'].instance_variable_defined?(:@params) and params['dut'].params.key?('rootfs_partuuid') and params['dut'].params['rootfs_partuuid'].to_s != ""
         part_uuid = params['dut'].params['rootfs_partuuid'].to_s
       else
         part_uuid = get_part_uuid(params)
@@ -451,7 +451,7 @@ module SystemLoader
         this_cmd = "part uuid #{params['interface']} #{fs_dev_ins}:#{fs_part}"
         send_cmd params, this_cmd
         
-        part_uuid = /#{this_cmd}.*?([\d\w\-]+)/im.match(params['dut'].response).captures[0].strip
+        part_uuid = /#{this_cmd}.*?([\h\-]+)/im.match(params['dut'].response).captures[0].strip
         raise "PARTUUID should not be empty" if part_uuid == ''
 
       rescue Exception => e
