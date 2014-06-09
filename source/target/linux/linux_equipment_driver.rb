@@ -193,11 +193,19 @@ module Equipment
 
     def power_cycle(params)
       @power_handler = params['power_handler'] if !@power_handler
-      connect({'type'=>'serial'}) if !target.serial
-      send_cmd(@login,@prompt, 3) if at_login_prompt?
+      connected = true
+      begin
+        connect({'type'=>'serial'}) if !target.serial
+        send_cmd(@login,@prompt, 3) if at_login_prompt?
+      rescue Exception => e
+        raise e if !@power_port
+        log_info("Problems while trying to connect to the board...\n" \
+                 "#{e.to_s}\nWill try to connect again after power cycle...")
+        connected = false
+      end
       if @power_port !=nil
         puts 'Resetting @using power switch'
-        poweroff(params) if at_prompt?({'prompt'=>@prompt})
+        poweroff(params) if connected && at_prompt?({'prompt'=>@prompt})
         @power_handler.reset(@power_port)
         trials = 0
         while (@serial_port && !File.exist?(@serial_port) && trials < 600)
