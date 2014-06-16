@@ -409,13 +409,19 @@ module SystemLoader
       append_text params, 'bootargs', "root=/dev/ram0 rw "
     end
     
-    def set_mmcfs(params)
-      if params['dut'].instance_variable_defined?(:@params) and params['dut'].params.key?('rootfs_partuuid') and params['dut'].params['rootfs_partuuid'].to_s != ""
-        part_uuid = params['dut'].params['rootfs_partuuid'].to_s
-      else
-        part_uuid = get_part_uuid(params)
+   def set_mmcfs(params)
+      begin
+        if params['dut'].instance_variable_defined?(:@params) and params['dut'].params.key?('rootfs_partuuid') and params['dut'].params['rootfs_partuuid'].to_s != ""
+          part_uuid = params['dut'].params['rootfs_partuuid'].to_s
+        else
+          part_uuid = get_part_uuid(params)
+        end
+        append_text params, 'bootargs', "root=PARTUUID=#{part_uuid} rw rootfstype=ext4 rootwait "
+
+      rescue Exception => e
+        puts "Back to old way since ... " + e.to_s
+        append_text params, 'bootargs', "root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait "
       end
-      append_text params, 'bootargs', "root=PARTUUID=#{part_uuid} rw rootfstype=ext4 rootwait "
     end
 
     def translate_fsdev_interface(params)
@@ -451,7 +457,7 @@ module SystemLoader
         this_cmd = "part uuid #{params['interface']} #{fs_dev_ins}:#{fs_part}"
         send_cmd params, this_cmd
         
-        part_uuid = /#{this_cmd}.*?([\h\-]+)/im.match(params['dut'].response).captures[0].strip
+        part_uuid = /#{this_cmd}.*?(^[\h\-]+).*?#{params['dut'].boot_prompt}/im.match(params['dut'].response).captures[0].strip
         raise "PARTUUID should not be empty" if part_uuid == ''
 
       rescue Exception => e
