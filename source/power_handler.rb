@@ -37,7 +37,7 @@ class PowerHandler
   def switch_on(p_port)
     power_port = p_port
     power_port = [p_port] if !p_port.kind_of?(Array)
-    power_port.each {
+    power_port.each { |port_info|
       port_info.each{|key,val|
         @power_controllers[key.to_s.downcase].switch_on(val)
       }
@@ -47,7 +47,7 @@ class PowerHandler
   def switch_off(p_port)
     power_port = p_port
     power_port = [p_port] if !p_port.kind_of?(Array)
-    power_port.each {
+    power_port.each { |port_info|
       port_info.each{|key,val|
         @power_controllers[key.to_s.downcase].switch_off(val)
       }
