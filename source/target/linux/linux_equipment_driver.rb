@@ -229,7 +229,7 @@ module Equipment
 
     # Gracefully bring down the system to avoid FS corruption
     def poweroff(params)
-      send_cmd("sync;poweroff",/System halted/i,120)
+      send_cmd("sync;poweroff",/System halted|System will go to power_off/i,120)
     end
     
     ###############################################################################################
