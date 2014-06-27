@@ -267,8 +267,10 @@ module SystemLoader
         send_cmd params, "setenv ipaddr #{params['dut'].telnet_ip}"
       else
         append_text params, 'bootargs', "ip=dhcp "
+        send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'", nil, 2, false
         send_cmd params, "setenv ipaddr dhcp"
-        send_cmd params, "dhcp", @boot_prompt, 60
+        send_cmd params, "setenv autoload 'no'", nil, 2, false
+        send_cmd params, "dhcp", @boot_prompt, 60 
       end
     end
   end
@@ -650,6 +652,7 @@ module SystemLoader
       super
       add_step( PrepStep.new )
       add_step( SetDefaultEnvStep.new )
+      add_step( SetIpStep.new )
       add_step( BoardInfoStep.new )
       add_step( BootStep.new )
     end
