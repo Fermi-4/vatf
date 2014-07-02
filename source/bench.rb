@@ -168,6 +168,16 @@ minfo = EquipmentInfo.new("multimeter") do
                   'executable_path' => 'C:\code\usb_power\test\ina_j5eco\Debug\ina_j5eco.exe'}  # Path to executable on Server
 end
 
+# Multimeter based on Powertool (https://github.com/nmenon/powertool) 
+# Powertool runs on a linux box whose I2C bus is connected to I2C bus on DUT where INA226 are located
+minfo = EquipmentInfo.new("multimeter") do
+  serial_port = '/dev/vatf@bbb1'
+  serial_params = {"baud" => 115200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+  prompt = /[\w\d]+@.+[@:#]+/
+  driver_class_name = 'PtoolDriver'
+  params = {'executable_path' => '/home/root'}  # Location where ptool and configs/ are located
+end
+
 # MSP430-Based USB switch
 EquipmentInfo.new("usb_switch_controller", "1") do
   serial_port = '/dev/ttyACM0'

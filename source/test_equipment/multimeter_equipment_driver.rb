@@ -10,7 +10,7 @@ module TestEquipment
     end
       
     #this function configures the multimeter for five channel reading
-    # Input parameters: platfrom name
+    # Input parameters: platform name
     # # Return Parameter: No return 
     def configure_multimeter(power_info)
       @number_of_channels = [@params['number_of_channels'].to_i, power_info['power_domains'].length * 2].min
@@ -41,7 +41,7 @@ module TestEquipment
      #    loop_count: Integer defining the number of times to perform channel measurements
      #    timeout: Integer defining the read timeout in sec
      # Return Parameter: Array containing all voltage reading for all domains. 
-     def get_multimeter_output(loop_count, timeout)
+     def get_multimeter_output(loop_count, timeout, delay_between_samples=0)
        timeout  = timeout + 10
        sleep 5    # Make sure multimeter is configured and DUT is in the right state
        volt_reading = []
@@ -146,7 +146,7 @@ module TestEquipment
     #    loop_count: Integer defining the number of times to perform channel measurements
     #    timeout: Integer defining the read timeout in sec
     # Return Parameter: Array containing all voltage reading for all domains. 
-    def get_multimeter_output(loop_count, timeout)
+    def get_multimeter_output(loop_count, timeout, delay_between_samples=0)
       h = Hash.new
       @dut_power_domains.each {|d|
           h["domain_" + d + "_volt_readings"] = Array.new()
@@ -158,7 +158,7 @@ module TestEquipment
       # Send params to server
       s.puts @params['executable_path']
       s.puts loop_count   # number of samples
-      s.puts '0'          # samples delay 
+      s.puts delay_between_samples
       # Read data from server
       while line = s.gets
           puts line.chop
@@ -171,6 +171,77 @@ module TestEquipment
           end
       end
       s.close               # Close the socket when done
+      h
+    end
+
+  end
+
+  # Driver for any board running ptool https://github.com/nmenon/powertool
+  class PtoolDriver < Equipment::EquipmentDriver
+    attr_reader :dut_power_domains, :dut_config_file
+
+    def _translate_domain_names(domain)
+      dict = {'dra74x_evm.conf' => {'DDR_CPU'  => 'cpu_vdd_ddr',
+                                    'CORE_VDD' => 'vdd_core',
+                                    'DDR_MEM' => 'vdd_ddr_mem',
+                                   },
+             }
+      return dict[@dut_config_file][domain] if dict[@dut_config_file][domain]
+      return domain.downcase
+    end
+
+    def _reverse_translate_domain_names(domain)
+      dict = {'dra74x_evm.conf' => {'cpu_vdd_ddr' => 'DDR_CPU',
+                                    'vdd_core' => 'CORE_VDD',
+                                    'vdd_ddr_mem' => 'DDR_MEM',
+                                   },
+             }
+      return dict[@dut_config_file][domain] if dict[@dut_config_file][domain]
+      return domain.upcase
+    end
+
+    def _map_platform_to_config_file(platform)
+      case platform
+      when 'dra7xx-evm'
+        @dut_config_file = 'dra74x_evm.conf'
+      else
+        raise "powertool config file not defined for #{platform}"
+      end
+    end
+
+    def initialize(platform_info, log_path = nil)
+      super(platform_info, log_path)
+    end
+
+    def configure_multimeter(power_info)
+      @dut_power_domains = power_info['power_domains']
+      _map_platform_to_config_file(power_info['dut_type'])
+      send_cmd("cd #{@params['executable_path']}", @prompt)
+      raise "Error initializing Powertool driver" if timeout?
+    end
+
+    #Function collects data from multimeter.
+    # Input parameters: 
+    #    loop_count: Integer defining the number of times to perform channel measurements
+    #    timeout: Integer defining the read timeout in sec
+    # Return Parameter: Array containing all voltage reading for all domains. 
+    def get_multimeter_output(loop_count, timeout, delay_between_samples=10)
+      h = Hash.new
+      rails_str = ''
+      @dut_power_domains.each {|d|
+          h["domain_" + d + "_volt_readings"] = Array.new()
+          h["domain_" + d + "drop_volt_readings"] = Array.new()
+          h["domain_" + d + "_current_readings"] = Array.new()
+          h["domain_" + d + "_power_readings"] = Array.new()
+          rails_str += "-r #{_translate_domain_names(d)} "
+      }
+      send_cmd("./ptool -c configs/#{@dut_config_file} #{rails_str} -n #{loop_count} -s #{delay_between_samples}", @prompt, loop_count.to_i*delay_between_samples.to_i + 10)
+      response().scan(/^\|\s*\d+\s*\|\s*(\w+)\s*\|\s*([\d\.]+)\s*\|\s*([\d\.]+)\s*\|\s*([\d\.]+)\s*\|\s*([\d\.]+)\s*\|/).each{|data|
+        h["domain_"+ _reverse_translate_domain_names(data[0]) + "drop_volt_readings"] << data[1].to_f * 10**-6
+        h["domain_"+ _reverse_translate_domain_names(data[0]) + "_volt_readings"]  << data[2].to_f 
+        h["domain_"+ _reverse_translate_domain_names(data[0]) + "_current_readings"] << data[3].to_f * 10**-3
+        h["domain_"+ _reverse_translate_domain_names(data[0]) + "_power_readings"] << data[4].to_f 
+      }
       h
     end
 
