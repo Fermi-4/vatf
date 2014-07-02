@@ -46,6 +46,7 @@ module Equipment
      'omap5-evm' => 'console=ttyO2,115200n8 earlyprintk rootwait',
      'tci6638-evm' => 'console=ttyS0,115200n8 rootwait=1 earlyprintk', 
      'dra7xx-evm' => 'console=ttyO0,115200n8 earlyprintk rootwait',
+     'dra72x-evm' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'am43xx-gpevm' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'am43xx-epos' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'craneboard' => 'console=ttyO2,115200n8 earlyprintk rootwait nohlt',
