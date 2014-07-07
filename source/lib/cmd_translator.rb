@@ -54,8 +54,12 @@ module CmdTranslator
     },
     'enable_gpio_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
-                          # set gpmc_ad15 to mux 14, which corresponds to gpio1_21 that is connected to sw3 port 8
-                          {'dra7xx-evm' => 'devmem2 0x4a00343c w 0x0007000e; echo 21  > /sys/class/gpio/export; echo rising > /sys/class/gpio/gpio21/edge; #GPIO_LINE=21',} ),
+                          {
+                            # set gpmc_ad15 to mux 14, which corresponds to gpio1_21 that is connected to sw3 port 8
+                            'dra7xx-evm' => 'devmem2 0x4a00343c w 0x0007000e; echo 21  > /sys/class/gpio/export; echo rising > /sys/class/gpio/gpio21/edge; #GPIO_LINE=21',
+                            # set spi0_sclk to mux 7, which corresponds to gpio0_2 that is connected to sw9 (Volume Up) on GP daughter card.
+                            'am335x-evm' => 'cat /proc/interrupts | egrep GPIO[[:blank:]]+2[[:blank:]] || (devmem2 0x44e10950 w 0x00000027; echo 2  > /sys/class/gpio/export; echo rising > /sys/class/gpio/gpio2/edge); #GPIO_LINE=2',
+                          }),
     },
 
   }
