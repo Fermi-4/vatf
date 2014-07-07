@@ -52,6 +52,11 @@ module CmdTranslator
                            'am43xx-epos'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',
                            'am43xx-gpevm'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',} ),
     },
+    'enable_gpio_wakeup' => { 
+                    '0.0' => Hash.new('').merge!(
+                          # set gpmc_ad15 to mux 14, which corresponds to gpio1_21 that is connected to sw3 port 8
+                          {'dra7xx-evm' => 'devmem2 0x4a00343c w 0x0007000e; echo 21  > /sys/class/gpio/export; echo rising > /sys/class/gpio/gpio21/edge; #GPIO_LINE=21',} ),
+    },
 
   }
   
