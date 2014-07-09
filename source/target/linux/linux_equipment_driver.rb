@@ -161,13 +161,15 @@ module Equipment
 
     def at_prompt?(params)
       prompt = params['prompt']
-      send_cmd("", prompt, 5)
+      send_cmd("#check prompt", prompt, 2)
       !timeout?
     end
 
     def at_login_prompt?()
-      send_cmd("", @login_prompt, 2)
-      !timeout?
+      send_cmd("#check prompt", /(#{@login_prompt}|[Pp]assword)/, 2)
+      return false if timeout?
+      send_cmd(" ", /.*/, 1) if response.match(/[Pp]assword/)
+      return true
     end
 
     # stop the bootloader after a reboot
@@ -217,7 +219,7 @@ module Equipment
         raise "Unable to detect serial node for the dut" if trials >= 600
       else
         puts "Soft reboot..."
-        send_cmd('', @prompt, 3)
+        send_cmd('#check prompt', @prompt, 3)
         if timeout?
           # assume at u-boot prompt
           send_cmd('reset', /resetting/i, 3)
