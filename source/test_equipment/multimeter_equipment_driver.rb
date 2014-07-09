@@ -217,6 +217,11 @@ module TestEquipment
       @dut_power_domains = power_info['power_domains']
       _map_platform_to_config_file(power_info['dut_type'])
       send_cmd("cd #{@params['executable_path']}", @prompt)
+      if response.match(/[Pp]assword/)
+        send_cmd(' ',/login:/, 10)
+        send_cmd('root', @prompt, 10)
+        send_cmd("cd #{@params['executable_path']}", @prompt)
+      end
       raise "Error initializing Powertool driver" if timeout?
     end
 
