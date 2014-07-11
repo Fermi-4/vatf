@@ -211,6 +211,7 @@ module Equipment
       if @power_port !=nil
         puts 'Resetting @using power switch'
         poweroff(params) if connected && at_prompt?({'prompt'=>@prompt})
+        disconnect('serial')
         @power_handler.reset(@power_port)
         trials = 0
         while (@serial_port && !File.exist?(@serial_port) && trials < 600)
@@ -228,8 +229,8 @@ module Equipment
           # at linux prompt
           send_cmd('reboot', /(Restarting|Rebooting|going\s+down)/i, 40)
         end
+        disconnect('serial')
       end
-      disconnect('serial')
     end
 
     # Gracefully bring down the system to avoid FS corruption
