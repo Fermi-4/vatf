@@ -138,8 +138,6 @@ module Equipment
         self.send_cmd(params,"nand erase.part ubifs", @boot_prompt, 20)
         self.load_file_from_eth_now(params,params['_env']['kernel_loadaddr'],params['kernel_image_name'],600)
         self.send_cmd(params,"nand write #{params['_env']['kernel_loadaddr']} ubifs 0x#{ubi_filesize}", @boot_prompt, 600)
-        params['kernel_image_name'] = 'uImage'
-        params['kernel_dev'] = 'ubi'
       end
     end
     
@@ -190,7 +188,7 @@ mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadad
       if params.has_key?("var_use_default_env")
       # do nothing
       else
-          @system_loader.insert_step_before('setip', SetDefaultEnvStep.new)
+          @system_loader.insert_step_before('prep', SetDefaultEnvStep.new)
           @system_loader.insert_step_before('kernel', Keystone2ExtrasStep.new)
           @system_loader.insert_step_before('kernel', PrepStep.new)
           @system_loader.insert_step_before('kernel', SetDefaultEnvStep.new)
@@ -207,6 +205,10 @@ mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadad
             puts "*********** Setting system loader to ubifs "
             @system_loader.insert_step_before('kernel', Keystone2UBIStep.new)
             @system_loader.replace_step('boot_cmd', Keystone2UBIBootCmdStep.new)
+            @system_loader.remove_step('kernel')
+            @system_loader.remove_step('dtb')
+            @system_loader.remove_step('fs')
+            @system_loader.remove_step('skern')
           when /nfs/i
             puts "*********** Setting system loader to nfs "
             @system_loader.replace_step('boot_cmd', Keystone2nfsBootCmdStep.new)
