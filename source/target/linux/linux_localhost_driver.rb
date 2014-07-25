@@ -70,6 +70,13 @@ EOF`
       end
       sleep 1   # Make sure the new thread starts before returning to calling thread
     end
+	
+    def send_sudo_cmd_nonblock(command, expected_match=/.*/, timeout=10)
+      Thread.new(command, expected_match, timeout) do |a,b,c|
+        send_sudo_cmd(a,b,c)
+      end
+      sleep 1   # Make sure the new thread starts before returning to calling thread
+    end
     
     def response
       @response
