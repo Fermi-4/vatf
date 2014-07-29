@@ -45,7 +45,6 @@ module Equipment
      'beaglebone' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'beaglebone-black' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'omap5-evm' => 'console=ttyO2,115200n8 earlyprintk rootwait',
-     'tci6638-evm' => 'console=ttyS0,115200n8 rootwait=1 earlyprintk', 
      'dra7xx-evm' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'dra72x-evm' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'am43xx-gpevm' => 'console=ttyO0,115200n8 earlyprintk rootwait',
@@ -56,6 +55,9 @@ module Equipment
      'pandaboard-vanilla' => 'console=ttyO2,115200n8 vram=16M earlyprintk rootwait',
      'sdp4430' => 'console=ttyO2,115200n8 vram=16M earlyprintk rootwait',
      'n900' => 'console=ttyO2,57600n8 vram=16M earlyprintk rootwait',
+     'k2hk-evm' => 'console=ttyS0,115200n8 earlyprintk rootwait',
+     'k2l-evm' => 'console=ttyS0,115200n8 earlyprintk rootwait',
+     'k2e-evm' => 'console=ttyS0,115200n8 earlyprintk rootwait',
      })
     
     def initialize(platform_info, log_path)
