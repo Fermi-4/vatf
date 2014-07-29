@@ -489,6 +489,7 @@ module SystemLoader
     end
 
     def run(params)
+      get_uboot_version params
       send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'env default', 'version'=>@@uboot_version})
       send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'fdt_board_name', 'version'=>@@uboot_version, 'platform'=>params['platform']})
       send_cmd params, "printenv"
