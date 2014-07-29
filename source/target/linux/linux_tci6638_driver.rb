@@ -190,8 +190,8 @@ mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadad
       else
           @system_loader.insert_step_before('prep', SetDefaultEnvStep.new)
           @system_loader.insert_step_before('kernel', Keystone2ExtrasStep.new)
-          @system_loader.insert_step_before('kernel', PrepStep.new)
           @system_loader.insert_step_before('kernel', SetDefaultEnvStep.new)
+          @system_loader.insert_step_before('kernel', PrepStep.new)
           @system_loader.insert_step_before('kernel', SetIpStep.new)
           @system_loader.insert_step_before('fs', SkernStep.new)
           @system_loader.insert_step_before('boot', SaveEnvStep.new)
