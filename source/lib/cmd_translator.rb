@@ -39,6 +39,9 @@ module CmdTranslator
     'enable_uart_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
                           {'dra7xx-evm' => 'echo enabled > /sys/devices/ocp.3/4806a000.serial/tty/ttyO0/power/wakeup',} ),
+                    '3.14' => Hash.new('').merge!(
+                          {'dra7xx-evm' => 'echo enabled > /sys/devices/44000000.ocp/4806a000.serial/tty/ttyO0/power/wakeup',
+                          }),
     },
     'disable_usb_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
