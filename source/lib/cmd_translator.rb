@@ -41,6 +41,7 @@ module CmdTranslator
                           {'dra7xx-evm' => 'echo enabled > /sys/devices/ocp.3/4806a000.serial/tty/ttyO0/power/wakeup',} ),
                     '3.14' => Hash.new('').merge!(
                           {'dra7xx-evm' => 'echo enabled > /sys/devices/44000000.ocp/4806a000.serial/tty/ttyO0/power/wakeup',
+                           'beagleboard-x15' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48020000.serial/tty/ttyO2/power/wakeup', 
                           }),
     },
     'disable_usb_wakeup' => { 
@@ -65,6 +66,14 @@ module CmdTranslator
                             # set spi0_sclk to mux 7, which corresponds to gpio0_2 (0-based) that is connected to J10-pin17
                             'am437x-sk' => 'devmem2 0x44e10950 w 0x00060007; echo 3  > /sys/class/gpio/export; echo rising > /sys/class/gpio/gpio3/edge; #GPIO_LINE=3',
                           }),
+    },
+    'enable_palmas_wakeup' => { 
+                    '0.0' => Hash.new('').merge!(
+                          {'beagleboard-x15' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48070000.i2c/i2c-0/0-0058/power/wakeup',} ),
+    },
+    'enable_rtc_wakeup' => { 
+                    '0.0' => Hash.new('').merge!(
+                          {'beagleboard-x15' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48060000.i2c/i2c-2/2-006f/power/wakeup',} ),
     },
 
   }
