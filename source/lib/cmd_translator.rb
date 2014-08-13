@@ -76,6 +76,17 @@ module CmdTranslator
                           {'beagleboard-x15' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48060000.i2c/i2c-2/2-006f/power/wakeup',} ),
     },
 
+    'nand_kernel_part_name' => {
+                    '0.0' => 'kernel',
+    },
+    'nand_dtb_part_name' => {
+                    '0.0' => 'u-boot-spl-os',
+    },
+    'nand_rootfs_part_name' => {
+                    '0.0' => 'file system',
+                    '3.12.0' => 'file-system',
+    },
+
   }
   
   # Android cmd vs. version
