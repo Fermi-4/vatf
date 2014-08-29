@@ -388,10 +388,11 @@ module SystemLoader
     
     def set_ramfs(params)
       # Make sure file have required headers (i.e. mkimage have been run)
-      y=`mkimage -l /tftpboot/#{params['fs_image_name']}`
+      fs_image_full_path = File.join(params['server'].tftp_path, params['fs_image_name'])
+      y=`mkimage -l #{fs_image_full_path}`
       if !y.match(/Image\s+Name:\s+Arago\s+Test\s+Image/i)
         ramdisk_image_name="#{File.dirname params['fs_image_name']}/uRamdisk"
-        x=`mkimage -A arm -T ramdisk -C gzip -n 'Arago Test Image' -d /tftpboot/#{params['fs_image_name']} /tftpboot/#{ramdisk_image_name}`
+        x=`mkimage -A arm -T ramdisk -C gzip -n 'Arago Test Image' -d #{fs_image_full_path} #{File.join(params['server'].tftp_path, ramdisk_image_name)}`
         raise "Could not run mkimage on #{params['fs_image_name']}" if !x.match(/Image\s+Name:\s+Arago\s+Test\s+Image/i)
         params['fs_image_name']=ramdisk_image_name
       end
