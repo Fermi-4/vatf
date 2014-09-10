@@ -41,8 +41,10 @@ module Equipment
       @target.send_cmd(command, expected_match, timeout, check_cmd_echo, append_linefeed)
       @target.response
       rescue Timeout::Error => e
-        puts ">>>> On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s
-        log_error("On command: "+command.to_s+" waiting for "+expected_match.to_s+" >>> error: "+e.to_s)
+        expected_str = expected_match.to_s
+        expected_str = "#{command}.+?#{expected_match}" if check_cmd_echo
+        puts ">>>> On command: "+command.to_s+" waiting for "+expected_str+" >>> error: "+e.to_s
+        log_error("On command: "+command.to_s+" waiting for "+expected_str+" >>> error: "+e.to_s)
       rescue Exception => e
         log_error("On command "+command.to_s+"\n"+e.to_s+"Target: \n" + response.to_s)
         raise
