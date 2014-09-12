@@ -49,12 +49,16 @@ module CmdTranslator
                           {'am335x-evm' => 'lst=`find /sys/devices/ocp.2/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
                            'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3_2/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
                            'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3_2/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
+                    '3.14' => Hash.new('').merge!(
+                          {'am335x-evm' => 'lst=`find /sys/devices/ocp.3/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
     },
     'disable_tsc_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
                           {'am335x-evm' => 'echo disabled > /sys/devices/ocp.2/44e0d000.tscadc/power/wakeup',
                            'am43xx-epos'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',
                            'am43xx-gpevm'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',} ),
+                    '3.14' => Hash.new('').merge!(
+                          {'am335x-evm' => 'echo disabled > /sys/devices/ocp.3/44e0d000.tscadc/power/wakeup',} ),
     },
     'enable_gpio_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
@@ -62,7 +66,7 @@ module CmdTranslator
                             # set gpmc_ad15 to mux 14, which corresponds to gpio1_21 that is connected to sw3 port 8
                             'dra7xx-evm' => 'devmem2 0x4a00343c w 0x0007000e; echo 21  > /sys/class/gpio/export; echo rising > /sys/class/gpio/gpio21/edge; #GPIO_LINE=21',
                             # set spi0_sclk to mux 7, which corresponds to gpio0_2 that is connected to sw9 (Volume Up) on GP daughter card.
-                            'am335x-evm' => 'cat /proc/interrupts | egrep GPIO[[:blank:]]+2[[:blank:]] || (devmem2 0x44e10950 w 0x00000027; echo 2  > /sys/class/gpio/export; echo rising > /sys/class/gpio/gpio2/edge); #GPIO_LINE=2',
+                            'am335x-evm' => 'cat /proc/interrupts | egrep -i GPIO[[:blank:]]+2[[:blank:]] || (devmem2 0x44e10950 w 0x00000027; echo 2  > /sys/class/gpio/export; echo rising > /sys/class/gpio/gpio2/edge); #GPIO_LINE=2',
                             # set spi0_sclk to mux 7, which corresponds to gpio0_2 (0-based) that is connected to J10-pin17
                             'am437x-sk' => 'devmem2 0x44e10950 w 0x00060007; echo 3  > /sys/class/gpio/export; echo rising > /sys/class/gpio/gpio3/edge; #GPIO_LINE=3',
                           }),
