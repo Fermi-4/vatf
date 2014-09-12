@@ -47,8 +47,9 @@ module BoardController
         'no_profile'    => {'name' => '',     'values' => {'yes'=>'-n', 'no'=>''}},
         'quiet'         => {'name' => '',     'values' => {'yes'=>'-q', 'no'=>''}},
         'reset'         => {'name' => '',     'values' => {'yes'=>'-r', 'no'=>''}},
-        'stdout_file'   =>  {'name' => '-s',  'values' => ''},
-        'timeout'       =>  {'name' => '-t',  'values' => ''},
+        'stdout_file'   => {'name' => '-s',   'values' => ''},
+        'timeout'       => {'name' => '-t',   'values' => ''},
+        'verbose'       => {'name' => '',     'values' => {'yes'=>'-v', 'no'=>''}},
         'xml_log'       => {'name' => '-x',   'values' => ''},
       }
       @dss_options = {}
