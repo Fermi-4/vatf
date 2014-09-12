@@ -11,8 +11,18 @@ module CmdTranslator
     'spi'     => { '0.0' => Hash.new('').merge!({'am43xx-epos' => 'spi-ti-qspi.enable_qspi=1'})},
     'env default' => { '0.0'  => 'env default -f',
                        '2011.10' => 'env default -a -f',},
-    'fdt_board_name' => {'0.0' => '',
-                         '2013.10' => Hash.new('').merge!({'am335x-evm' => 'setenv board_name A33515BB','am335x-sk' => 'setenv board_name A335X_SK', 'beaglebone' => 'setenv board_name A335BONE', 'beaglebone-black' => 'setenv board_name A335BNLT', 'omap5-evm' => 'setenv board_name omap5_uevm', 'dra7xx-evm' => 'setenv board_name dra7xx', 'am43xx-epos' => 'setenv board_name AM43EPOS', 'am43xx-gpevm' => 'setenv board_name AM43__GP'})},
+    'fdt_board_name' => {
+                    '0.0' => '',
+                    '2013.10' => Hash.new('').merge!(
+                            {'am335x-evm' => 'setenv board_name A33515BB',
+                            'am335x-sk' => 'setenv board_name A335X_SK',
+                            'beaglebone' => 'setenv board_name A335BONE',
+                            'beaglebone-black' => 'setenv board_name A335BNLT',
+                            'omap5-evm' => 'setenv board_name omap5_uevm',
+                            'dra7xx-evm' => 'setenv board_name dra7xx',
+                            'dra72x-evm' => 'setenv board_name dra72x',
+                            'am43xx-epos' => 'setenv board_name AM43EPOS',
+                            'am43xx-gpevm' => 'setenv board_name AM43__GP'} ) },
   }
   
   @dict_ubuntu = {
