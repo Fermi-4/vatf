@@ -164,6 +164,14 @@ module SystemLoader
       raise "write to nand failed!" if !params['dut'].response.match(/bytes\s+written:\s+OK/i) 
     end
 
+    def fatwrite(params, interface, dev, mem_addr, filename, filesize, timeout)
+      self.send_cmd(params, "fatwrite #{interface} #{dev} #{mem_addr} #{filename} #{filesize}", @boot_prompt, timeout)
+    end
+
+    def write_file_to_mmc_boot(params, mem_addr, filename, filesize, timeout)    
+      fatwrite(params, "mmc", "#{params['_env']['mmcdev']}:1", mem_addr, filename, filesize, timeout)
+    end
+
     def flash_run(params, part, timeout)
       case params["#{part}_src_dev"]
       when 'mmc'
@@ -185,6 +193,13 @@ module SystemLoader
         #TODO: add erase_spi and write_file_to_spi functions
         erase_spi params, params["spi_#{part}_loc"], params['_env']['filesize'], timeout
         write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], params['_env']['filesize'], timeout
+      when 'mmc'
+        # Only support bootloaders update for now
+        if part.match(/primary_bootloader/)
+          write_file_to_mmc_boot params, params['_env']['loadaddr'], "MLO", params['_env']['filesize'], timeout
+        elsif part.match(/secondary_bootloader/)
+          write_file_to_mmc_boot params, params['_env']['loadaddr'], "u-boot.img", params['_env']['filesize'], timeout
+        end
       else
         raise "Unsupported dst dev: " + params["#{part}_dev"]
       end
