@@ -694,6 +694,7 @@ module SystemLoader
     def initialize
       super
       add_step( PrepStep.new )
+      add_step( SetIpStep.new )
       add_step( FlashPrimaryBootloaderStep.new )
       add_step( FlashSecondaryBootloaderStep.new )
     end
