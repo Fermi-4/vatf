@@ -641,6 +641,10 @@ module SystemLoader
       }
     end
 
+    def contains?(name)
+      get_step(name).length > 0
+    end
+
     def run(params)
       @steps.each {|step| step.run(params)}
     end
