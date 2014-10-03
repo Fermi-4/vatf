@@ -88,6 +88,8 @@ module Equipment
       if params['boot_cmds'] != ''
         @system_loader = SystemLoader::UbootUserSystemLoader.new
         return
+      elsif params['systemloader_class']
+        @system_loader = params['systemloader_class'].new
       elsif params.has_key?("var_use_default_env") and params['var_use_default_env'].to_s == '1'
         @system_loader = SystemLoader::UbootDefaultEnvSystemLoader.new
       elsif params.has_key?("var_use_default_env") and params['var_use_default_env'].to_s == '2'
@@ -104,28 +106,28 @@ module Equipment
     # Update primary and secondary bootloader 
     def update_bootloader(params)
       set_bootloader(params) if !@boot_loader
-      @updator = SystemLoader::UbootFlashBootloaderSystemLoader.new
+      set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashBootloaderSystemLoader})) if !@system_loader
       @boot_loader.run params
-      @updator.run params
+      @system_loader.run params
     end
 
     def update_kernel(params)
       set_bootloader(params) if !@boot_loader
-      @updator = SystemLoader::UbootFlashKernelSystemLoader.new
+      set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashKernelSystemLoader})) if !@system_loader
       @boot_loader.run params
-      @updator.run params
+      @system_loader.run params
     end
 
     def update_fs(params)
       set_bootloader(params) if !@boot_loader
-      @updator = SystemLoader::UbootFlashFSSystemLoader.new
+      set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashFSSystemLoader})) if !@system_loader
       @boot_loader.run params
-      @updator.run params
+      @system_loader.run params
     end
     
     def update_all(params)
       set_bootloader(params) if !@boot_loader
-      @system_loader = SystemLoader::UbootFlashAllSystemLoader.new
+      set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashAllSystemLoader})) if !@system_loader
       @boot_loader.run params
       @system_loader.run params
     end
