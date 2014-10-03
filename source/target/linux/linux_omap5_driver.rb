@@ -19,7 +19,7 @@ module Equipment
     # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
       super
-      @system_loader.insert_step_before('setip', Omap5ExtrasStep.new) if @system_loader.is_a?(SystemLoader::UbootSystemLoader)
+      @system_loader.insert_step_before('setip', Omap5ExtrasStep.new)  if @system_loader.contains?('setip')
     end
   end
 end
