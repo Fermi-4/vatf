@@ -62,11 +62,14 @@ class PowerHandler
         puts "Turning off port #{val} at #{key}\n"
         @power_controllers[key.to_s.downcase].switch_off(val)
       }
-    sleep 1
+      sleep 1
       power_port_element.each {|key,val|
         puts "Turning on port #{val} at #{key}\n"
         @power_controllers[key.to_s.downcase].switch_on(val)
       }
+      # Sleep extra on first power port if there are multiple ports
+      # First port most likely controls USB power so allow extra time
+      sleep 3 if (power_port.size > 1 and power_port.index(power_port_element) == 0)
     }
   end
   
