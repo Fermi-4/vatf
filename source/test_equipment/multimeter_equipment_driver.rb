@@ -178,7 +178,7 @@ module TestEquipment
 
   # Driver for any board running ptool https://github.com/nmenon/powertool
   class PtoolDriver < Equipment::EquipmentDriver
-    attr_reader :dut_power_domains, :dut_config_file
+    attr_reader :number_of_channels, :dut_power_domains, :dut_config_file
 
     def _translate_domain_names(domain)
       dict = {'dra74x_evm.conf' => {'DDR_CPU'  => 'cpu_vdd_ddr',
@@ -214,6 +214,7 @@ module TestEquipment
     end
 
     def configure_multimeter(power_info)
+      @number_of_channels = [@params['number_of_channels'].to_i, power_info['power_domains'].length * 2].min
       @dut_power_domains = power_info['power_domains']
       _map_platform_to_config_file(power_info['dut_type'])
       send_cmd("cd #{@params['executable_path']}", @prompt)
