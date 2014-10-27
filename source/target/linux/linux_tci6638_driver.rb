@@ -13,8 +13,15 @@ module Equipment
         sleep 5
         setup_params(params)
         if params['secondary_bootloader'] != ''
-          write_bootloader_to_spi_nor(params)
+          if params['secdev'] == true 
+            write_bootloader_to_nand(params)
+          else
+            write_bootloader_to_spi_nor(params)
+          end
           stop_boot(params)
+          if params['secdev'] == true 
+            send_cmd params, "run sec_bm_install"
+          end
           @@uboot_version = nil      
         end
         case params['fs_type']
@@ -27,19 +34,25 @@ module Equipment
         end
       end
 
-      def write_bootloader_to_spi_nor(params)
-      
+      def write_bootloader_to_spi_nor(params)     
         # write new U-Boot to NOR
         self.send_cmd(params,"sf probe", @boot_prompt, 20)
         self.load_file_from_eth_now(params, params['mem_addr'], params['secondary_bootloader_image_name'])
         self.send_cmd(params,"sf erase 0 0x100000", @boot_prompt, 60)
         self.send_cmd(params,"sf write #{params['mem_addr']} 0 ${filesize}", @boot_prompt, 60)
         self.send_cmd(params,"reset", /.*/, 1)
-
       end
+      
+      def write_bootloader_to_nand(params)
+        self.load_file_from_eth_now(params, params['mem_addr'], params['secondary_bootloader_image_name'])
+        self.send_cmd(params,"run burn_uboot_nand",@boot_prompt, 60)
+        self.send_cmd(params,"reset", /.*/, 1)
+      end
+      
       def bytesToMeg(bytes)
         bytes /  MEGABYTE  
-      end   
+      end  
+      
       def setup_params(params=nil)
         params['mem_addr'] = "${addr_uboot}"
         params['nand_eraseblock_size'] = 0x800 # which is page size for tci6638 
@@ -52,9 +65,6 @@ module Equipment
           params['ram_id'] = 0
         when /nfs/i
           params['fs_options'] = ",v3,tcp,rsize=4096,wsize=4096 ip=dhcp rootfstype=nfs"
-        when /ubifs/i
-          params['ubi_mtd_partition'] = 2
-	  params['ubi_root'] = 'ubi0:rootfs'
         end
         params['extra_cmds'] = []
         params['extra_cmds'] << "saveenv"
@@ -175,7 +185,15 @@ tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
 mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}'" 
       end
     end
+    class Keystone2SecBMInstall < SystemLoader::UbootStep
+      def initialize
+        super('keystone2_sec_bm_install')
+      end
 
+      def run(params)
+        send_cmd params, "run sec_bm_install"
+      end
+    end
      
 
     def set_bootloader(params)
@@ -185,9 +203,16 @@ mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadad
     # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
       super
+      if @id.include? "secdev"
+        puts "This is a secure device"
+        params['secdev'] = true
+      end
       if params.has_key?("var_use_default_env")
       # do nothing
       else
+          if params['secdev'] = true
+            @system_loader.insert_step_before('prep', Keystone2SecBMInstall.new)
+          end
           @system_loader.insert_step_before('kernel', Keystone2ExtrasStep.new)
           @system_loader.insert_step_before('kernel', SetDefaultEnvStep.new)
           @system_loader.insert_step_before('kernel', PrepStep.new)
