@@ -186,7 +186,7 @@ module TestEquipment
                                     'DDR_MEM' => 'vdd_ddr_mem',
                                    },
              }
-      return dict[@dut_config_file][domain] if dict[@dut_config_file][domain]
+      return dict[@dut_config_file][domain] if dict[@dut_config_file] and dict[@dut_config_file][domain]
       return domain.downcase
     end
 
@@ -196,7 +196,7 @@ module TestEquipment
                                     'vdd_ddr_mem' => 'DDR_MEM',
                                    },
              }
-      return dict[@dut_config_file][domain] if dict[@dut_config_file][domain]
+      return dict[@dut_config_file][domain] if dict[@dut_config_file] and dict[@dut_config_file][domain]
       return domain.upcase
     end
 
@@ -204,6 +204,8 @@ module TestEquipment
       case platform
       when 'dra7xx-evm'
         @dut_config_file = 'dra74x_evm.conf'
+      when 'dra72x-evm'
+        @dut_config_file = 'dra72x_evm.conf'
       else
         raise "powertool config file not defined for #{platform}"
       end
@@ -235,14 +237,16 @@ module TestEquipment
       h = Hash.new
       rails_str = ''
       @dut_power_domains.each {|d|
-          h["domain_" + d + "_volt_readings"] = Array.new()
-          h["domain_" + d + "drop_volt_readings"] = Array.new()
-          h["domain_" + d + "_current_readings"] = Array.new()
-          h["domain_" + d + "_power_readings"] = Array.new()
+          h["domain_" + d.upcase + "_volt_readings"] = Array.new()
+          h["domain_" + d.upcase + "drop_volt_readings"] = Array.new()
+          h["domain_" + d.upcase + "_current_readings"] = Array.new()
+          h["domain_" + d.upcase + "_power_readings"] = Array.new()
           rails_str += "-r #{_translate_domain_names(d)} "
       }
       send_cmd("./ptool -c configs/#{@dut_config_file} #{rails_str} -n #{loop_count} -s #{delay_between_samples}", @prompt, loop_count.to_i*delay_between_samples.to_i + 10)
       response().scan(/^\|\s*\d+\s*\|\s*(\w+)\s*\|\s*([\d\.]+)\s*\|\s*([\d\.]+)\s*\|\s*([\d\.]+)\s*\|\s*([\d\.]+)\s*\|/).each{|data|
+        puts "domain \t drop V \t volt \t current \t power"
+        puts "#{data[0]} \t #{data[1]} \t #{data[2]} \t #{data[3]} \t #{data[4]}"
         h["domain_"+ _reverse_translate_domain_names(data[0]) + "drop_volt_readings"] << data[1].to_f * 10**-6
         h["domain_"+ _reverse_translate_domain_names(data[0]) + "_volt_readings"]  << data[2].to_f 
         h["domain_"+ _reverse_translate_domain_names(data[0]) + "_current_readings"] << data[3].to_f * 10**-3
