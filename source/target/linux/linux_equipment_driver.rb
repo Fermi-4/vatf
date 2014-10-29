@@ -171,9 +171,9 @@ module Equipment
     end
 
     def at_login_prompt?()
-      send_cmd("#check prompt", /(#{@login_prompt}|[Pp]assword)/, 2)
+      send_cmd("#check prompt", /(#{@login_prompt}|[Pp]assword)/, 3)
       return false if timeout?
-      send_cmd(" ", /.*/, 1) if response.match(/[Pp]assword/)
+      send_cmd(" ", /#{@login_prompt}/, 5) if response.match(/[Pp]assword/)
       return true
     end
 
