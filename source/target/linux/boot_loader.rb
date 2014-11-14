@@ -55,11 +55,11 @@ class BaseLoader
       # Run stty to set the baud rate.
       file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
       # Send SPL as xmodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 2m /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+      file.puts "/usr/bin/timeout 120 /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi"
-      # Send U-Boot as ymodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 2m /usr/bin/sb -v --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+      # Send U-Boot as ymodem, 4 minute timeout.
+      file.puts "/usr/bin/timeout 240 /usr/bin/sb -v --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi"
       # Send an echo to be sure that we will break into autoboot.
@@ -78,15 +78,15 @@ class BaseLoader
       # Run stty to set the baud rate.
       file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
       # Send u-boot-min as xmodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 2m /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+      file.puts "/usr/bin/timeout 120 /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi"
       # Send an echo to be sure that we will break into autoboot.
       file.puts "echo > #{params['dut'].serial_port}"
       # Start loady
       file.puts "echo \"loady #{params['dut'].boot_load_address}\" > #{params['dut'].serial_port}"
-      # Send U-Boot as ymodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 2m /usr/bin/sb -v --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+      # Send U-Boot as ymodem, 4 minute timeout.
+      file.puts "/usr/bin/timeout 240 /usr/bin/sb -v --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # Start it.
       file.puts "echo \"go #{params['dut'].boot_load_address}\" > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
