@@ -210,7 +210,7 @@ mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadad
       if params.has_key?("var_use_default_env")
       # do nothing
       else
-          if params['secdev'] = true
+          if params['secdev'] == true
             @system_loader.insert_step_before('prep', Keystone2SecBMInstall.new)
           end
           @system_loader.insert_step_before('kernel', Keystone2ExtrasStep.new)
