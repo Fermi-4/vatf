@@ -69,7 +69,9 @@ module CmdTranslator
                            'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3_2/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
                            'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3_2/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
                     '3.14' => Hash.new('').merge!(
-                          {'am335x-evm' => 'lst=`find /sys/devices/ocp.3/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
+                          {'am335x-evm' => 'lst=`find /sys/devices/ocp.3/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
+                           'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/ocp2scp.* -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
+                           'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/ocp2scp.* -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
     },
     'disable_tsc_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
@@ -77,7 +79,14 @@ module CmdTranslator
                            'am43xx-epos'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',
                            'am43xx-gpevm'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',} ),
                     '3.14' => Hash.new('').merge!(
-                          {'am335x-evm' => 'echo disabled > /sys/devices/ocp.3/44e0d000.tscadc/power/wakeup',} ),
+                          {'am335x-evm' => 'echo disabled > /sys/devices/ocp.3/44e0d000.tscadc/power/wakeup',
+                           'am43xx-epos'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',
+                           'am43xx-gpevm'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',} ),
+    },
+    'disable_adc_wakeup' => { 
+                    '0.0' => Hash.new('').merge!(
+                          {'am43xx-epos'=> 'echo "Disabling MAGADC"; devmem2 0x44DF8A30 w 0x2; devmem2 0x4834C040 w 0x70; devmem2 0x4834C058 w 0x2000000; devmem2 0x44DF8A30 w 0x0',
+                           'am43xx-gpevm'=> 'echo "Disabling MAGADC"; devmem2 0x44DF8A30 w 0x2; devmem2 0x4834C040 w 0x70; devmem2 0x4834C058 w 0x2000000; devmem2 0x44DF8A30 w 0x0',} ),
     },
     'enable_gpio_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
