@@ -51,7 +51,7 @@ module CmdTranslator
                           {'dra7xx-evm' => 'echo enabled > /sys/devices/ocp.3/4806a000.serial/tty/ttyO0/power/wakeup',} ),
                     '3.14' => Hash.new('').merge!(
                           {'dra7xx-evm' => 'echo enabled > /sys/devices/44000000.ocp/4806a000.serial/tty/ttyO0/power/wakeup',
-                           'beagleboard-x15' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48020000.serial/tty/ttyO2/power/wakeup', 
+                           'am57xx-evm' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48020000.serial/tty/ttyO2/power/wakeup', 
                           }),
     },
     'enable_usb_wakeup' => { 
@@ -101,11 +101,11 @@ module CmdTranslator
     },
     'enable_palmas_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
-                          {'beagleboard-x15' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48070000.i2c/i2c-0/0-0058/power/wakeup',} ),
+                          {'am57xx-evm' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48070000.i2c/i2c-0/0-0058/power/wakeup',} ),
     },
     'enable_rtc_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
-                          {'beagleboard-x15' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48060000.i2c/i2c-2/2-006f/power/wakeup',} ),
+                          {'am57xx-evm' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48060000.i2c/i2c-2/2-006f/power/wakeup',} ),
     },
 
     'nand_kernel_part_name' => {

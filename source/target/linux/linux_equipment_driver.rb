@@ -39,7 +39,7 @@ module Equipment
      'am389x-evm' => 'console=ttyO2,115200n8 mem=166M earlyprintk vram=50M ',
      'beagleboard' => 'console=ttyO2,115200n8  earlyprintk rootwait',
      'beagleboard-vanilla' => 'console=ttyO2,115200n8  earlyprintk rootwait',
-     'beagleboard-x15' => 'console=ttyO2,115200n8  earlyprintk rootwait',
+     'am57xx-evm' => 'console=ttyO2,115200n8  earlyprintk rootwait',
      'am335x-evm' => 'console=ttyO0,115200n8 earlyprintk rootwait ',
      'am335x-sk' => 'console=ttyO0,115200n8 earlyprintk rootwait',
      'beaglebone' => 'console=ttyO0,115200n8 earlyprintk rootwait',
