@@ -597,6 +597,18 @@ module SystemLoader
     end
   end
 
+  class TouchCalStep < UbootStep
+    def initialize
+      super('touch_cal')
+    end
+
+    def run(params)
+      mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
+      self.send_cmd(params, "#{mmc_init_cmd}", @boot_prompt)
+      write_file_to_mmc_boot params, params['_env']['loadaddr'], "ws-calibrate.rules", 4, 10
+    end
+  end
+
   class BaseSystemLoader < Step
     attr_accessor :steps
 
@@ -663,6 +675,7 @@ module SystemLoader
       add_step( FSStep.new )
       add_step( BootCmdStep.new )
       add_step( BoardInfoStep.new )
+      add_step( TouchCalStep.new )
       add_step( BootStep.new )
     end
 
@@ -677,6 +690,7 @@ module SystemLoader
       add_step( SetDefaultEnvStep.new )
       add_step( SetIpStep.new )
       add_step( BoardInfoStep.new )
+      add_step( TouchCalStep.new )
       add_step( BootStep.new )
     end
 
