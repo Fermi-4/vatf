@@ -320,3 +320,62 @@ EquipmentInfo.new("svideo_converter","0") do
   video_io_info.composite_inputs = {0 => [26]}
   video_io_info.composite_outputs = {0 => [27]}
 end
+
+#############################################################
+########### Smartbits test equipment information ############
+#############################################################
+#Smartbits SAI job queuing host settings. 
+# Note: To setup the SAI job queuing host please see the following wikipage link: http://automation.telogy.design.ti.com/wiki/index.php?title=How_to_set_up_a_SmartBits_SAI_job_queuing_host
+sb1 = EquipmentInfo.new("smartbits", 'smartbits@1') #the 'smartbits@1' shown here is the STAF service id for the SAI job queuing STAF service running on the hosting PC.
+sb1.driver_class_name = 'StafMartbitsSaiDriver'
+sb1.params = {'staf_ip' => '158.218.104.255'}       #the 'staf_ip' is the IP address of the host PC running the SAI job queuing STAF service.
+
+#Second Smartbits SAI job queuing host settings. Added to go with the DUT example below 
+sb2 = EquipmentInfo.new("smartbits", 'smartbits@7') #the 'smartbits@7' shown here is the STAF service id for the SAI job queuing STAF service running on the hosting PC.
+sb2.driver_class_name = 'StafMartbitsSaiDriver'
+sb2.params = {'staf_ip' => '158.218.106.155'}       #the 'staf_ip' is the IP address of the host PC running the SAI job queuing STAF service.
+
+#Example for DUT using Smartbits SAI job queuing host settings.
+# The dut.params 'smartbits' section below is what is required for the DUT to be able to use the SmartBits. Only one instance of SmartBits is required. Below shows two SmartBits instances as an example.
+dut = EquipmentInfo.new("k2hk-evm","linux_k2k_sbsai") #the 'sbsai' shown here is to indicate that the test setup has support for SmartBits SAI.
+dut.driver_class_name = "LinuxTCI6638Driver"
+dut.prompt = /[\w\d]+@.+:/m
+dut.boot_prompt = /(K2HK|TCI6638)\sEVM/
+dut.power_port = {'apc' => 6 }
+dut.login = 'root'
+dut.telnet_login = 'root'
+dut.login_prompt = /login:/
+dut.serial_server_ip = '192.168.1.2'
+dut.serial_server_port = 6006
+dut.nfs_root_path = '/opt/min-root-c6638-le'
+dut.params = {'smartbits' => {'0' => {'sb_equip' => sb1,                # 'smartbits' = set of SmartBits parameters, '0' = DUT eth0 port, 'sb_equip' = Smartbits EquipmentInfo reference for this port
+                                      'sb_port' => '0:6:0',             # 'sb_port' = SmartBits port to use (as would be referenced in the SAI configuration file)
+                                      'sb_mac' => '00:11:22:33:44:55',  # 'sb_mac' = base MAC to use for SmartBits MACs on this port
+                                      'sb_ip' => '192.168.1.120',       # 'sb_ip' = base IP address to use for SmartBits IPs on this port
+                                      'dut_speed' => '1000',            # 'dut_speed' = Physical speed in Mbps of DUT's ethernet port
+                                      'dut_ip' => 'dhcp'                # 'dut_ip' = IP address to use for DUT's ethernet port (dhcp = use received dhcp address)
+                                    },
+                              '1' => {'sb_equip' => sb1,                # '1' = DUT eth1 port, 'sb_equip' = SmartBits EquimentInfo reference
+                                      'sb_port' => '0:8:0',
+                                      'sb_mac' => '00:11:22:33:44:66',
+                                      'sb_ip' => '192.168.2.120',
+                                      'dut_speed' => '1000',
+                                      'dut_ip' => '192.168.2.50'
+                                    }
+                              '4' => {'sb_equip' => sb2,                # '4' = DUT eth4 port, 'sb_equip' = SmartBits EquimentInfo reference for this port. Here we are specifying a second SmartBits chassis.
+                                      'sb_port' => '0:2:0',
+                                      'sb_mac' => '00:12:22:33:44:55',
+                                      'sb_ip' => '192.168.3.120',
+                                      'dut_speed' => '1000',
+                                      'dut_ip' => '192.168.3.50'
+                                    },
+                              '5' => {'sb_equip' => sb2,                # '5' = DUT eth5 port, 'sb_equip' = SmartBits EquimentInfo reference for this port. Still referencing second SmartBits chassis.
+                                      'sb_port' => '0:3:0', 
+                                      'sb_mac' => '00:12:22:33:44:66',
+                                      'sb_ip' => '192.168.4.120',
+                                      'dut_speed' => '1000',
+                                      'dut_ip' => '192.168.4.50'
+                                    }
+                            }
+            }
+
