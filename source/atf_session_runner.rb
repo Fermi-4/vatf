@@ -596,8 +596,7 @@ class SessionHandler
     def upload_file(file_path)
       result = nil
       if File.exists?(file_path)
-        server_dir = File.dirname(@files_dir)
-        fpath = File.join(server_dir,File.basename(file_path))
+        fpath = File.join(@files_dir,File.basename(file_path))
 		    FileUtils.cp(file_path,fpath)
 		result = [fpath, fpath.sub(@session_results_base_directory,@session_results_base_url).sub("\\","/").sub(/http:\/\//i,"")]
       end
