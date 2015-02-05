@@ -8,6 +8,7 @@ module BootLoader
   end
 
   def LOAD_FROM_SERIAL(params)
+    puts "########LOAD_FROM_SERIAL########"
     params.merge!({'bootloader_load_script_name' => 'uart-spl-boot.sh'})
     params['bootloader_class'].create_bootloader_load_script_uart_spl(params)
     params['bootloader_class'].run_bootloader_load_script(params)
@@ -55,11 +56,11 @@ class BaseLoader
       # Run stty to set the baud rate.
       file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
       # Send SPL as xmodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 120 /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+      file.puts "/usr/bin/timeout 120 /usr/bin/sx -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi"
       # Send U-Boot as ymodem, 4 minute timeout.
-      file.puts "/usr/bin/timeout 240 /usr/bin/sb -v --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+      file.puts "/usr/bin/timeout 240 /usr/bin/sb -kb --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi"
       # Send an echo to be sure that we will break into autoboot.
