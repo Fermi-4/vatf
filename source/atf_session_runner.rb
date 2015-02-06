@@ -527,7 +527,7 @@ class SessionHandler
       @test_result.set_perf_data(perf_data)
       # Compare performance data with previous executions
       if @test_result.perf_data && !@test_result.perf_data.empty?
-        p_result, p_comment = PassCriteria::is_performance_good_enough(@test_params.platform, @test_id, @test_result.perf_data, max_dev)
+        p_result, p_comment = PassCriteria::is_performance_good_enough(@rtp_db.get_test_plan_id(), @test_id, @test_result.perf_data, max_dev)
         if !p_result
           # Performance is not good enough
           @test_result.result = FrameworkConstants::Result[:fail]
