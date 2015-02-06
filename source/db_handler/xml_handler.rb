@@ -91,7 +91,7 @@ module ATFDBHandlers
       
       #Returns the testplan id for the current test session
       def get_test_plan_id
-        @db_tcase["testplan_id"].to_i
+        @test_data["test_session"]["testplan"]["id"].to_i
       end
       
       #Returns the testcase id of the current test
