@@ -1,8 +1,8 @@
 require 'net/http'
 
 module PassCriteria
-  # Compares  performance with best performance for platform in test database
-  def self.is_performance_good_enough(platform, testcase_id, perf_data, max_dev=0.05)
+  # Compares  performance against historical performance for (testplan, testcase, metric) tuple
+  def self.is_performance_good_enough(testplan_id, testcase_id, perf_data, max_dev=0.05)
     pass = true
     msg  = ''
     return [true, nil] if defined? skip_perf_comparison
@@ -10,8 +10,8 @@ module PassCriteria
       metric['name'].gsub!(/\s/,'_')
       op = get_perf_comparison_operator(testcase_id, metric['name'])
       op = overwrite_perf_comparison_operator(testcase_id, metric['name']) if defined? overwrite_perf_comparison_operator
-      data = get_perf_value(platform, testcase_id, metric['name'], op)
-      data = overwrite_perf_value(platform, testcase_id, metric['name'], op, data) if defined? overwrite_perf_value
+      data = get_perf_value(testplan_id, testcase_id, metric['name'], op)
+      data = overwrite_perf_value(testplan_id, testcase_id, metric['name'], op, data) if defined? overwrite_perf_value
       return [true, 'Performance data was NOT compared'] if !data
       metric_avg = metric['s1']/metric['s0']
       case op
@@ -54,10 +54,10 @@ module PassCriteria
     return op
   end
 
-  def self.get_perf_value(platform, testcase_id, metric_name, operator)
+  def self.get_perf_value(testplan_id, testcase_id, metric_name, operator)
     host, port = SiteInfo::ANALYTICS_SERVER.split(':')
     port = port ? port.to_i : 3000      # ANALYTICS_SERVER runs on port 3000 by default
-    response = Net::HTTP.get(host, "/passcriteria/#{platform}/#{testcase_id}/#{metric_name}", port)
+    response = Net::HTTP.get(host, "/performance/passcriteria/#{testplan_id}/#{testcase_id}/#{metric_name}/", port)
     s0 = response.match(/samples=([\-\d\.]+)/).captures[0].to_f
     data = []
     if s0 > 1
