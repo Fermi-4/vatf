@@ -30,7 +30,7 @@ module SiteInfo
  
  #LOGS_SERVER                    = "http://automationlogs.gt.design.ti.com/gtsystst_logs/vatf"
  LOGS_SERVER                    = "http://gtsystest.telogy.design.ti.com/vatf"
- ANALYTICS_SERVER               = "158.218.103.171:3000"
+ ANALYTICS_SERVER               = "lcpdresults.itg.ti.com:80"
  WINCE_DOWNLOAD_APP             = 'cedownload.exe'
  WINCE_PERFTOCSV_APP            = 'perftocsv.exe'
  VGDK_OUTPUT_CLIPS		= "//10.218.100.223/video_files/VGDK_logs/output"
