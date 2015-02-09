@@ -92,6 +92,10 @@ module ATFDBHandlers
       #Returns the testplan id for the current test session
       def get_test_plan_id
         @test_data["test_session"]["testplan"]["id"].to_i
+        rescue Exception=>e
+            puts "Tesplan ID is a mandatory parameter."
+            puts "Please update your downward translator file to pass Testplan ID."
+            puts e.to_s+"\n"+e.backtrace.to_s
       end
       
       #Returns the testcase id of the current test
