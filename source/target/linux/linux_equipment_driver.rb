@@ -111,6 +111,7 @@ module Equipment
       @system_loader.run params
     end
 
+    # Update both kernel and dtb
     def update_kernel(params)
       set_bootloader(params) if !@boot_loader
       set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashKernelSystemLoader})) if !@system_loader

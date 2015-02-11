@@ -240,6 +240,17 @@ module SystemLoader
 
   end
 
+  class FlashDTBStep < UbootStep
+    def initialize
+      super('flash_dtb')
+    end
+
+    def run(params)
+      flash_run(params, "dtb", 60)
+    end
+
+  end
+
   class FlashFSStep < UbootStep
     def initialize
       super('flash_fs')
@@ -728,6 +739,7 @@ module SystemLoader
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
       add_step( FlashKernelStep.new )
+      add_step( FlashDTBStep.new )
     end
 
   end
@@ -754,6 +766,7 @@ module SystemLoader
       add_step( FlashPrimaryBootloaderStep.new )
       add_step( FlashSecondaryBootloaderStep.new )
       add_step( FlashKernelStep.new )
+      add_step( FlashDTBStep.new )
       add_step( FlashFSStep.new )
     end
 
