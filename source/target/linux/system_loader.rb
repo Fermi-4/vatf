@@ -83,6 +83,13 @@ module SystemLoader
         mmcdev = '${mmcdev}'
       end
       params['_env']['mmcdev'] = mmcdev
+      # Determine usbdev
+      usbdev = '0'
+      case params['dut'].response
+      when /usbdev/
+        usbdev = '${usbdev}'
+      end
+      params['_env']['usbdev'] = usbdev
     end
 
     def append_text(params, env_var, text)
@@ -129,6 +136,11 @@ module SystemLoader
       append_text params, 'bootcmd', "fatload mmc #{params['_env']['mmcdev']} #{load_addr} #{filename}; "
     end
 
+    def load_file_from_usbmsc(params, load_addr, filename)
+      usb_init_cmd = "usb start"
+      append_text params, 'bootcmd', "#{usb_init_cmd}; "
+      append_text params, 'bootcmd', "load usb #{params['_env']['usbdev']} #{load_addr} #{filename}; "
+    end
 
     def load_file_from_serial_now(params, load_addr, filename, timeout)
       # create a file with required commands
@@ -154,6 +166,12 @@ module SystemLoader
       self.send_cmd(params, "#{mmc_init_cmd}; fatload mmc #{params['_env']['mmcdev']} #{load_addr} #{filename} ", @boot_prompt, timeout)
     end
 
+    def load_file_from_usbmsc_now(params, load_addr, filename, timeout=60)
+      raise "load_file_from_usbmsc_now: no filename is provided." if !filename
+      init_usbmsc(params, timeout)
+      self.send_cmd(params, "#{usb_init_cmd}; fatload usb #{params['_env']['usbdev']} #{load_addr} #{filename} ", @boot_prompt, timeout)
+    end
+
     def erase_nand(params, nand_loc, size, timeout=60)
       self.send_cmd(params, "nand erase #{nand_loc} #{size}", @boot_prompt, timeout)
       raise "erase_nand failed!" if !params['dut'].response.match(/100\%\s+complete/i) 
@@ -166,16 +184,30 @@ module SystemLoader
 
     def fatwrite(params, interface, dev, mem_addr, filename, filesize, timeout)
       self.send_cmd(params, "fatwrite #{interface} #{dev} #{mem_addr} #{filename} #{filesize}", @boot_prompt, timeout)
+      raise "fatwrite to #{interface} failed! Please make sure there is FAT partition in #{interface} device!" if !params['dut'].response.match(/bytes\s+written/i)
     end
 
     def write_file_to_mmc_boot(params, mem_addr, filename, filesize, timeout)    
       fatwrite(params, "mmc", "#{params['_env']['mmcdev']}:1", mem_addr, filename, filesize, timeout)
     end
 
+    def write_file_to_usbmsc_boot(params, mem_addr, filename, filesize, timeout)    
+      init_usbmsc(params, timeout)
+      fatwrite(params, "usb", "#{params['_env']['usbdev']}:1", mem_addr, filename, filesize, timeout)
+    end
+
+    def init_usbmsc(params, timeout)
+      usb_init_cmd = "usb start"
+      self.send_cmd(params, "#{usb_init_cmd}", @boot_prompt, timeout)
+      raise "No usbmsc device being found" if ! params['dut'].response.match(/[1-9]+\s+Storage\s+Device.*found/i)
+    end
+
     def flash_run(params, part, timeout)
       case params["#{part}_src_dev"]
       when 'mmc'
         load_file_from_mmc_now params, params['_env']['loadaddr'], params["#{part}_image_name"]
+      when 'usbmsc'
+        load_file_from_usbmsc_now params, params['_env']['loadaddr'], params["#{part}_image_name"]
       when 'eth'
         load_file_from_eth_now params, params['_env']['loadaddr'], params["#{part}_image_name"]
       else
@@ -199,6 +231,17 @@ module SystemLoader
           write_file_to_mmc_boot params, params['_env']['loadaddr'], "MLO", params['_env']['filesize'], timeout
         elsif part.match(/secondary_bootloader/)
           write_file_to_mmc_boot params, params['_env']['loadaddr'], "u-boot.img", params['_env']['filesize'], timeout
+        end
+      when 'usbmsc'
+        init_usbmsc(params, timeout)
+        if part.match(/primary_bootloader/)
+          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], "MLO", params['_env']['filesize'], timeout
+        elsif part.match(/secondary_bootloader/)
+          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], "u-boot.img", params['_env']['filesize'], timeout
+        elsif part.match(/kernel/)
+          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], File.basename(params['kernel_image_name']), params['_env']['filesize'], timeout
+        elsif part.match(/dtb/)
+          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], File.basename(params['dtb_image_name']), params['_env']['filesize'], timeout
         end
       else
         raise "Unsupported dst dev: " + params["#{part}_dev"]
@@ -310,6 +353,8 @@ module SystemLoader
       case params['kernel_dev']
       when 'mmc'
         load_kernel_from_mmc params
+      when 'usbmsc'
+        load_kernel_from_usbmsc params
       when 'eth'
         load_kernel_from_eth params
       when 'ubi'
@@ -324,6 +369,10 @@ module SystemLoader
     private
     def load_kernel_from_mmc(params)
       load_file_from_mmc params, params['_env']['kernel_loadaddr'], params['kernel_image_name']
+    end
+
+    def load_kernel_from_usbmsc(params)
+      load_file_from_usbmsc params, params['_env']['kernel_loadaddr'], File.basename(params['kernel_image_name'])
     end
 
     def load_kernel_from_serial(params)
@@ -350,6 +399,8 @@ module SystemLoader
       case params['dtb_dev']
       when 'mmc'
         load_dtb_from_mmc params
+      when 'usbmsc'
+        load_dtb_from_usbmsc params
       when 'eth'
         load_dtb_from_eth params
       when 'ubi'
@@ -366,6 +417,10 @@ module SystemLoader
     private
     def load_dtb_from_mmc(params)
       load_file_from_mmc params, params['_env']['dtb_loadaddr'], params['dtb_image_name']
+    end
+
+    def load_dtb_from_usbmsc(params)
+      load_file_from_usbmsc params, params['_env']['dtb_loadaddr'], File.basename(params['dtb_image_name'])
     end
 
     def load_dtb_from_serial(params)
@@ -404,6 +459,7 @@ module SystemLoader
     
     private
     def set_nfs(params)
+      raise "No NFS path is being specified!" if !params['nfs_path']
       params['fs_options'] = ",nolock" if !params['fs_options']
       append_text params, 'bootargs', "root=/dev/nfs rw nfsroot=#{params['nfs_path']}#{params['fs_options']} "
     end
@@ -614,9 +670,15 @@ module SystemLoader
     end
 
     def run(params)
-      mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
-      self.send_cmd(params, "#{mmc_init_cmd}", @boot_prompt)
-      write_file_to_mmc_boot params, params['_env']['loadaddr'], "ws-calibrate.rules", 4, 10
+      case params['kernel_dev']
+      when 'usbmsc'
+        init_usbmsc(params, 20)
+        write_file_to_usbmsc_boot params, params['_env']['loadaddr'], "ws-calibrate.rules", 4, 10
+      else
+        mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
+        self.send_cmd(params, "#{mmc_init_cmd}", @boot_prompt)
+        write_file_to_mmc_boot params, params['_env']['loadaddr'], "ws-calibrate.rules", 4, 10
+      end
     end
   end
 
