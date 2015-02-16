@@ -182,6 +182,11 @@ module SystemLoader
       raise "write to nand failed!" if !params['dut'].response.match(/bytes\s+written:\s+OK/i) 
     end
 
+    def load_file_from_nand(params, mem_addr, nand_loc, timeout=60)
+      self.send_cmd(params, "nand read #{mem_addr} #{nand_loc} ", @boot_prompt, timeout)
+      raise "read from nand failed!" if !params['dut'].response.match(/bytes\s+read:\s+OK/i) 
+    end
+
     def fatwrite(params, interface, dev, mem_addr, filename, filesize, timeout)
       self.send_cmd(params, "fatwrite #{interface} #{dev} #{mem_addr} #{filename} #{filesize}", @boot_prompt, timeout)
       raise "fatwrite to #{interface} failed! Please make sure there is FAT partition in #{interface} device!" if !params['dut'].response.match(/bytes\s+written/i)
@@ -355,6 +360,8 @@ module SystemLoader
         load_kernel_from_mmc params
       when 'usbmsc'
         load_kernel_from_usbmsc params
+      when 'nand'
+        load_kernel_from_nand params
       when 'eth'
         load_kernel_from_eth params
       when 'ubi'
@@ -373,6 +380,10 @@ module SystemLoader
 
     def load_kernel_from_usbmsc(params)
       load_file_from_usbmsc params, params['_env']['kernel_loadaddr'], File.basename(params['kernel_image_name'])
+    end
+
+    def load_kernel_from_nand(params)
+      load_file_from_nand params, params['_env']['kernel_loadaddr'], params["nand_kernel_loc"]
     end
 
     def load_kernel_from_serial(params)
@@ -401,6 +412,8 @@ module SystemLoader
         load_dtb_from_mmc params
       when 'usbmsc'
         load_dtb_from_usbmsc params
+      when 'nand'
+        load_dtb_from_nand params
       when 'eth'
         load_dtb_from_eth params
       when 'ubi'
@@ -421,6 +434,10 @@ module SystemLoader
 
     def load_dtb_from_usbmsc(params)
       load_file_from_usbmsc params, params['_env']['dtb_loadaddr'], File.basename(params['dtb_image_name'])
+    end
+
+    def load_dtb_from_nand(params)
+      load_file_from_nand params, params['_env']['dtb_loadaddr'], params["nand_dtb_loc"]
     end
 
     def load_dtb_from_serial(params)
@@ -677,7 +694,11 @@ module SystemLoader
       else
         mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
         self.send_cmd(params, "#{mmc_init_cmd}", @boot_prompt)
-        write_file_to_mmc_boot params, params['_env']['loadaddr'], "ws-calibrate.rules", 4, 10
+        begin
+          write_file_to_mmc_boot params, params['_env']['loadaddr'], "ws-calibrate.rules", 4, 10
+        rescue
+          puts "WARNING...Could not fatwrite 'ws-calibrate.rules' to MMC boot partition!"
+        end
       end
     end
   end
