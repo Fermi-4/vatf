@@ -260,7 +260,11 @@ mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadad
         puts "Existing U-Boot failed to boot. Cannot proceed .."
         return
       end
+      if params['secdev'] == true
+        @system_loader.run_step('keystone2_sec_bm_install',params)
+      end
       @system_loader.run_step('prep',params)
+      @system_loader.run_step('setip',params)
       @system_loader.run_step('keystone2_boot',params)
     end
     
