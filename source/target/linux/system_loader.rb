@@ -231,11 +231,14 @@ module SystemLoader
         erase_spi params, params["spi_#{part}_loc"], params['_env']['filesize'], timeout
         write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], params['_env']['filesize'], timeout
       when 'mmc'
-        # Only support bootloaders update for now
         if part.match(/primary_bootloader/)
           write_file_to_mmc_boot params, params['_env']['loadaddr'], "MLO", params['_env']['filesize'], timeout
         elsif part.match(/secondary_bootloader/)
           write_file_to_mmc_boot params, params['_env']['loadaddr'], "u-boot.img", params['_env']['filesize'], timeout
+        elsif part.match(/kernel/)
+          write_file_to_mmc_boot params, params['_env']['loadaddr'], File.basename(params['kernel_image_name']), params['_env']['filesize'], timeout
+        elsif part.match(/dtb/)
+          write_file_to_mmc_boot params, params['_env']['loadaddr'], File.basename(params['dtb_image_name']), params['_env']['filesize'], timeout
         end
       when 'usbmsc'
         init_usbmsc(params, timeout)
@@ -375,7 +378,7 @@ module SystemLoader
 
     private
     def load_kernel_from_mmc(params)
-      load_file_from_mmc params, params['_env']['kernel_loadaddr'], params['kernel_image_name']
+      load_file_from_mmc params, params['_env']['kernel_loadaddr'], File.basename(params['kernel_image_name'])
     end
 
     def load_kernel_from_usbmsc(params)
@@ -429,7 +432,7 @@ module SystemLoader
 
     private
     def load_dtb_from_mmc(params)
-      load_file_from_mmc params, params['_env']['dtb_loadaddr'], params['dtb_image_name']
+      load_file_from_mmc params, params['_env']['dtb_loadaddr'], File.basename(params['dtb_image_name'])
     end
 
     def load_dtb_from_usbmsc(params)
