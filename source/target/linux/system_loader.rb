@@ -142,6 +142,13 @@ module SystemLoader
       append_text params, 'bootcmd', "load usb #{params['_env']['usbdev']} #{load_addr} #{filename}; "
     end
 
+    def load_file_from_rawmmc(params, load_addr, blk_num, cnt)
+      mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
+      append_text params, 'bootcmd', "#{mmc_init_cmd}; "
+      append_text params, 'bootcmd', "mmc dev #{params['_env']['mmcdev']}; "
+      append_text params, 'bootcmd', "mmc read #{load_addr} #{blk_num} #{cnt}; "
+    end
+
     def load_file_from_serial_now(params, load_addr, filename, timeout)
       # create a file with required commands
       create_serial_load_script(params, load_addr, filename, timeout)
@@ -164,6 +171,12 @@ module SystemLoader
       raise "load_file_from_mmc_now: no filename is provided." if !filename
       mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
       self.send_cmd(params, "#{mmc_init_cmd}; fatload mmc #{params['_env']['mmcdev']} #{load_addr} #{filename} ", @boot_prompt, timeout)
+    end
+
+    def load_file_from_rawmmc_now(params, load_addr, blk_num, cnt, timeout=60)
+      mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
+      self.send_cmd(params, "#{mmc_init_cmd}; mmc dev #{params['_env']['mmcdev']}; mmc read #{load_addr} #{blk_num} #{cnt}", @boot_prompt, timeout)
+      raise "rawmmc read failed" if !params['dut'].response.match(/read:\s+OK/i)
     end
 
     def load_file_from_usbmsc_now(params, load_addr, filename, timeout=60)
@@ -201,6 +214,11 @@ module SystemLoader
       fatwrite(params, "usb", "#{params['_env']['usbdev']}:1", mem_addr, filename, filesize, timeout)
     end
 
+    def write_file_to_rawmmc(params, mem_addr, blk_num, cnt, timeout)    
+      self.send_cmd(params, "mmc dev #{params['_env']['mmcdev']}; mmc write #{mem_addr} #{blk_num} #{cnt}", @boot_prompt, timeout)
+      raise "write rawmmc failed!" if !params['dut'].response.match(/written:\s+OK/i)
+    end
+
     def init_usbmsc(params, timeout)
       usb_init_cmd = "usb start"
       self.send_cmd(params, "#{usb_init_cmd}", @boot_prompt, timeout)
@@ -230,6 +248,8 @@ module SystemLoader
         #TODO: add erase_spi and write_file_to_spi functions
         erase_spi params, params["spi_#{part}_loc"], params['_env']['filesize'], timeout
         write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], params['_env']['filesize'], timeout
+      when 'rawmmc'
+        write_file_to_rawmmc params, params['_env']['loadaddr'], params["rawmmc_#{part}_loc"], params["rawmmc_#{part}_blkcnt"], timeout
       when 'mmc'
         if part.match(/primary_bootloader/)
           write_file_to_mmc_boot params, params['_env']['loadaddr'], "MLO", params['_env']['filesize'], timeout
@@ -329,6 +349,7 @@ module SystemLoader
           send_cmd params, uboot_cmd, nil, 2, false
         }
       end
+      send_cmd params, "setenv mmcdev '#{params['mmcdev']} '", nil, 2, false
       get_environment(params)
     end
   end
@@ -361,6 +382,8 @@ module SystemLoader
       case params['kernel_dev']
       when 'mmc'
         load_kernel_from_mmc params
+      when 'rawmmc'
+        load_kernel_from_rawmmc params
       when 'usbmsc'
         load_kernel_from_usbmsc params
       when 'nand'
@@ -379,6 +402,10 @@ module SystemLoader
     private
     def load_kernel_from_mmc(params)
       load_file_from_mmc params, params['_env']['kernel_loadaddr'], File.basename(params['kernel_image_name'])
+    end
+
+    def load_kernel_from_rawmmc(params)
+      load_file_from_rawmmc params, params['_env']['kernel_loadaddr'], params['rawmmc_kernel_loc'], params['rawmmc_kernel_blkcnt']
     end
 
     def load_kernel_from_usbmsc(params)
@@ -413,6 +440,8 @@ module SystemLoader
       case params['dtb_dev']
       when 'mmc'
         load_dtb_from_mmc params
+      when 'rawmmc'
+        load_dtb_from_rawmmc params
       when 'usbmsc'
         load_dtb_from_usbmsc params
       when 'nand'
@@ -433,6 +462,10 @@ module SystemLoader
     private
     def load_dtb_from_mmc(params)
       load_file_from_mmc params, params['_env']['dtb_loadaddr'], File.basename(params['dtb_image_name'])
+    end
+
+    def load_dtb_from_rawmmc(params)
+      load_file_from_rawmmc params, params['_env']['dtb_loadaddr'], params['rawmmc_dtb_loc'], params['rawmmc_dtb_blkcnt']
     end
 
     def load_dtb_from_usbmsc(params)
