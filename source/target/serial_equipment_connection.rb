@@ -27,7 +27,7 @@ class SerialEquipmentConnection < SerialBaseListenerClient
     end
     status = Timeout::timeout(timeout) {
         while (!listener.match) 
-            sleep 0.5
+            sleep 0.1
         end
     }
     rescue Timeout::Error => e
