@@ -120,10 +120,19 @@ class BaseLoader
   def stop_at_boot_prompt(params)
     dut = params['dut']
     dut.connect({'type'=>'serial'}) if !dut.target.serial
-    100.times { 
-      dut.send_cmd("", dut.boot_prompt, 0.5, false)
-      break if !dut.timeout?
+    b_prompt_th = Thread.new do
+      dut.send_cmd("", dut.boot_prompt, 10, false)
+    end
+    100.times {
+      dut.target.serial.puts("")
+      dut.target.serial.flush
+      s_time = Time.now()
+      while Time.now() - s_time < 0.1
+        #busy wait
+      end
+      break if !b_prompt_th.alive?
     }
+    b_prompt_th.join()
     raise "Failed to load bootloader" if dut.timeout?
   end
 
