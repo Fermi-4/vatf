@@ -364,7 +364,7 @@ module SystemLoader
         append_text params, 'bootargs', "ip=#{params['dut'].telnet_ip} "
         send_cmd params, "setenv ipaddr #{params['dut'].telnet_ip}"
       else
-        append_text params, 'bootargs', "ip=dhcp "
+        append_text params, 'bootargs', "ip=:::::eth0:dhcp "
         send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'", nil, 2, false
         send_cmd params, "setenv ipaddr dhcp"
         send_cmd params, "setenv autoload 'no'", nil, 2, false
