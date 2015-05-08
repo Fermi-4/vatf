@@ -107,6 +107,17 @@ module Equipment
       end
    
     end
+
+    class Keystone2Setup10gStep < SystemLoader::UbootStep
+      def initialize
+        super('keystone2_boot')
+      end
+      def run(params)
+        send_cmd params, "setenv run_fdt_1 'fdt addr ${addr_fdt}; fdt set /soc/netcp@2f00000 status \"ok\"' "
+        send_cmd params, "setenv run_fdt_2 'fdt set /soc/netcp@2f00000/cpswx@2f00000/slaves/slave0 link-interface <11>'"
+        send_cmd params, "setenv run_fdt_3 'fdt set /soc/netcp@2f00000/cpswx@2f00000/slaves/slave1 link-interface <11>'"
+      end
+    end
     
     class Keystone2SetRamfsStep < SystemLoader::UbootStep
       def initialize
@@ -161,6 +172,16 @@ module Equipment
       send_cmd params, "setenv no_post 1"
     end
     end
+
+     class Keystone2UBI10gBootCmdStep < SystemLoader::UbootStep
+      def initialize
+        super('keystone2_ubi_boot_cmd')
+      end
+
+      def run(params)
+        send_cmd params, "setenv bootcmd 'run init_${boot} get_fdt_${boot} get_mon_${boot} get_kern_${boot} run_mon run_fdt_1 run_fdt_2 run_fdt_3 run_kern'"
+      end
+    end
     
     class Keystone2ramfsBootCmdStep < SystemLoader::UbootStep
       def initialize
@@ -171,6 +192,16 @@ module Equipment
         send_cmd params, "setenv bootcmd 'tftp #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']}; tftp #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']}; \
 tftp #{params['_env']['ramdisk_loadaddr']} #{params['fs_image_name']}; tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
 mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}'" 
+      end
+    end
+
+     class Keystone2ramfs10gBootCmdStep < SystemLoader::UbootStep
+      def initialize
+        super('keystone2_ramfs_boot_cmd')
+      end
+
+      def run(params)
+        send_cmd params, "setenv bootcmd 'tftp #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']};tftp #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']}; tftp #{params['_env']['ramdisk_loadaddr']} #{params['fs_image_name']};tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};mon_install #{params['_env']['mon_addr']};run init_${boot} get_fdt_${boot} get_mon_${boot} get_kern_${boot} run_mon run_fdt_1 run_fdt_2 run_fdt_3 run_kern'"
       end
     end
     
@@ -185,6 +216,19 @@ tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
 mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}'" 
       end
     end
+
+     class Keystone2nfs10gBootCmdStep < SystemLoader::UbootStep
+      def initialize
+        super('keystone2_nfs_boot_cmd')
+      end
+
+      def run(params)
+        send_cmd params, "setenv bootcmd 'tftp #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']}; tftp #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']}; \
+tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
+mon_install #{params['_env']['mon_addr']}; run init_${boot} get_fdt_${boot} get_mon_${boot} get_kern_${boot} run_mon run_fdt_1 run_fdt_2 run_fdt_3 run_kern'"
+      end
+    end
+
     class Keystone2SecBMInstall < SystemLoader::UbootStep
       def initialize
         super('keystone2_sec_bm_install')
@@ -207,6 +251,11 @@ mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadad
         puts "This is a secure device"
         params['secdev'] = true
       end
+      if @id.include? "10g"
+        puts "This is a Eth 10g test"
+        params['10g'] = true
+      end
+
       if params.has_key?("var_use_default_env")
       # do nothing
       else
@@ -217,26 +266,41 @@ mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadad
           @system_loader.insert_step_before('kernel', SetDefaultEnvStep.new)
           @system_loader.insert_step_before('kernel', PrepStep.new)
           @system_loader.insert_step_before('kernel', SetIpStep.new)
+          if params['10g'] == true
+            @system_loader.insert_step_before('kernel', Keystone2Setup10gStep.new)
+          end
           @system_loader.insert_step_before('fs', SkernStep.new)
           @system_loader.insert_step_before('boot', SaveEnvStep.new)
           @system_loader.insert_step_before('fs', Keystone2InstallMon.new)
           case params['fs_type']
           when /ramfs/i
             puts "*********** Setting system loader to ramfs "
-            @system_loader.replace_step('boot_cmd', Keystone2ramfsBootCmdStep.new)
+            if params['10g'] == true
+              @system_loader.replace_step('boot_cmd', Keystone2ramfs10gBootCmdStep.new)
+            else
+              @system_loader.replace_step('boot_cmd', Keystone2ramfsBootCmdStep.new)
+            end
             @system_loader.replace_step('fs', Keystone2SetRamfsStep.new)
           when /ubifs/i
             puts "*********** Setting system loader to ubifs "
             @system_loader.insert_step_before('kernel', Keystone2UBIStep.new)
-            @system_loader.replace_step('boot_cmd', Keystone2UBIBootCmdStep.new)
-            @system_loader.insert_step_before('keystone2_ubi_boot_cmd', SetDefaultEnvStep.new)
+            if params['10g'] == true
+              @system_loader.replace_step('boot_cmd', Keystone2UBI10gBootCmdStep.new)
+            else
+              @system_loader.replace_step('boot_cmd', Keystone2UBIBootCmdStep.new)
+              @system_loader.insert_step_before('keystone2_ubi_boot_cmd', SetDefaultEnvStep.new)
+            end
             @system_loader.remove_step('kernel')
             @system_loader.remove_step('dtb')
             @system_loader.remove_step('fs')
             @system_loader.remove_step('skern')
           when /nfs/i
             puts "*********** Setting system loader to nfs "
-            @system_loader.replace_step('boot_cmd', Keystone2nfsBootCmdStep.new)
+            if params['10g'] == true
+              @system_loader.replace_step('boot_cmd', Keystone2nfs10gBootCmdStep.new)
+            else
+              @system_loader.replace_step('boot_cmd', Keystone2nfsBootCmdStep.new)
+            end
           end
       end
     end
