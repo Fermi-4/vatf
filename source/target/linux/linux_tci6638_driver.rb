@@ -64,7 +64,7 @@ module Equipment
           params['fs_options'] = " rdinit=/sbin/init initrd=0x802000000,#{params['fs_size']}M"
           params['ram_id'] = 0
         when /nfs/i
-          params['fs_options'] = ",v3,tcp,rsize=4096,wsize=4096 ip=eth0:dhcp rootfstype=nfs"
+          params['fs_options'] = ",v3,tcp,rsize=4096,wsize=4096 rootfstype=nfs"
         end
         params['extra_cmds'] = []
         params['extra_cmds'] << "saveenv"
