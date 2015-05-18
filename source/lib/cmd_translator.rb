@@ -60,7 +60,7 @@ module CmdTranslator
                            'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3_2/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',
                            'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3_2/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',} ),
                     '3.14' => Hash.new('').merge!(
-                          {'am335x-evm' => 'lst=`find /sys/devices/ocp.3/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',
+                          {'am335x-evm' => 'lst=`find /sys/devices/ocp/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',
                            'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',} ),
     },
     'disable_usb_wakeup' => { 
@@ -69,7 +69,7 @@ module CmdTranslator
                            'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3_2/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
                            'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3_2/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
                     '3.14' => Hash.new('').merge!(
-                          {'am335x-evm' => 'lst=`find /sys/devices/ocp.3/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
+                          {'am335x-evm' => 'lst=`find /sys/devices/ocp/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
                            'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/ocp2scp.* -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
                            'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/ocp2scp.* -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
     },
