@@ -79,7 +79,7 @@ module CmdTranslator
                            'am43xx-epos'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',
                            'am43xx-gpevm'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',} ),
                     '3.14' => Hash.new('').merge!(
-                          {'am335x-evm' => 'echo disabled > /sys/devices/ocp.3/44e0d000.tscadc/power/wakeup',
+                          {'am335x-evm' => 'echo disabled > /sys/devices/ocp/44e0d000.tscadc/power/wakeup',
                            'am43xx-epos'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',
                            'am43xx-gpevm'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',} ),
     },
