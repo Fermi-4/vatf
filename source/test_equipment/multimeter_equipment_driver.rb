@@ -46,12 +46,9 @@ module TestEquipment
        sleep 5    # Make sure multimeter is configured and DUT is in the right state
        volt_reading = []
        counter=0
-       regexp = ""
-       for i in (2..@number_of_channels)
-        regexp = regexp + ".+?,"
-       end 
+       regexp = /([\+\-]\d\.\d+E[\+\-]\d{2},*){#{@number_of_channels}}/
        while counter < loop_count 
-	        send_cmd("READ?", /#{regexp}[^\s]+/, timeout, false)
+	        send_cmd("READ?", regexp, timeout, false)
           volt_reading << response
 	        counter += 1
        end
