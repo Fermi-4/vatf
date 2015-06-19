@@ -66,6 +66,9 @@ module CmdTranslator
                     '3.14' => Hash.new('').merge!(
                           {'am335x-evm' => 'lst=`find /sys/devices/ocp/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',
                            'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/483c0000.omap_dwc3/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',} ),
+                    '3.14.43' => Hash.new('').merge!(
+                          {'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',
+                           'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',} ),
     },
     'disable_usb_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
@@ -76,6 +79,9 @@ module CmdTranslator
                           {'am335x-evm' => 'lst=`find /sys/devices/ocp/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
                            'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/ocp2scp.* -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
                            'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/ocp2scp.* -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
+                    '3.14.43' => Hash.new('').merge!(
+                          {'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
+                           'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
     },
     'disable_tsc_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
