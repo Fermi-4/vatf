@@ -30,9 +30,9 @@ describe AudioIOInfo do
 
   methods.each do |method|
     describe "##{method}" do
-      it { @audio.should respond_to(method) }
-      it { @audio.should respond_to(method).with(0).arguments }
-      it { @audio.should respond_to((method.to_s + "=").to_sym).with(1).argument }
+      it { expect(@audio).to respond_to(method) }
+      it { expect(@audio).to respond_to(method).with(0).arguments }
+      it { expect(@audio).to respond_to((method.to_s + "=").to_sym).with(1).argument }
     end
   end
 end

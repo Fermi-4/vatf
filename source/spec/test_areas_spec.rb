@@ -7,10 +7,11 @@ include TestAreas
 describe TestAreas do
   describe "#get_matrices" do
     it "returns an Array" do
-      get_matrices(Dir.tmpdir, Dir.tmpdir, "test_area").should be_an_instance_of Array
-    end
+      matrices = get_matrices(Dir.tmpdir, Dir.tmpdir, "test_area")
 
-    it { get_matrices(Dir.tmpdir, Dir.tmpdir, "test_area").should be_empty }
+      expect(matrices).to be_an_instance_of Array
+      expect(matrices).to be_empty
+    end
   end
 
   describe "#get_rtps" do
@@ -21,7 +22,8 @@ describe TestAreas do
         }
       }
 
-      get_rtps(rtp_val, Dir.tmpdir, Dir.tmpdir).should be_an_instance_of Array
+      rtps = get_rtps(rtp_val, Dir.tmpdir, Dir.tmpdir)
+      expect(rtps).to be_an_instance_of Array
     end
 
     it "returns the path" do
@@ -32,7 +34,7 @@ describe TestAreas do
       }
 
       arr = get_rtps(rtp_val, Dir.tmpdir, Dir.tmpdir)
-      arr[0].path.should eq "test"
+      expect(arr[0].path).to eq "test"
     end
   end
 end

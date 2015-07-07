@@ -3,3 +3,5 @@ RSpec.configure do |config|
   config.filter_run :focus
   config.order = 'random'
 end
+
+RSpec::Expectations.configuration.warn_about_potential_false_positives = false

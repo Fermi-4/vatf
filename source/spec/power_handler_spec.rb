@@ -14,15 +14,15 @@ describe PowerHandler do
   end
 
   describe "#power_controllers" do
-    it { @power.should respond_to(:power_controllers) }
-    it { @power.power_controllers.should be_an_instance_of Hash }
+    it { expect(@power).to respond_to(:power_controllers) }
+    it { expect(@power.power_controllers).to be_an_instance_of Hash }
     it "raises error when trying to modify power_controllers Hash" do
       expect { @power.power_controllers = nil }.to raise_error
     end
   end
 
   describe "#load_power_ports" do
-    it { @power.should respond_to(:load_power_ports).with(1).arguments }
+    it { expect(@power).to respond_to(:load_power_ports).with(1).arguments }
 
     it "does not raise error with nil argument" do
       expect { @power.load_power_ports(nil) }.to_not raise_error
@@ -30,14 +30,14 @@ describe PowerHandler do
   end
 
   describe "#disconnect" do
-    it { @power.should respond_to(:disconnect).with(0).arguments }
+    it { expect(@power).to respond_to(:disconnect).with(0).arguments }
     it "disconnects a port" do
       expect { @power.disconnect }.to_not raise_error
     end
   end
 
   describe "#get_status" do
-    it { @power.should respond_to(:get_status).with(1).argument }
+    it { expect(@power).to respond_to(:get_status).with(1).argument }
 
     it "doesn't raise and error" do
       controller = double("power_controller", :get_status => "ON")
@@ -48,7 +48,7 @@ describe PowerHandler do
   end
 
   describe "#switch_on" do
-    it { @power.should respond_to(:switch_on).with(1).argument }
+    it { expect(@power).to respond_to(:switch_on).with(1).argument }
 
     it "doesn't raise and error" do
       controller = double("power_controller", :switch_on => 0)
@@ -59,7 +59,7 @@ describe PowerHandler do
   end
 
   describe "#switch_off" do
-    it { @power.should respond_to(:switch_off).with(1).argument }
+    it { expect(@power).to respond_to(:switch_off).with(1).argument }
 
     it "doesn't raise and error" do
       controller = double("power_controller", :switch_off => 0)
@@ -70,7 +70,7 @@ describe PowerHandler do
   end
 
   describe "#reset" do
-    it {@power.should respond_to(:reset).with(1).argument }
+    it {expect(@power).to respond_to(:reset).with(1).argument }
 
     it "doesn't raise and error" do
       controller = double("power_controller", :reset => 0)

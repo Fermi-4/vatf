@@ -13,13 +13,13 @@ describe EquipmentInfo do
   end
 
   describe "#id" do
-    it { @equipment.should respond_to(:id) }
-    it { @equipment.id.should eq "linux_power_sd_sdhc_usbhosthid_usbhostmsc" }
+    it { expect(@equipment).to respond_to(:id) }
+    it { expect(@equipment.id).to eq "linux_power_sd_sdhc_usbhosthid_usbhostmsc" }
   end
 
   describe "#name" do
-    it { @equipment.should respond_to(:name) }
-    it { @equipment.name.should eq "test" }
+    it { expect(@equipment).to respond_to(:name) }
+    it { expect(@equipment.name).to eq "test" }
   end
 
   methods = [
@@ -58,9 +58,9 @@ describe EquipmentInfo do
 
   methods.each do |method|
     describe "##{method}" do
-      it { @equipment.should respond_to(method) }
-      it { @equipment.should respond_to(method).with(0).arguments }
-      it { @equipment.should respond_to((method.to_s + "=").to_sym).with(1).argument }
+      it { expect(@equipment).to respond_to(method) }
+      it { expect(@equipment).to respond_to(method).with(0).arguments }
+      it { expect(@equipment).to respond_to((method.to_s + "=").to_sym).with(1).argument }
     end
   end
 end

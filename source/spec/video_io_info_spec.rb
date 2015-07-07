@@ -34,9 +34,9 @@ describe VideoIOInfo do
 
   methods.each do |method|
     describe "##{method}" do
-      it { @video.should respond_to(method) }
-      it { @video.should respond_to(method).with(0).arguments }
-      it { @video.should respond_to((method.to_s + "=").to_sym).with(1).argument }
+      it { expect(@video).to respond_to(method) }
+      it { expect(@video).to respond_to(method).with(0).arguments }
+      it { expect(@video).to respond_to((method.to_s + "=").to_sym).with(1).argument }
     end
   end
 end
