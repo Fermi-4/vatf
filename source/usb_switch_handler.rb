@@ -12,7 +12,7 @@ class UsbSwitchHandler
 			end
 		end
 	rescue Exception => e
-		raise e.to_s+"\nUnable to create power controller: " + io_info.to_s
+		raise e.to_s+"\nUnable to create usb switch controller: " + io_info.to_s
 	end
 
 	def disconnect(switch)
