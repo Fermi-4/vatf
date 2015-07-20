@@ -1,10 +1,17 @@
-
 class PowerHandler
   attr_reader :power_controllers
-  def initialize()
+
+  def initialize
     @power_controllers = Hash.new
+
+    [:get_status, :switch_on, :switch_off].each do |method|
+      define_singleton_method(method) do |p_port|
+        call(method, p_port)
+      end
+    end
+
   end
-	
+
   def load_power_ports(lio_info)
     return if !lio_info
     io_info = lio_info
@@ -23,55 +30,33 @@ class PowerHandler
   def disconnect
     @power_controllers.each_value { |val| val.disconnect()}
   end
-	
-  def get_status(p_port)
-    power_port = p_port
-    power_port = [p_port] if !p_port.kind_of?(Array)
-    power_port.each {
-      port_info.each{|key,val|
-        @power_controllers[key.to_s.downcase].get_status(val)
-      }
-    }
-  end
-	
-  def switch_on(p_port)
-    power_port = p_port
-    power_port = [p_port] if !p_port.kind_of?(Array)
-    power_port.each { |port_info|
-      port_info.each{|key,val|
-        @power_controllers[key.to_s.downcase].switch_on(val)
-      }
-    }
-  end
-	
-  def switch_off(p_port)
-    power_port = p_port
-    power_port = [p_port] if !p_port.kind_of?(Array)
-    power_port.each { |port_info|
-      port_info.each{|key,val|
-        @power_controllers[key.to_s.downcase].switch_off(val)
-      }
-    }
-  end
-	
+
   def reset(p_port)
     power_port = p_port
     power_port = [p_port] if !p_port.kind_of?(Array)
     power_port.each {|power_port_element|
-      power_port_element.each {|key,val|
-        puts "Turning off port #{val} at #{key}\n"
-        @power_controllers[key.to_s.downcase].switch_off(val)
-      }
+      switch_off(power_port_element)
       sleep 1
-      power_port_element.each {|key,val|
-        puts "Turning on port #{val} at #{key}\n"
-        @power_controllers[key.to_s.downcase].switch_on(val)
-      }
+      switch_on(power_port_element)
       # Sleep extra on first power port if there are multiple ports
       # First port most likely controls USB power so allow extra time
       sleep 3 if (power_port.size > 1 and power_port.index(power_port_element) == 0)
     }
   end
-  
+
+  private
+    def call(method, p_port)
+      power_port = p_port
+      power_port = [p_port] if !p_port.kind_of?(Array)
+      power_port.each do |port_info|
+        port_info.each do |key, val|
+         v_arr = val
+         v_arr = [val] if !val.kind_of?(Array)
+         v_arr.each do |v|
+           puts "Calling #{method} on port #{v} at #{key} ..."
+           @power_controllers[key.to_s.downcase].send(method, v)
+         end
+        end
+      end
+    end
 end
-  
