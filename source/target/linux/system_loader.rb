@@ -713,6 +713,7 @@ module SystemLoader
     end
 
     def run(params)
+      send_cmd params, 'version'
       send_cmd params, 'bdinfo'
     end
   end
