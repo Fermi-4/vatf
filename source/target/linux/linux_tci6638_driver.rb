@@ -191,7 +191,8 @@ module Equipment
       def run(params)
         send_cmd params, "setenv bootcmd 'tftp #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']}; tftp #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']}; \
 tftp #{params['_env']['ramdisk_loadaddr']} #{params['fs_image_name']}; tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
-mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}'" 
+mon_install #{params['_env']['mon_addr']}; if iminfo #{params['_env']['kernel_loadaddr']}; then bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']};\
+else bootz #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}; fi'"
       end
     end
 
@@ -213,7 +214,8 @@ mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadad
       def run(params)
         send_cmd params, "setenv bootcmd 'tftp #{params['_env']['kernel_loadaddr']} #{params['kernel_image_name']}; tftp #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']}; \
 tftp #{params['_env']['mon_addr']} #{params['skern_image_name']};\
-mon_install #{params['_env']['mon_addr']}; bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}'" 
+mon_install #{params['_env']['mon_addr']}; if iminfo #{params['_env']['kernel_loadaddr']}; then bootm #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']};\
+else bootz #{params['_env']['kernel_loadaddr']} - #{params['_env']['dtb_loadaddr']}; fi'"
       end
     end
 
