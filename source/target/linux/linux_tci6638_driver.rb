@@ -126,11 +126,11 @@ module Equipment
       def run(params)
         params['ram_id'] = "" if !params['ram_id']
         params['fs_options'] = "" if !params['fs_options']
-        case params['fs_dev']
+        case params['fs_src_dev']
         when /eth/i
           load_file_from_eth params, params['_env']['ramdisk_loadaddr'], params['fs_image_name']
         else
-          raise "Don't know how to get ramfs image from #{params['fs_dev']}"
+          raise "Don't know how to get ramfs image from #{params['fs_src_dev']}"
         end
         append_text params, 'bootargs', "root=/dev/ram#{params['ram_id']} rw#{params['fs_options']} "
       end
