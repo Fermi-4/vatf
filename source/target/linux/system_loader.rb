@@ -758,9 +758,9 @@ module SystemLoader
         init_usbmsc(params, 20)
         write_file_to_usbmsc_boot params, params['_env']['loadaddr'], "ws-calibrate.rules", 4, 10
       else
-        mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
-        self.send_cmd(params, "#{mmc_init_cmd}", @boot_prompt)
         begin
+          mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
+          self.send_cmd(params, "#{mmc_init_cmd}; echo $?", /^0/)
           write_file_to_mmc_boot params, params['_env']['loadaddr'], "ws-calibrate.rules", 4, 10
         rescue
           puts "WARNING...Could not fatwrite 'ws-calibrate.rules' to MMC boot partition!"
