@@ -490,6 +490,35 @@ module SystemLoader
 
   end
 
+  class SkernStep < SystemLoader::UbootStep
+    def initialize
+      super('skern')
+    end
+    def run(params)
+        case params['skern_dev']
+        when 'eth'
+          load_skern_from_eth params
+          append_text params, 'bootcmd', "mon_install #{params['_env']['mon_addr']};"
+        when 'ubi'
+          load_skern_from_ubi params
+          append_text params, 'bootcmd', "mon_install #{params['_env']['mon_addr']};"
+        when 'none'
+          # Do nothing
+        else
+          raise "Don't know how to load skern from #{params['skern_dev']}"
+      end
+    end
+    private
+    def load_skern_from_eth(params)
+      load_file_from_eth_now params, params['_env']['mon_addr'], params['skern_image_name']
+    end
+
+    def load_skern_from_ubi(params)
+      append_text params, 'bootcmd', "ubifsload #{params['_env']['mon_addr']} #{params['skern_image_name']};"
+    end
+
+  end
+
   class FSStep < UbootStep
     def initialize
       super('fs')
@@ -803,6 +832,7 @@ module SystemLoader
       add_step( SetIpStep.new )
       add_step( KernelStep.new )
       add_step( DTBStep.new )
+      add_step( SkernStep.new )
       add_step( FSStep.new )
       add_step( BootCmdStep.new )
       add_step( BoardInfoStep.new )
