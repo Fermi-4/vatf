@@ -1,4 +1,9 @@
 module CmdTranslator
+  @dict_bmc = {
+    'uart_bootmode' => { '0.0' => "bootmode #4\n\r"},
+    'reboot'        => { '0.0' => "reboot\n\r"},
+  }
+
   @dict_uboot = {
     'mmc init' => { '0.0'     => 'mmc init', 
                     '2008.10' => 'mmc init', 
@@ -241,16 +246,19 @@ module CmdTranslator
          }
 
   # user pass params['cmd'] and params['version']
+  def self.get_bmc_cmd(params)
+    params.merge!({'dict' => @dict_bmc})
+    get_cmd(params)
+  end
+
   def self.get_uboot_cmd(params)  
     params.merge!({'dict' => @dict_uboot})
     get_cmd(params)
-    
   end
 
   def self.get_ubuntu_cmd(params)  
     params.merge!({'dict' => @dict_ubuntu})
     get_cmd(params)
-    
   end
 
   def self.get_linux_cmd(params)
