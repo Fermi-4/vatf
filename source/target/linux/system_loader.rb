@@ -677,7 +677,7 @@ module SystemLoader
             varvalue = line.sub(varname + '=', '')
             newvalue = varvalue.gsub(/bootm\s+/, "setenv bootargs ${bootargs} ${extraargs}; bootm ")
             newvalue = newvalue.gsub(/bootz\s+/, "setenv bootargs ${bootargs} ${extraargs}; bootz ")
-            send_cmd params, "setenv #{varname} \'#{newvalue}\'", params['dut'].boot_prompt, 10
+            send_cmd params, "setenv #{varname.strip} \'#{newvalue.strip}\'", params['dut'].boot_prompt, 10
           end
         }
       end
