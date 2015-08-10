@@ -5,13 +5,14 @@ require File.dirname(__FILE__)+'/ccs_equipment_connection'
 require File.dirname(__FILE__)+'/tcp_ip_equipment_connection'
 
 class EquipmentConnection
-  attr_reader :default, :telnet, :serial, :ccs, :tcp_ip
+  attr_reader :default, :telnet, :serial, :ccs, :tcp_ip, :bmc
   attr_accessor :platform_info
   def initialize(platform_info)
     @platform_info = platform_info
     @default = nil
     @telnet = nil
     @serial = nil
+    @bmc    = nil
     @ccs    = nil
     @tcp_ip = nil
   end
@@ -41,6 +42,19 @@ class EquipmentConnection
         puts "Serial connection already exists, using existing connection"
       end
       @default = @serial if !@default || params['force_connect']
+
+    when 'bmc'
+      if !@bmc || @bmc.closed?
+        if @platform_info.params['bmc_port'].to_s.strip != ''
+          mod_platform_info = @platform_info.clone
+          mod_platform_info.serial_port = @platform_info.params['bmc_port']
+          mod_platform_info.prompt = @platform_info.params['bmc_prompt']
+          @bmc = SerialEquipmentConnection.new(mod_platform_info)
+        end
+        @bmc.start_listening
+      else
+        puts "BMC connection already exists, using existing connection"
+      end
 
     when 'ccs'
       if !@ccs
@@ -73,6 +87,10 @@ class EquipmentConnection
       @serial.disconnect if @serial
       @serial = nil
       @default = nil if type.downcase.strip == 'all' || !@telnet
+    end
+    if type == 'bmc' || type == 'all'
+      @bmc.disconnect if @bmc
+      @bmc = nil
     end
     if type == 'ccs' || type == 'all'
       @ccs.disconnect if @ccs
