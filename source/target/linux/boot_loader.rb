@@ -19,6 +19,13 @@ module BootLoader
     params['bootloader_class'].create_bootloader_load_script_uart_ti_min(params)
     params['bootloader_class'].run_bootloader_load_script(params)
   end
+
+  def LOAD_FROM_SERIAL_UBOOT(params)
+    puts "########LOAD_FROM_SERIAL########"
+    params.merge!({'bootloader_load_script_name' => 'uart-u-boot.sh'})
+    params['bootloader_class'].create_bootloader_load_script_uart_uboot(params)
+    params['bootloader_class'].run_bootloader_load_script(params)
+  end
   
   def LOAD_FROM_ETHERNET(params)
     raise "Loading bootloader from ethernet is not supported on default device"
@@ -100,14 +107,55 @@ class BaseLoader
     File.chmod(0755, script)
   end
 
+  def create_bootloader_load_script_uart_uboot(params)
+    script = File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name'])
+    File.open(script, "w") do |file|
+      sleep 1
+      file.puts "#!/bin/bash"
+      # Run stty to set the baud rate.
+      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
+      # Send SPL as xmodem, 2 minute timeout.
+      file.puts "/usr/bin/timeout 120 /usr/bin/sx -k --xmodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
+      # If we timeout or don't return cleanly (transfer failed), return 1
+      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
+      # Send an echo to be sure that we will break into autoboot.
+      file.puts "echo > #{params['dut'].serial_port}"
+      # Return success.
+      file.puts "exit 0"
+    end
+    File.chmod(0755, script)
+  end
+
   def run_bootloader_load_script(params)
+    dut = params['dut']
     # Kill anything which has the serial port open already.
     3.times { break if kill_tasks_holding_serial_port(params) }
     # Ensure the board is reset.
-    params['dut'].power_cycle(params)
+    dut.power_cycle(params)
     # Make sure that we're ready to catch the board coming out of reset
-    sleep 2
-    params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 240)
+    sleep 1
+    tx_thread = Thread.new do
+      params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 240)
+    end
+    if dut.params and dut.params.key? 'bmc_port'
+      bmc_trigger_uart_boot(dut)
+    end
+    tx_thread.join()
+  end
+
+  def bmc_trigger_uart_boot(dut)
+    prompt = dut.params.key?('bmc_prompt') ? dut.params['bmc_prompt'] : />/
+    sleep 3
+    dut.connect({'type'=>'bmc'})
+    3.times {
+      begin
+        dut.target.bmc.send_cmd("\n\r", prompt, 2, false)
+      rescue Exception => e
+        puts "Timeout waiting for prompt"
+      end
+    }
+    dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>'uart_bootmode', 'version'=>'1.0'}), prompt, 3, false )
+    dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>'reboot', 'version'=>'1.0'}), prompt, 10, false )
   end
 
   def kill_tasks_holding_serial_port(params)
