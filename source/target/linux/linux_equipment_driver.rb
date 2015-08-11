@@ -75,7 +75,7 @@ module Equipment
     def set_bootloader(params)
       @boot_loader = case params['primary_bootloader_dev']
       when /uart/i
-        BaseLoader.new method(:LOAD_FROM_SERIAL)
+        BaseLoader.new method( get_uart_boot_method(@name) )
       when /eth/i
         BaseLoader.new method(:LOAD_FROM_ETHERNET)
       else
