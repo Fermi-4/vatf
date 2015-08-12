@@ -349,7 +349,7 @@ module SystemLoader
           send_cmd params, uboot_cmd, nil, 2, false
         }
       end
-      send_cmd params, "setenv mmcdev '#{params['mmcdev']} '", nil, 2, false
+      send_cmd params, "setenv mmcdev '#{params['mmcdev']} '", nil, 2, false if params.has_key?('mmcdev')
       get_environment(params)
     end
   end
@@ -656,7 +656,6 @@ module SystemLoader
     def run(params)
       get_uboot_version params
       send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'env default', 'version'=>@@uboot_version})
-      send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'fdt_board_name', 'version'=>@@uboot_version, 'platform'=>params['platform']})
       send_cmd params, "printenv"
     end
   end
@@ -744,6 +743,17 @@ module SystemLoader
     def run(params)
       send_cmd params, 'version'
       send_cmd params, 'bdinfo'
+    end
+  end
+
+  class PowerCycleStep < UbootStep
+    def initialize
+      super('power_cycle')
+    end
+
+    def run(params)
+      params['dut'].disconnect('serial')
+      params['dut'].boot_to_bootloader(params)
     end
   end
 
@@ -847,9 +857,9 @@ module SystemLoader
 
     def initialize
       super
-      add_step( PrepStep.new )
       add_step( SetDefaultEnvStep.new )
-      add_step( SetIpStep.new )
+      add_step( SaveEnvStep.new )
+      add_step( PowerCycleStep.new )
       add_step( BoardInfoStep.new )
       add_step( TouchCalStep.new )
       add_step( BootStep.new )
