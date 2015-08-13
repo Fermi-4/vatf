@@ -1,5 +1,6 @@
 require File.dirname(__FILE__)+'/base_atf_xml_handler'
-require 'active_record'
+require 'active_support/core_ext/hash/conversions'
+
 module ATFDBHandlers
 =begin
   Base Database handler class.
@@ -262,7 +263,7 @@ end
 class UndefinedSwAsset < Exception
 end
 
-class PerfData < ActiveRecord::Base
+class PerfData < Hash
   def initialize(attr)
     @attributes = attr
   end

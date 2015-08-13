@@ -2,6 +2,7 @@ require 'rexml/document'
 require File.dirname(__FILE__)+'/../framework_constants'
 require File.dirname(__FILE__)+'/ruby_staf_handler'
 require File.dirname(__FILE__)+'/base_handler'
+require 'active_support/core_ext/hash/conversions'
 
 module ATFDBHandlers
 =begin
