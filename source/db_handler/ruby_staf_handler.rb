@@ -6,7 +6,7 @@ if(system("staf local service help"))
     require File.dirname(__FILE__)+'/staf/windows/STAFHandle'
   elsif OsFunctions::is_linux?
     if OsFunctions::is_64bit? 
-      require File.dirname(__FILE__)+'/staf/linux/64bit/STAFHandle'
+      require File.dirname(__FILE__)+'/staf/linux/64bit/' + RUBY_VERSION.match(/^\d+\.\d+/)[0] + '/STAFHandle'
     else
       require File.dirname(__FILE__)+'/staf/linux/32bit/STAFHandle'
     end
