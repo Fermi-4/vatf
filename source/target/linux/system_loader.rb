@@ -340,16 +340,16 @@ module SystemLoader
 
     def run(params)
       get_uboot_version params
-      send_cmd params, "setenv bootargs '#{params['bootargs']} '", nil, 2, false
-      send_cmd params, "setenv bootcmd  ''", nil, 2, false
-      send_cmd params, "setenv autoload 'no'", nil, 2, false
-      send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'", nil, 2, false
+      send_cmd params, "setenv bootargs '#{params['bootargs']} '", '', 2, false
+      send_cmd params, "setenv bootcmd  ''", '', 2, false
+      send_cmd params, "setenv autoload 'no'", '', 2, false
+      send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'", '', 2, false
       if  params.has_key?'uboot_user_cmds'
         params['uboot_user_cmds'].each{|uboot_cmd|
           send_cmd params, uboot_cmd, nil, 2, false
         }
       end
-      send_cmd params, "setenv mmcdev '#{params['mmcdev']} '", nil, 2, false if params.has_key?('mmcdev')
+      send_cmd params, "setenv mmcdev '#{params['mmcdev']} '", '', 2, false if params.has_key?('mmcdev')
       get_environment(params)
     end
   end
@@ -365,9 +365,9 @@ module SystemLoader
         send_cmd params, "setenv ipaddr #{params['dut'].telnet_ip}"
       else
         append_text params, 'bootargs', "ip=:::::eth0:dhcp "
-        send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'", nil, 2, false
+        send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'", '', 2, false
         send_cmd params, "setenv ipaddr dhcp"
-        send_cmd params, "setenv autoload 'no'", nil, 2, false
+        send_cmd params, "setenv autoload 'no'", '', 2, false
         send_cmd params, "dhcp", @boot_prompt, 60 
       end
     end
@@ -421,7 +421,6 @@ module SystemLoader
     end
 
     def load_kernel_from_eth(params)
-      send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'"
       load_file_from_eth_now params, params['_env']['kernel_loadaddr'], params['kernel_image_name']
     end
    
