@@ -50,6 +50,10 @@ module CmdTranslator
                           {'dra7xx-evm' => 'echo enabled > /sys/devices/44000000.ocp/4806a000.serial/tty/ttyS0/power/wakeup',
                            'am57xx-evm' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48020000.serial/tty/ttyS2/power/wakeup',
                           }),
+                    '4.1' => Hash.new('').merge!(
+                          {'dra7xx-evm' => 'echo enabled > /sys/devices/platform/44000000.ocp/4806a000.serial/tty/ttyS0/power/wakeup',
+                           'am57xx-evm' => 'echo -n "enabled" > /sys/devices/platform/44000000.ocp/48020000.serial/tty/ttyS2/power/wakeup',
+                          }),
     },
     'enable_usb_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
@@ -63,6 +67,10 @@ module CmdTranslator
                           {'am335x-evm' => 'lst=`find /sys/devices/ocp/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',
                            'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',
                            'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',} ),
+                    '4.1' => Hash.new('').merge!(
+                          {'am335x-evm' => 'lst=`find /sys/devices/platform/ocp/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',
+                           'am43xx-epos' => 'lst=`find /sys/devices/platform/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',
+                           'am43xx-gpevm' => 'lst=`find /sys/devices/platform/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo enabled > $ent; done',} ),
     },
     'disable_usb_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
@@ -77,6 +85,10 @@ module CmdTranslator
                           {'am335x-evm' => 'lst=`find /sys/devices/ocp/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
                            'am43xx-epos' => 'lst=`find /sys/devices/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
                            'am43xx-gpevm' => 'lst=`find /sys/devices/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
+                    '4.1' => Hash.new('').merge!(
+                          {'am335x-evm' => 'lst=`find /sys/devices/platform/ocp/47400000.usb/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
+                           'am43xx-epos' => 'lst=`find /sys/devices/platform/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
+                           'am43xx-gpevm' => 'lst=`find /sys/devices/platform/44000000.ocp/*ocp2scp*/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
     },
     'disable_tsc_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
@@ -87,6 +99,10 @@ module CmdTranslator
                           {'am335x-evm' => 'echo disabled > /sys/devices/ocp/44e0d000.tscadc/power/wakeup',
                            'am43xx-epos'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',
                            'am43xx-gpevm'=> 'echo disabled > /sys/devices/44000000.ocp/44e0d000.tscadc/power/wakeup',} ),
+                    '4.1' => Hash.new('').merge!(
+                          {'am335x-evm' => 'echo disabled > /sys/devices/platform/ocp/44e0d000.tscadc/power/wakeup',
+                           'am43xx-epos'=> 'echo disabled > /sys/devices/platform/44000000.ocp/44e0d000.tscadc/power/wakeup',
+                           'am43xx-gpevm'=> 'echo disabled > /sys/devices/platform/44000000.ocp/44e0d000.tscadc/power/wakeup',} ),
     },
     'disable_adc_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
@@ -107,10 +123,14 @@ module CmdTranslator
     'enable_palmas_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
                           {'am57xx-evm' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48070000.i2c/i2c-0/0-0058/power/wakeup',} ),
+                    '4.1' => Hash.new('').merge!(
+                          {'am57xx-evm' => 'echo -n "enabled" > /sys/devices/platform/44000000.ocp/48070000.i2c/i2c-0/0-0058/power/wakeup',} ),
     },
     'enable_rtc_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
                           {'am57xx-evm' => 'echo -n "enabled" > /sys/devices/44000000.ocp/48060000.i2c/i2c-2/2-006f/power/wakeup',} ),
+                    '4.1' => Hash.new('').merge!(
+                          {'am57xx-evm' => 'echo -n "enabled" > /sys/devices/platform/44000000.ocp/48060000.i2c/i2c-2/2-006f/power/wakeup',} ),
     },
 
     'nand_kernel_part_name' => {
