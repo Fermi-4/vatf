@@ -137,7 +137,7 @@ module SystemLoader
     end
 
     def load_file_from_usbmsc(params, load_addr, filename)
-      usb_init_cmd = "usb start"
+      usb_init_cmd = "usb stop; usb start"
       append_text params, 'bootcmd', "#{usb_init_cmd}; "
       append_text params, 'bootcmd', "load usb #{params['_env']['usbdev']} #{load_addr} #{filename}; "
     end
@@ -220,7 +220,7 @@ module SystemLoader
     end
 
     def init_usbmsc(params, timeout)
-      usb_init_cmd = "usb start"
+      usb_init_cmd = "usb stop; usb start"
       self.send_cmd(params, "#{usb_init_cmd}", @boot_prompt, timeout)
       raise "No usbmsc device being found" if ! params['dut'].response.match(/[1-9]+\s+Storage\s+Device.*found/i)
     end
