@@ -165,6 +165,7 @@ module BoardController
       @ccs_type = @ccs_type[0].upcase + @ccs_type[1..-1].downcase
       @workspace   = params['ccs_workspace'] ? params['ccs_workspace'] : '.'
       @INSTALL_DIR = params['ccs_install_dir']
+      @AUTO_MAIN_MULTICORE_PATCH = File.dirname(__FILE__)+'/auto_main_patch.txt'
       @result =''
       setenv()
       switch_type(@ccs_type)
@@ -313,6 +314,7 @@ module BoardController
         end
         in_file.close
         out_file.close
+        patch_auto_main_js(@AUTO_MAIN_MULTICORE_PATCH)
       end
       outfile_name
     end
@@ -341,6 +343,17 @@ module BoardController
     end
 
 
+    def patch_auto_main_js(patch_filepath)
+       # apply patch. Check return code
+       # if success return, if failure raise excpetion
+       puts "applying auto_main.js #{patch_filepath} patch"
+       send_cmd("patch #{@loadti_dir}/auto_main.js < #{patch_filepath}; echo $?",2,/[0]+/m)
+       if (timeout?)
+          raise "patch unsuccessful"
+       else
+          puts "patch successful"
+       end
+    end
 
     def read_ipc_data(timeout=-1)
       begin
@@ -387,10 +400,11 @@ module BoardController
             quit(errCode != 0 ? errCode : 1);
           }
       }
-      // ===========================================================
+            // ===========================================================
       &
     end
 
   end
 
 end
+

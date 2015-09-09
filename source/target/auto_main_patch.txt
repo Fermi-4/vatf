@@ -1,0 +1,322 @@
+--- auto_main.js	2015-08-28 12:02:19.499377741 -0400
++++ auto_main.js.jg	2015-08-28 11:09:44.222627495 -0400
+@@ -45,7 +45,9 @@
+     if (isDebugSession)
+ 	{
+         // Close debug session.
+-        debugSession.terminate();
++        for (var core = 0; core < dsArray.length; core++) {
++            dsArray[core].terminate();
++        }
+     }
+ 
+     if (isDebugServer)
+@@ -123,14 +125,21 @@
+     date = new Date();
+     printTrace("START: " + date.toTimeString() + "\n");
+ 
++    n = 0;
++          while (n < testEnv.argvArgs.length)
++          {
++              printTrace("testEnv.argvArgs[" + n + "] = " + testEnv.argvArgs[n]);
++              n++;
++          }
++
+     // Configure the Debug Server.
+-    if (testEnv.setupCfgFile != null)
++    if (autotestEnv.ccsConfig != null)
+     {
+         printTrace("Configuring Debug Server for specified target...");
+ 
+         load(java.lang.System.getenv("LOADTI_PATH") + "/dsSetup.js");
+ 
+-        errCode = configureDebugServer(testEnv.setupCfgFile, dssScriptEnv);
++        errCode = configureDebugServer(autotestEnv.ccsConfig, dssScriptEnv);
+         if (errCode != 0)
+         {
+             quit(errCode);
+@@ -139,8 +148,16 @@
+         printTrace("Done");
+ 
+ 		// There's no more to do if no outfiles have been provided.
+-		if (testEnv.outFiles == null)
++		if (autotestEnv.outFile == null 
++		    || ((autotestEnv.outFile.length != autotestEnv.ccsCpu.length) 
++		       && (autotestEnv.outFile.length != 1)))
+ 		{
++		    printTrace("#outFiles: " + autotestEnv.outFile.length +"; #ccsCpu: " +  autotestEnv.ccsCpu.length + ";")
++		    if (testEnv.outFiles != null) 
++		    {
++		        printTrace("Please provide out files in getAutoArgs.js")
++		    }
++		    printTrace("Different number of cores and out files. . . Aborting");
+ 			quit(0);
+ 		}
+     }
+@@ -162,47 +179,43 @@
+         isDebugServer = true;
+     }
+ 
+-
+-      // ==========================================================
+-      // ADDED BY OPENTEST
+-      debugSession = debugServer.openSession(autotestEnv.ccsPlatform, autotestEnv.ccsCpu);
++      dsArray = new Array();
++      for (var core = 0; core < autotestEnv.ccsCpu.length; core++) { //open for loop
++	   printTrace("Connecting to: " + autotestEnv.ccsCpu[core]);
++	   dsArray[core] = debugServer.openSession(autotestEnv.ccsPlatform, autotestEnv.ccsCpu[core]);
++	      if (autotestEnv.gelFile)
++	      {
++		  printTrace("Loading GEL file...");
++
++		  // Load GEL file
++		  try
++		  {
++		    var loadexpr = "GEL_LoadGel(\"" + autotestEnv.gelFile + "\")";
++		    dsArray[core].expression.evaluate(loadexpr);
++		  }
++		  catch (ex)
++		  {
++		    errCode = getErrorCode(ex);
++		    dssScriptEnv.traceWrite("Error code #" + errCode + ", could not load gel file!\nAborting!");
++		    quit(errCode != 0 ? errCode : 1);
++		  }
++	      }
++      
+       isDebugSession = true;
+ 
++      printTrace("TARGET: " + dsArray[0].getBoardName());
+ 
+-      printTrace("TARGET: " + debugSession.getBoardName());
+-
+-      if (autotestEnv.gelFile)
+-      {
+-          printTrace("Loading GEL file...");
+ 
+-          // Load GEL file
+-          try
+-          {
+-            var loadexpr = "GEL_LoadGel(\"" + autotestEnv.gelFile + "\")";
+-            debugSession.expression.evaluate(loadexpr);
+-          }
+-          catch (ex)
+-          {
+-            errCode = getErrorCode(ex);
+-            dssScriptEnv.traceWrite("Error code #" + errCode + ", could not load gel file!\nAborting!");
+-            quit(errCode != 0 ? errCode : 1);
+-          }
+-      }
+-      // ===========================================================
+-      
+-    isDebugSession = true;
+ 
+     //Set the default File IO folder
+-    debugSession.options.setString("FileIODefaultDirectory", testEnv.fileIOFolder);  
+-
+-    printTrace("TARGET: " + debugSession.getBoardName());
++    dsArray[core].options.setString("FileIODefaultDirectory", testEnv.fileIOFolder);  
+ 
+     printTrace("Connecting to target...");
+ 
+     // Connect to target. If target is simulator or already connected, a warning will be reported.
+     try
+ 	{
+-        debugSession.target.connect();
++        dsArray[core].target.connect();
+     }
+ 	catch (ex)
+ 	{
+@@ -218,7 +231,7 @@
+         // Reset target.
+         try
+ 		{
+-            debugSession.target.reset();
++            dsArray[core].target.reset();
+         }
+ 		catch (ex)
+ 		{
+@@ -229,15 +242,14 @@
+     }
+ 
+ 	// Load and run each program provided.
+-	java.lang.System.out.println("testEnv.outFiles: " + testEnv.outFiles);
+-	var st = new java.util.StringTokenizer(testEnv.outFiles, "+");
+-	while (st.hasMoreTokens())
+-	{
+-		var outFile = st.nextToken();
+-	
+-		var filePath = new java.io.File(outFile);
+-		var outFileName = filePath.getName();
+-		testEnv.argvArgs[0] = outFileName;
++	java.lang.System.out.println("autotestEnv.outFiles: " + autotestEnv.outFile);
++		
++		if (autotestEnv.outFile.length == 1) {
++		    outFile = autotestEnv.outFile[0];
++		}
++		else {
++		    outFile = autotestEnv.outFile[core];
++	    }
+ 	
+ 		printTrace("Loading " + outFile);
+ 
+@@ -246,16 +258,16 @@
+ 		{
+ 			if (testEnv.initBss)
+ 			{
+-				debugSession.memory.setBssInitValue(testEnv.initBssValue);
++				dsArray[core].memory.setBssInitValue(testEnv.initBssValue);
+ 			}
+ 			
+ 			if (testEnv.argvArgs.length < 2)
+ 			{
+-				debugSession.memory.loadProgram(outFile);
++				dsArray[core].memory.loadProgram(outFile);
+ 			}
+ 			else
+ 			{
+-				debugSession.memory.loadProgram(outFile, testEnv.argvArgs);
++				dsArray[core].memory.loadProgram(outFile, testEnv.argvArgs);
+ 			}
+ 	    }
+ 		catch (ex)
+@@ -274,7 +286,7 @@
+ 	    {
+ 	        printTrace("Loading data to target memory...");
+ 
+-	        errCode = memLoad(dssScriptEnv, debugSession, testEnv.loadRaw, testEnv.loadDat);
++	        errCode = memLoad(dssScriptEnv, dsArray[core], testEnv.loadRaw, testEnv.loadDat);
+ 
+ 	        if (errCode != 0)
+ 	        {
+@@ -288,7 +300,6 @@
+ 
+ 	    if (!testEnv.onlyLoad)
+ 	    {
+-	        printTrace("Target running...");
+ 
+ 	        // Set script timeout value for run API.
+ 	        dssScriptEnv.setScriptTimeout(testEnv.timeoutValue);
+@@ -296,8 +307,11 @@
+ 	        if (testEnv.cioFile != null)
+ 	        {
+ 	            // Begin CIO logging.
+-	            debugSession.beginCIOLogging(testEnv.cioFile);
++	            dsArray[core].beginCIOLogging(testEnv.cioFile);
+ 	        }
++        } 
++        
++     } //close of loop
+ 
+ 	        // Run to end of program (or timeout) and return total cycles unless asynch run.
+ 	        try
+@@ -305,9 +319,15 @@
+ 				// Is the target already at the end of the program? If so, do not try to run again.
+ 				// Note: we need to check the existance of the symbol first, since the evaluate function does not, and will return errors if the symbol does not exist, causing the script to exit
+ 				// Note: This check is to fix the following use case: if the debugger is configured to Auto Run to a label after program load but that label is not hit then the loadti script may cause the program to enter an infinite loop.
+-				if ( ( debugSession.symbol.exists("C$$EXIT") && debugSession.expression.evaluate( "PC == C$$EXIT" ) ) ||
+-					 ( debugSession.symbol.exists("C$$EXITE") && debugSession.expression.evaluate( "PC == C$$EXITE") ) ||
+-					 ( debugSession.symbol.exists("abort") && debugSession.expression.evaluate( "PC == abort") ) ) 
++				var abort = false;
++				for (var core = 0; core < dsArray.length; core++) {
++				if ( ( dsArray[core].symbol.exists("C$$EXIT") && dsArray[core].expression.evaluate( "PC == C$$EXIT" ) ) ||
++					 ( dsArray[core].symbol.exists("C$$EXITE") && dsArray[core].expression.evaluate( "PC == C$$EXITE") ) ||
++					 ( dsArray[core].symbol.exists("abort") && dsArray[core].expression.evaluate( "PC == abort") ) ){
++					    abort = true;
++					 }
++				}
++				if (abort) 
+ 				{
+ 					printTrace( "Target failed to run to desired user label after program load, and is at end of program.  Script execution aborted." );
+ 				} else {		
+@@ -318,16 +338,20 @@
+ 
+ 						if (!testEnv.noProfile)
+ 						{
+-							var cycles = debugSession.clock.runBenchmark();
++							//debugSession.clock.runBenchmark() is not supported on multicore tests
++							var cycles = 0; //var cycles = debugSession.clock.runBenchmark();
+ 						}
+ 						else
+ 						{
+-							debugSession.target.run();
++							//debugSession.target.run();
++							printTrace("Regular simultaneous run . . .");
++							debugServer.simultaneous.run(dsArray);
+ 						}
+ 					}
+ 					else
+ 					{
+-						debugSession.target.runAsynch();
++						//debugSession.target.runAsynch();
++						debugServer.simultaneous.runAsynch(dsArray);
+ 					}
+ 				}
+ 	        }
+@@ -337,7 +361,7 @@
+ 	            if (errCode == 1001)
+ 				{
+ 	                printTrace(">> OVERALL TIMED OUT");
+-	                debugSession.target.halt();
++	                debugServer.simultaneous.halt(dsArray);
+ 	            }
+ 				else
+ 				{
+@@ -350,7 +374,9 @@
+ 	        if (testEnv.cioFile != null && !testEnv.asyncRun)
+ 	        {
+ 	            // Stop CIO logging.
+-	            debugSession.endCIOLogging();
++	            for (var core = 0; core < dsArray.length; core++) { 
++	                dsArray[core].endCIOLogging();
++	            }
+ 	        }
+ 
+ 	        // Set script timeout value to default.
+@@ -364,7 +390,7 @@
+ 	                printTrace("NORMAL COMPLETION: " + cycles + " cycles");
+ 	            }
+ 	        }
+-	    }
++	    
+ 
+ 	    // Save data from target memory to a file on the host (if applicable).
+ 	    if ((testEnv.saveRaw.length > 0) || (testEnv.saveDat.length > 0))
+@@ -373,25 +399,26 @@
+ 	        if (!testEnv.asyncRun)
+ 	        {
+ 	            printTrace("Saving data to file...");
+-
+-	            errCode = memSave(dssScriptEnv, debugSession, testEnv.saveRaw, testEnv.saveDat);
+-
+-	            if (errCode != 0)
+-	            {
+-	                printTrace("Memory save failed with errCode: " + errCode);
+-					retVal = errCode;
+-	            }
+-				else
+-				{
+-	                printTrace("Done");
++                for (var core = 0; core < dsArray.length; core++) {
++	                errCode = memSave(dssScriptEnv, dsArray[core], testEnv.saveRaw, testEnv.saveDat);
++	            
++	                if (errCode != 0)
++	                {
++	                    printTrace("Memory save failed with errCode: " + errCode);
++					    retVal = errCode;
++	                }
+ 	            }
++				
++				
++	            printTrace("Done");
++	            
+ 	        }
+ 			else
+ 			{
+ 	            printTrace("Memory save options are not supported with an asynchronous run!");
+ 	        }
+ 	    }
+-	}
++	
+ 	
+     // End automation.
+     quit(retVal);
