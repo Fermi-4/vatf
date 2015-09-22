@@ -120,6 +120,7 @@ EquipmentInfo.new("am335x-evm", "linux_sd_sdhc_usbhostmsc_usbhosthid_power") do
             'usbethaddr' => '11:22:33:44:55', #to specify (if the adapter does not have a mac address) the mac address of a usb to ethernet adapter connected to the board
             'rootfs_partuuid' => '00000000-02', # to specify partuuid for rootfs partition on mmc or other boot media. 
             'gpio_wakeup_port' => {'rly16.192.168.0.40' => 2}, # To define relay port connected to GPIO pin to wakeup DUT. Use same syntax as power_port.
+            'AP_SSID' => 'TRENDnet666N', # to defind AP SSID for wifi tests
             }
 end
 
