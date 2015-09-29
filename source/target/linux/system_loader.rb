@@ -622,7 +622,7 @@ module SystemLoader
         this_cmd = "part uuid #{params['interface']} #{fs_dev_ins}:#{fs_part}"
         send_cmd params, this_cmd
         
-        part_uuid = /#{this_cmd}.*?(^[\h\-]+).*?#{params['dut'].boot_prompt}/im.match(params['dut'].response).captures[0].strip
+        part_uuid = /#{this_cmd}.*?^\r*([\h\-]+).*?#{params['dut'].boot_prompt}/im.match(params['dut'].response).captures[0].strip
         raise "PARTUUID should not be empty" if part_uuid == ''
 
       rescue Exception => e
