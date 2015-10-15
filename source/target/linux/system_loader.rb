@@ -540,7 +540,7 @@ module SystemLoader
     private
     def set_nfs(params)
       raise "No NFS path is being specified!" if !params['nfs_path']
-      params['fs_options'] = ",nolock" if !params['fs_options']
+      params['fs_options'] = ",nolock,v3,tcp,rsize=4096,wsize=4096" if !params['fs_options']
       append_text params, 'bootargs', "root=/dev/nfs rw nfsroot=#{params['nfs_path']}#{params['fs_options']} "
     end
     
