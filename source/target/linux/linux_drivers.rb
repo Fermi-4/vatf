@@ -17,4 +17,5 @@ require File.dirname(__FILE__)+'/linux_tci6614_driver'
 require File.dirname(__FILE__)+'/linux_tci6638_driver'
 require File.dirname(__FILE__)+'/linux_beagle_driver'
 require File.dirname(__FILE__)+'/linux_omap5_driver'
+require File.dirname(__FILE__)+'/linux_legacy_driver'
 include Equipment
