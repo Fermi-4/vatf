@@ -40,7 +40,7 @@ module PassCriteria
     op = 'max' # Assume max as default comparison operator
     # Overwrite based on metric_name.
     case metric_name.downcase
-    when /lat_/, /cpu_*load/, /sr_\d+load/, /packet_*loss/, /jitter/, /power/, /boottime/
+    when /lat_/, /cpu_*load/, /sr_\d+load/, /packet_*loss/, /jitter/, /power/, /boottime/, /latency/
       op = 'min'
     end
     # Add new entries to overwrite defaults if required. For example:
