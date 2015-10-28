@@ -61,6 +61,7 @@ module Equipment
      'k2hk-evm' => 'console=ttyS0,115200n8 earlyprintk rootwait',
      'k2l-evm' => 'console=ttyS0,115200n8 earlyprintk rootwait',
      'k2e-evm' => 'console=ttyS0,115200n8 earlyprintk rootwait',
+     'k2g-evm' => 'console=ttyS0,115200n8 earlyprintk rootwait',
      })
     
     def initialize(platform_info, log_path)

@@ -154,7 +154,7 @@ class BaseLoader
         puts "Timeout waiting for prompt"
       end
     }
-    dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>'uart_bootmode', 'version'=>'1.0'}), prompt, 3, false )
+    dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>'uart_bootmode', 'version'=>'1.0', 'platform'=>dut.name}), prompt, 3, false )
     dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>'reboot', 'version'=>'1.0'}), prompt, 10, false )
   end
 
