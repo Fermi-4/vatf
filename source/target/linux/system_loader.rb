@@ -517,6 +517,38 @@ module SystemLoader
 
   end
 
+  class PmmcStep < SystemLoader::UbootStep
+    def initialize
+      super('pmmc')
+    end
+    def run(params)
+      case params['pmmc_dev']
+      when 'eth'
+        load_pmmc_from_eth params
+      when 'ubi'
+        load_pmmc_from_ubi params
+      when 'none'
+        # Do nothing
+      else
+        raise "Don't know how to load pmmc from #{params['pmmc_dev']}"
+      end
+      if params['pmmc_dev'] != 'none'
+        pmmc_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'run_pmmc', 'version'=>@@uboot_version})
+        self.send_cmd(params, pmmc_cmd, @boot_prompt, 60)
+      end
+    end
+
+    private
+    def load_pmmc_from_eth(params)
+      load_file_from_eth_now params, '${loadaddr}', params['pmmc_image_name']
+    end
+
+    def load_pmmc_from_ubi(params)
+      self.send_cmd(params, "ubifsload ${loadaddr} #{params['pmmc_image_name']}", @boot_prompt, 60)
+    end
+
+  end
+
   class FSStep < UbootStep
     def initialize
       super('fs')
@@ -848,6 +880,7 @@ module SystemLoader
       super
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
+      add_step( PmmcStep.new )
       add_step( KernelStep.new )
       add_step( DTBStep.new )
       add_step( SkernStep.new )

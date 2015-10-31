@@ -16,6 +16,7 @@ module CmdTranslator
     'spi'     => { '0.0' => Hash.new('').merge!({'am43xx-epos' => 'spi-ti-qspi.enable_qspi=1'})},
     'env default' => { '0.0'  => 'env default -f',
                        '2011.10' => 'env default -a -f',},
+    'run_pmmc' => {'0.0' => 'run run_pmmc', },
   }
   
   @dict_ubuntu = {
