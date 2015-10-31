@@ -17,6 +17,7 @@ module CmdTranslator
     'env default' => { '0.0'  => 'env default -f',
                        '2011.10' => 'env default -a -f',},
     'run_pmmc' => {'0.0' => 'run run_pmmc', },
+    'ramfs_bootargs' => {'0.0' => Hash.new("setenv bootargs ''${bootargs}' root=/dev/ram0 rw '").merge!({'k2g-evm' => 'run args_ramfs'})},
   }
   
   @dict_ubuntu = {
