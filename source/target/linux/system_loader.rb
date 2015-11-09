@@ -186,8 +186,8 @@ module SystemLoader
     end
 
     def erase_nand(params, nand_loc, size, timeout=60)
-      self.send_cmd(params, "nand erase #{nand_loc} #{size}", @boot_prompt, timeout)
-      raise "erase_nand failed!" if !params['dut'].response.match(/100\%\s+complete/i) 
+      self.send_cmd(params, "nand erase.part #{nand_loc} ", @boot_prompt, timeout)
+      raise "erase_nand failed!" if !params['dut'].response.match(/OK/) 
     end
 
     def write_file_to_nand(params, mem_addr, nand_loc, size, timeout=60)
@@ -232,7 +232,7 @@ module SystemLoader
       when 'usbmsc'
         load_file_from_usbmsc_now params, params['_env']['loadaddr'], params["#{part}_image_name"]
       when 'eth'
-        load_file_from_eth_now params, params['_env']['loadaddr'], params["#{part}_image_name"]
+        load_file_from_eth_now params, params['_env']['loadaddr'], params["#{part}_image_name"], 600
       else
         raise "Unsupported src_dev -- " + params["#{part}_src_dev"] + " for flashing"
       end
@@ -328,7 +328,7 @@ module SystemLoader
     end
 
     def run(params)
-      flash_run(params, "fs", 120)
+      flash_run(params, "fs", 600)
     end
 
   end
@@ -577,9 +577,17 @@ module SystemLoader
     end
     
     def set_ubifs(params)
-      append_text params, 'bootargs', "rootfstype=ubifs root=#{params['ubi_root']} rootflags=sync rw ubi.mtd=#{params['ubi_mtd_partition']},#{params['nand_eraseblock_size'].to_i}"
+      get_nand_pagesize(params)
+      append_text params, 'bootargs', "rootfstype=ubifs root=#{params['ubi_root']} rootflags=sync rw ubi.mtd=#{params["nand_fs_loc"]},#{params['nand_eraseblock_size'].to_i}"
     end
     
+    def get_nand_pagesize(params)
+      return if params.has_key?('nand_eraseblock_size') and params['nand_eraseblock_size'] != ''
+      send_cmd params, "nand info"
+      pagesize = /Page\s+size\s+([0-9]+)\s*b/im.match(params['dut'].response).captures[0]
+      params['nand_eraseblock_size'] = pagesize
+    end
+
     def set_ramfs(params)
       # Make sure file have required headers (i.e. mkimage have been run)
       fs_image_full_path = File.join(params['server'].tftp_path, params['fs_image_name'])
@@ -734,7 +742,6 @@ module SystemLoader
       params['dut'].boot_log = params['dut'].response
       raise "DUT rebooted while Starting Kernel" if params['dut'].boot_log.match(/Hit\s+any\s+key\s+to\s+stop\s+autoboot/i)
       check_for_boot_errors(params['dut'])
-      send_cmd params, params['dut'].login, params['dut'].prompt, 10, false # login to the unit
     end
 
     def check_for_boot_errors(dut)

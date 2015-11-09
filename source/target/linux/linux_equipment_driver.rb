@@ -105,6 +105,10 @@ module Equipment
       if params.has_key?("bootargs_append")
         @system_loader.insert_step_before('boot', SetExtraArgsStep.new) 
       end
+
+      if params['fs_dev'].downcase == 'nand' 
+        @system_loader.insert_step_before('pmmc', UbootFlashFSSystemLoader.new)
+      end
     end
 
     # Update primary and secondary bootloader 
