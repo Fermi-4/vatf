@@ -27,6 +27,15 @@ module BootLoader
     params['bootloader_class'].run_bootloader_load_script(params)
   end
   
+  def LOAD_FROM_NAND_BY_BMC(params)
+    puts "########LOAD_FROM_NAND_BY_BMC########"
+    params['bootloader_class'].bmc_trigger_boot(params['dut'], 'nand')
+  end
+
+  def LOAD_FROM_NAND(params)
+    raise "Changing sysboot setting to nand boot is not supported yet"
+  end
+
   def LOAD_FROM_ETHERNET(params)
     raise "Loading bootloader from ethernet is not supported on default device"
   end
@@ -138,12 +147,21 @@ class BaseLoader
       params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 240)
     end
     if dut.params and dut.params.key? 'bmc_port'
-      bmc_trigger_uart_boot(dut)
+      bmc_trigger_boot(dut, 'uart')
     end
     tx_thread.join()
   end
 
-  def bmc_trigger_uart_boot(dut)
+  def bmc_trigger_boot(dut, device)
+    case device.downcase
+    when 'uart'
+      cmd_key = "uart_bootmode"
+    when 'nand'
+      cmd_key = "nand_bootmode"
+    else
+      raise "The #{device} is not supported in bmc_trigger_boot"
+    end
+
     prompt = dut.params.key?('bmc_prompt') ? dut.params['bmc_prompt'] : />/
     sleep 3
     dut.connect({'type'=>'bmc'})
@@ -154,7 +172,7 @@ class BaseLoader
         puts "Timeout waiting for prompt"
       end
     }
-    dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>'uart_bootmode', 'version'=>'1.0', 'platform'=>dut.name}), prompt, 3, false )
+    dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>cmd_key, 'version'=>'1.0', 'platform'=>dut.name}), prompt, 3, false )
     dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>'reboot', 'version'=>'1.0'}), prompt, 10, false )
   end
 

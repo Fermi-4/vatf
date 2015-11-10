@@ -1,6 +1,7 @@
 module CmdTranslator
   @dict_bmc = {
     'uart_bootmode' => { '0.0' => Hash.new("bootmode #4\n\r").merge!({'k2g-evm' => "bootmode #15\n\r"})},
+    'nand_bootmode' => { '0.0' => Hash.new("bootmode #0\n\r").merge!({'k2g-evm' => "bootmode #11\n\r"})},
     'reboot'        => { '0.0' => "reboot\n\r"},
   }
 

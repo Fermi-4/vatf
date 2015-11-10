@@ -85,6 +85,8 @@ module Equipment
         BaseLoader.new method( get_uart_boot_method(@name) )
       when /eth/i
         BaseLoader.new method(:LOAD_FROM_ETHERNET)
+      when /nand/i
+        BaseLoader.new method( get_nand_boot_method(@name) )
       else
         BaseLoader.new 
       end
