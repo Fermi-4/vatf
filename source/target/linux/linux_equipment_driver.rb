@@ -105,15 +105,15 @@ module Equipment
         @system_loader = SystemLoader::UbootLetItGoSystemLoader.new
       else
         @system_loader = SystemLoader::UbootSystemLoader.new
+        if params['fs_dev'].downcase == 'nand' 
+          @system_loader.insert_step_before('pmmc', FlashFSStep.new)
+        end
       end
 
       if params.has_key?("bootargs_append")
         @system_loader.insert_step_before('boot', SetExtraArgsStep.new) 
       end
 
-      if params['fs_dev'].downcase == 'nand' 
-        @system_loader.insert_step_before('pmmc', UbootFlashFSSystemLoader.new)
-      end
     end
 
     # Update primary and secondary bootloader 
