@@ -278,24 +278,14 @@ module SystemLoader
 
   end
 
-  class FlashPrimaryBootloaderStep < UbootStep
+  class FlashBootloaderStep < UbootStep
     def initialize
-      super('flash_primary_bootloader')
+      super('flash_bootloader')
     end
 
     def run(params)
-      flash_run(params, "primary_bootloader", 30)
-    end
-
-  end
-
-  class FlashSecondaryBootloaderStep < UbootStep
-    def initialize
-      super('flash_secondary_bootloader')
-    end
-
-    def run(params)
-      flash_run(params, "secondary_bootloader", 30)
+      flash_run(params, "primary_bootloader", 60) if params['primary_bootloader'] != ''
+      flash_run(params, "secondary_bootloader", 60) if params['secondary_bootloader'] != ''
     end
 
   end
@@ -928,8 +918,7 @@ module SystemLoader
       super
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
-      add_step( FlashPrimaryBootloaderStep.new )
-      add_step( FlashSecondaryBootloaderStep.new )
+      add_step( FlashBootloaderStep.new )
     end
 
   end
@@ -966,8 +955,7 @@ module SystemLoader
       super
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
-      add_step( FlashPrimaryBootloaderStep.new )
-      add_step( FlashSecondaryBootloaderStep.new )
+      add_step( FlashBootloaderStep.new )
       add_step( FlashKernelStep.new )
       add_step( FlashDTBStep.new )
       add_step( FlashFSStep.new )
