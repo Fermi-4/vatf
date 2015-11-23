@@ -200,6 +200,34 @@ module SystemLoader
       raise "read from nand failed!" if !params['dut'].response.match(/bytes\s+read:\s+OK/i) 
     end
 
+    def erase_spi(params, spi_loc, size, timeout=60)
+      spi_erase_size = get_spi_erasesize params
+      # spi_erase_size is in decimal format
+      # size passed here is in hex format
+      roundup_size = (size.to_i(16).to_f / spi_erase_size.to_f).ceil * spi_erase_size.to_f 
+      roundup_size = roundup_size.to_i.to_s(16)
+      self.send_cmd(params, "sf probe; sf erase #{spi_loc} #{roundup_size}", @boot_prompt, timeout)
+      raise "erase_spi failed!" if !params['dut'].response.match(/OK/) 
+    end
+
+    # The erase size returned is in decimal format
+    def get_spi_erasesize(params)
+      self.send_cmd params, "sf probe"
+      erasesize = /erase\s*size\s+([0-9]+)\s*KiB,/im.match(params['dut'].response).captures[0]
+      erasesize = erasesize.to_i * 1024
+      return erasesize
+    end
+
+    def write_file_to_spi(params, mem_addr, spi_loc, size, timeout=60)
+      self.send_cmd(params, "sf probe; sf write #{mem_addr} #{spi_loc} #{size}", @boot_prompt, timeout)
+      raise "write to spi failed!" if !params['dut'].response.match(/written:\s+OK/i) 
+    end
+
+    def load_file_from_spi(params, mem_addr, spi_loc, timeout=60)
+      self.send_cmd(params, "sf probe; sf read #{mem_addr} #{spi_loc} ", @boot_prompt, timeout)
+      raise "read from spi failed!" if !params['dut'].response.match(/bytes\s+read:\s+OK/i) 
+    end
+
     def fatwrite(params, interface, dev, mem_addr, filename, filesize, timeout)
       self.send_cmd(params, "fatwrite #{interface} #{dev} #{mem_addr} #{filename} #{filesize}", @boot_prompt, timeout)
       raise "fatwrite to #{interface} failed! Please make sure there is FAT partition in #{interface} device!" if !params['dut'].response.match(/bytes\s+written/i)
@@ -225,6 +253,12 @@ module SystemLoader
       raise "No usbmsc device being found" if ! params['dut'].response.match(/[1-9]+\s+Storage\s+Device.*found/i)
     end
 
+    def get_filesize(params, timeout)
+      self.send_cmd(params, "print filesize", @boot_prompt, timeout)
+      size = /filesize\s*=\s*(\h+)/im.match(params['dut'].response).captures[0]
+      return size
+    end
+
     def flash_run(params, part, timeout)
       case params["#{part}_src_dev"]
       when 'mmc'
@@ -238,14 +272,13 @@ module SystemLoader
       end
       
       # filesize will be updated to the size of file which was just loaded
-      params['_env']['filesize'] = '${filesize}'
+      params['_env']['filesize'] = get_filesize(params, 10) 
 
       case params["#{part}_dev"]
       when 'nand'
         erase_nand params, params["nand_#{part}_loc"], params['_env']['filesize'], timeout
         write_file_to_nand params, params['_env']['loadaddr'], params["nand_#{part}_loc"], params['_env']['filesize'], timeout
       when 'spi'
-        #TODO: add erase_spi and write_file_to_spi functions
         erase_spi params, params["spi_#{part}_loc"], params['_env']['filesize'], timeout
         write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], params['_env']['filesize'], timeout
       when 'rawmmc'
