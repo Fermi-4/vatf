@@ -33,7 +33,10 @@ module BootLoader
   end
 
   def LOAD_FROM_NAND(params)
-    raise "Changing sysboot setting to nand boot is not supported yet"
+    puts "########LOAD_FROM_NAND########"
+    puts "WARNING: Please make sure the sysboot setting is set to nand boot"
+    puts "WARNING: Automatic sysboot setting change is not supported yet"
+    params['dut'].power_cycle(params)
   end
 
   def LOAD_FROM_ETHERNET(params)
