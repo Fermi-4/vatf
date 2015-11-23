@@ -190,7 +190,7 @@ class BaseLoader
     dut = params['dut']
     dut.connect({'type'=>'serial'}) if !dut.target.serial
     b_prompt_th = Thread.new do
-      dut.send_cmd("", dut.boot_prompt, 20, false)
+      dut.send_cmd("", dut.boot_prompt, 40, false)
     end
     100.times {
       dut.target.serial.puts("")
