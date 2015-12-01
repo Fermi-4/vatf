@@ -42,8 +42,9 @@ EOF`
         log_info('Response: '+@response)
         }
         @timeout = @response.match(expected_match) == nil
-      rescue Timeout::Error 
+      rescue Timeout::Error => e
         puts "TIMEOUT executing #{cmd}"
+        log_error("On command "+cmd.to_s+"\n"+e.to_s+"Target: \n" + @response.to_s)
         @timeout = true 
       end
     end
@@ -58,8 +59,9 @@ EOF`
           log_info('Response: '+@response)		
         }
         @timeout = @response.match(expected_match) == nil
-      rescue Timeout::Error 
+      rescue Timeout::Error => e
         puts "TIMEOUT executing #{command}"
+        log_error("On command "+command.to_s+"\n"+e.to_s+"Target: \n" + @response.to_s)
         @timeout = true
       end
     end
