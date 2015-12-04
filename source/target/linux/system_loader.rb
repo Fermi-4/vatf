@@ -588,7 +588,7 @@ module SystemLoader
       
       case params['fs_src_dev']
       when /eth/i
-        load_file_from_eth_now params, params['_env']['ramdisk_loadaddr'], params['fs_image_name']
+        load_file_from_eth_now params, params['_env']['ramdisk_loadaddr'], params['fs_image_name'], 600
       when /mmc/i
         load_file_from_mmc params, params['_env']['ramdisk_loadaddr'], params['fs_image_name']
       else
