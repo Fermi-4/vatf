@@ -340,7 +340,7 @@ module SystemLoader
     end
 
     def run(params)
-      flash_run(params, "dtb", 60)
+      flash_run(params, "dtb", 120)
     end
 
   end
@@ -351,7 +351,7 @@ module SystemLoader
     end
 
     def run(params)
-      flash_run(params, "fs", 600)
+      flash_run(params, "fs", 1200)
     end
 
   end
