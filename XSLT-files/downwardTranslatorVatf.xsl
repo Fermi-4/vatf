@@ -9,7 +9,8 @@
 	<xsl:variable name="buildInfo"> 
 		<xsl:value-of select="lower-case(top/build/notes)"/>
 	</xsl:variable>
-	<xsl:variable name="buildInfoSeq" select="tokenize($buildInfo,'(\s*[;=]+\s*)|(&lt;\s*/*.*?\s*&gt;)+')"/> 
+	<xsl:variable name="sanitizedInfo" select="replace($buildInfo, '(&lt;.*?&gt;)+', '')" />
+	<xsl:variable name="buildInfoSeq" select="tokenize($sanitizedInfo,'(\s*[;=]+\s*)')"/>
 	<xsl:variable name="platformIdx">
 		<xsl:value-of select="index-of($buildInfoSeq,'platform')"/>
 	</xsl:variable>
