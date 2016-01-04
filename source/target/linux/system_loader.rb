@@ -49,6 +49,11 @@ module SystemLoader
       end
       params['_env']['kernel_loadaddr'] = load_addr
       params['_env']['loadaddr'] = load_addr
+      # filesize will be updated to the size of file which was just loaded
+      params['_env']['filesize'] = '${filesize}'
+
+      send_cmd params, 'setenv _initramfs -'
+      params['_env']['initramfs'] = '${_initramfs}'
 
       # Determine dtb loadaddr
       load_dtb_addr = '${fdtaddr}'
@@ -572,6 +577,35 @@ module SystemLoader
 
   end
 
+  class InitRamfsStep < SystemLoader::UbootStep
+    def initialize
+      super('initramfs')
+    end
+    def run(params)
+        case params['initramfs_dev']
+        when 'eth'
+          load_initramfs_from_eth params
+          send_cmd params, "setenv _initramfs #{params['_env']['ramdisk_loadaddr']}:#{params['_env']['filesize']}"
+        when 'ubi'
+          load_initramfs_from_ubi params
+          send_cmd params, "setenv _initramfs #{params['_env']['ramdisk_loadaddr']}:#{params['_env']['filesize']}"
+        when 'none'
+          # Do nothing
+        else
+          raise "Don't know how to load initramfs from #{params['initramfs_dev']}"
+      end
+    end
+    private
+    def load_initramfs_from_eth(params)
+      load_file_from_eth_now params, params['_env']['ramdisk_loadaddr'], params['initramfs_image_name']
+    end
+
+    def load_initramfs_from_ubi(params)
+      append_text params, 'bootcmd', "ubifsload #{params['_env']['ramdisk_loadaddr']} #{params['initramfs_image_name']};"
+    end
+
+  end
+
   class FSStep < UbootStep
     def initialize
       super('fs')
@@ -743,11 +777,8 @@ module SystemLoader
     end
 
     def run(params)
-      ramdisk_addr = ''
+      ramdisk_addr = params['_env']['initramfs']
       dtb_addr     = ''
-      if params['dtb_image_name'].strip != ''
-        ramdisk_addr = '-'
-      end
       dtb_addr = params['_env']['dtb_loadaddr'] if params['dtb_image_name'].strip != ''
       append_text params, 'bootcmd', "if iminfo #{params['_env']['kernel_loadaddr']}; then bootm #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr};"\
                                      " else bootz #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr}; bootm #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr}; fi"
@@ -909,6 +940,7 @@ module SystemLoader
       add_step( KernelStep.new )
       add_step( DTBStep.new )
       add_step( SkernStep.new )
+      add_step( InitRamfsStep.new )
       add_step( FSStep.new )
       add_step( BootCmdStep.new )
       add_step( BoardInfoStep.new )
