@@ -447,7 +447,8 @@ class SessionHandler
           test_script_found = true
           Marshal.dump([@new_keys, @test_result, @results_html_file, @logs_array] ,t_case_write)
         rescue Exception => e
-          Marshal.dump([@new_keys, e, e.backtrace.to_s.gsub(/\s+/," ")] , t_case_write)
+          n_e = Exception.new(e.to_s) #workaround since e sometimes gets mangled with non-Exception object
+          Marshal.dump([@new_keys, n_e, e.backtrace.to_s.gsub(/\s+/," ")] , t_case_write)
         ensure
           clean if test_script_found
         end
