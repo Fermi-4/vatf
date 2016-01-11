@@ -217,6 +217,24 @@ module Equipment
       end
     end
 
+    # Send Break (Ctrl+a,f), then sysrq key to trigger sysrq
+    # Ref: https://www.kernel.org/doc/Documentation/sysrq.txt 
+    # Often used command keys:
+    # 't' - Will dump a list of current tasks and their information to your console.
+    # 'l' - Shows a stack backtrace for all active CPUs.
+    # 'w' - Dumps tasks that are in uninterruptable (blocked) state.
+    # 'd' - Shows all locks that are held.
+    def send_sysrq(key='h', read_time=10)
+      thr = Thread.new { @target.read_on_for(@target.serial, read_time) }
+      @target.serial.break(1)
+      @target.serial.puts(key)
+      thr.join()
+      log_info(@target.serial.response)
+      @target.serial.response
+      rescue Exception => e
+        log_info("Problem occurred while executing sysrq\n" + e.to_s)
+    end
+
     def power_cycle(params)
       @power_handler = params['power_handler'] if !@power_handler
       connected = true
