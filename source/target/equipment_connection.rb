@@ -109,12 +109,20 @@ class EquipmentConnection
   end
   
   def wait_for(*params)
-    @default.wait_for(*params)
+    wait_on_for(@default,*params)
   end
   
   def read_for(*params)
-    @default.read_for(*params)
+    read_on_for(@default,*params)
   end
+
+  def wait_on_for(conn, *params)
+    conn.wait_for(*params)
+  end
+
+  def read_on_for(conn, *params)
+    conn.read_for(*params)
+  end 
   
   def response
     @default.response
