@@ -1,5 +1,5 @@
---- auto_main.js	2015-08-28 12:02:19.499377741 -0400
-+++ auto_main.js.jg	2015-08-28 11:09:44.222627495 -0400
+--- auto_main_old.js	2016-01-19 15:03:26.069588963 -0500
++++ auto_main.js	2015-10-19 15:20:29.744141000 -0400
 @@ -45,7 +45,9 @@
      if (isDebugSession)
  	{
@@ -11,6 +11,15 @@
      }
  
      if (isDebugServer)
+@@ -84,7 +86,7 @@
+     isDebugSession = false;
+ 
+     load(java.lang.System.getenv("LOADTI_PATH") + "/getArgs.js");
+-
++    load("/home/systest-u5/Desktop/xdc/rov/coredump/saveElfData.js");
+     getArgs();
+ 
+     // Create base scripting environment.
 @@ -123,14 +125,21 @@
      date = new Date();
      printTrace("START: " + date.toTimeString() + "\n");
@@ -106,7 +115,7 @@
 -            quit(errCode != 0 ? errCode : 1);
 -          }
 -      }
--      // ===========================================================
+-            // ===========================================================
 -      
 -    isDebugSession = true;
  
@@ -272,16 +281,28 @@
  	        }
  
  	        // Set script timeout value to default.
-@@ -364,7 +390,7 @@
+@@ -364,7 +390,20 @@
  	                printTrace("NORMAL COMPLETION: " + cycles + " cycles");
  	            }
  	        }
--	    }
-+	    
++        
++        try {
++            if (autotestEnv.test_type == "ROV")
++            {
++	            for (var core = 0; core < dsArray.length; core++) { 
++	                saveElfData(dsArray[core]);
++	                printTrace("saving...");
++	            }
++	        }
++	    }
++	    catch (ex) {
++	        printTrace("test_type not defined: defaulting to printf");
+ 	    }
++        
  
  	    // Save data from target memory to a file on the host (if applicable).
  	    if ((testEnv.saveRaw.length > 0) || (testEnv.saveDat.length > 0))
-@@ -373,25 +399,26 @@
+@@ -373,26 +412,199 @@
  	        if (!testEnv.asyncRun)
  	        {
  	            printTrace("Saving data to file...");
@@ -320,3 +341,176 @@
  	
      // End automation.
      quit(retVal);
+ }
++
++/*
++ *  ======== saveElfData.js =========
++ *  This script can be run from the Scripting Console in CCS to generate
++ *  a coredump file for use with the xdc.rov.coredump command line utility.
++ *
++ *  Example Usage:
++ *  > loadJSFile C:\Program Files\Texas Instruments\xdctools_3_21_00_60\packages\xdc\rov\coredump\saveElfData.js
++ *
++ *  // TODO - Do the path spaces work out ok?
++ *
++ */
++function saveElfData(debugSession)
++{
++/* Specify any additional reads. */
++var additionalReads = [
++    //{base: 0x1840000, len: 0x48},
++    //{base: 0x1848000, len: 1024}
++];
++ 
++/* Get the currently loaded executable from the active debug session. */
++var executable = debugSession.symbol.getSymbolFileName();
++
++/* Display the executable as a sanity-check. */
++print("\nSaving data sections for executable: ");
++print(executable);
++
++/* Create a new elf instance. */
++var elf = new Packages.ti.targets.omf.elf.Elf32();
++
++/* Parse the ELF file. */
++print("\nParsing the ELF file...");
++elf.parse(executable);
++
++var index = 0;
++var hdr;
++
++/* Get a valid number for the data page. */
++var dataPage = debugSession.memory.getPage(1);
++
++print("Saving data sections....");
++
++/* Create the .raw file right next to the executable. */
++var rawPath = executable + ".raw";
++
++/* 
++ * Create a RandomAccessFile for writing the coredump. This class is convenient
++ * because it provides a method for writing Java Integers as four bytes.
++ */
++var outFile = new Packages.java.io.RandomAccessFile(rawPath, "rw");
++
++/* Delete any existing contents. */
++outFile.setLength(0);
++
++/* For each section header... */
++while ((hdr = elf.getSectionHeader(index++)) != null) {
++    /* 
++     * Most of the data sections appear to be type '8'. 
++     * Skip sections that are length 0 or address 0.
++     * TODO - How to include .const generically? .const is type '1', but so are
++     * .text and many .debug_* sections...
++     */
++    if (((hdr.sh_type == 8) && (hdr.sh_addr != 0) && (hdr.sh_size != 0)) ||
++        (hdr.name == ".const"))
++    {
++        var baseAddr = hdr.sh_addr;
++        
++        /* Correct for sign extension. */
++        if (baseAddr < 0) {
++            baseAddr += Math.pow(2, 32);
++        }
++        
++        var length = hdr.sh_size;
++        
++        /* Print out this section's name, address, and size. */
++        print("  " + strPad(hdr.name, 12) + " addr: 0x" + 
++              Number(baseAddr).toString(16) + " size: " + length);
++        
++        /* Save the data section to the dump file. */
++        try {
++            var data = debugSession.memory.readData(dataPage, baseAddr, 8, length);
++        }
++        catch (e) {
++            print("Caught exception trying to read memory: " + e);
++        }
++
++        /* Validate the memory read. */
++        if (data.length != length) {
++            print("Error! Requested " + length + " bytes, received " +
++                  data.length + " values.");
++            break;
++        }
++        
++        /* 
++         * Explicitly cast the base address to an integer (before passing
++         * to 'writeInt'). The value may become negative if the MSB is set,
++         * but the bits written to the file will be correct.
++         */
++        baseAddr = (new Packages.java.lang.Long(baseAddr)).intValue();
++        
++        /* Write the base address and length. */
++        outFile.writeInt(baseAddr);
++        outFile.writeInt(length);
++        
++        /* Write out all of the data. */
++        for each (var val in data) {
++            outFile.writeByte(Number(val));
++        }        
++    }
++}
++
++/*
++ * Handle any additional memory reads specified by the user in the 
++ * 'additionalReads' array.
++ */
++for each (var read in additionalReads) {
++
++    /* Print out this section's name, address, and size. */
++    print("  User spec.   addr: 0x" + 
++          Number(read.base).toString(16) + " size: " + read.len);
++
++    /* Save the data section to the dump file. */
++    try {
++        var data = debugSession.memory.readData(dataPage, read.base, 8, read.len);
++    }
++    catch (e) {
++        print("Caught exception trying to read memory: " + e);
++    }
++
++    /* Validate the memory read. */
++    if (data.length != read.len) {
++        print("Error! Requested " + read.len + " bytes, received " +
++              data.length + " values.");
++        break;
++    }
++
++    /* 
++     * Explicitly cast the base address to an integer (before passing
++     * to 'writeInt'). 
++     */
++    read.base = (new Packages.java.lang.Long(read.base)).intValue();
++    
++    /* Write the base address and length. */
++    outFile.writeInt(read.base);
++    outFile.writeInt(read.len);
++
++    /* Write out all of the data. */
++    for each (var val in data) {
++        outFile.writeByte(Number(val));
++    }
++}
++
++/* Close the combined file. */
++outFile.close();
++
++print("\nData written to " + rawPath);
++
++print("\nDone.");
++
++/*
++ *  ======== strPad ========
++ *  Pads 'str' with 'pad' number of whitespace characters to the right.
++ */
++function strPad(str, pad)
++{
++    for (i = str.length(); i < pad; i++) {
++        str += " ";
++    }
++    
++    return(str);
++}
++}

@@ -55,6 +55,7 @@ class EquipmentConnection
       else
         puts "BMC connection already exists, using existing connection"
       end
+      @default = @bmc if !@default || params['force_connect']
 
     when 'ccs'
       if !@ccs
@@ -62,6 +63,7 @@ class EquipmentConnection
       else
         puts "CCS Controller already exists, using existing connection"
       end
+      @default = @ccs if !@default || params['force_connect']
 
     when 'tcp_ip'
       if !@tcp_ip || @tcp_ip.closed?
