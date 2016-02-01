@@ -108,6 +108,9 @@ module Equipment
         if params['fs_dev'].downcase == 'nand' 
           @system_loader.insert_step_before('pmmc', FlashFSStep.new)
         end
+        if params['skip_touchcal'].to_s == '1'
+          @system_loader.remove_step('touch_cal')
+        end
       end
 
       if params.has_key?("bootargs_append")
