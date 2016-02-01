@@ -1,5 +1,11 @@
 module BootLoader
 
+  class BootloaderException < Exception
+    def initialize(b_trace=nil)
+      super()
+      set_backtrace(b_trace) if b_trace
+    end
+  end
   ####################################################################################
   ###################### Define ways to load bootloader here #########################
   ####################################################################################
@@ -65,6 +71,8 @@ class BaseLoader
     params['bootloader_class'] = self if !params.has_key? 'bootloader_class'
     @load_method.call params
     stop_at_boot_prompt params
+    rescue Exception => e
+      raise BootloaderException.new(e.backtrace)
   end
 
   def create_bootloader_load_script_uart_spl(params)

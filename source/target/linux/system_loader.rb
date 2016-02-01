@@ -1,6 +1,13 @@
 require File.dirname(__FILE__)+'/../../lib/cmd_translator'
 
 module SystemLoader
+
+  class SystemloaderException < Exception
+    def initialize(b_trace=nil)
+      super()
+      set_backtrace(b_trace) if b_trace
+    end
+  end
   
   class Step
     attr_reader :name
@@ -926,6 +933,8 @@ module SystemLoader
 
     def run(params)
       @steps.each {|step| step.run(params)}
+      rescue Exception => e
+        raise SystemloaderException.new(e.backtrace)
     end
   end
 
