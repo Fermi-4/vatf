@@ -402,7 +402,7 @@ module SystemLoader
         append_text params, 'bootargs', "ip=:::::eth0:dhcp "
         send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'", nil, 2, false, false
         send_cmd params, "setenv autoload 'no'", nil, 2, false, false
-        send_cmd params, "dhcp", /DHCP client bound to address/i, 60
+        send_cmd params, "dhcp", /DHCP client bound to address.*#{@boot_prompt}/im, 60
       end
     end
   end
