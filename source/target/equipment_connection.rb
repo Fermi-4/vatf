@@ -41,7 +41,7 @@ class EquipmentConnection
       else
         puts "Serial connection already exists, using existing connection"
       end
-      @default = @serial if !@default || params['force_connect']
+      @default = @serial 
 
     when 'bmc'
       if !@bmc || @bmc.closed?

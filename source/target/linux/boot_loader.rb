@@ -196,7 +196,7 @@ class BaseLoader
 
   def stop_at_boot_prompt(params)
     dut = params['dut']
-    dut.connect({'type'=>'serial'}) if !dut.target.serial
+    dut.connect({'type'=>'serial'}) 
     b_prompt_th = Thread.new do
       dut.send_cmd("", dut.boot_prompt, 40, false)
     end
