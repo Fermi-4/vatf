@@ -81,21 +81,23 @@ class EquipmentConnection
 
   def disconnect(type='all')
     if type == 'telnet' || type == 'all'
-    @telnet.disconnect if @telnet
-    @telnet = nil
-      @default = nil if type.downcase.strip == 'all' || !@serial
+      @telnet.disconnect if @telnet
+      @default = nil if type.downcase.strip == 'all' || @default == @telnet
+      @telnet = nil
     end
     if type == 'serial' || type == 'all'
       @serial.disconnect if @serial
+      @default = nil if type.downcase.strip == 'all' || @default == @serial
       @serial = nil
-      @default = nil if type.downcase.strip == 'all' || !@telnet
     end
     if type == 'bmc' || type == 'all'
       @bmc.disconnect if @bmc
+      @default = nil if type.downcase.strip == 'all' || @default == @bmc
       @bmc = nil
     end
     if type == 'ccs' || type == 'all'
       @ccs.disconnect if @ccs
+      @default = nil if type.downcase.strip == 'all' || @default == @ccs
       @ccs = nil
     end
   end
