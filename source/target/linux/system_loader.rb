@@ -3,9 +3,9 @@ require File.dirname(__FILE__)+'/../../lib/cmd_translator'
 module SystemLoader
 
   class SystemloaderException < Exception
-    def initialize(b_trace=nil)
+    def initialize(e=nil)
       super()
-      set_backtrace(b_trace) if b_trace
+      set_backtrace(e.backtrace.insert(0,e.to_s)) if e
     end
   end
   
@@ -175,40 +175,40 @@ module SystemLoader
     
     def load_file_from_eth_now(params, load_addr, filename, timeout=60)
         tftp_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'tftp', 'version'=>@@uboot_version})
-        self.send_cmd(params, "#{tftp_cmd} #{load_addr} #{params['server'].telnet_ip}:#{filename}", @boot_prompt, timeout)
+        self.send_cmd(params, "#{tftp_cmd} #{load_addr} #{params['server'].telnet_ip}:#{filename}", params['dut'].boot_prompt, timeout)
         raise "load_file_from_eth_now failed to load #{filename}" if params['dut'].response.match(/error/i)
     end
 
     def load_file_from_mmc_now(params, load_addr, filename, timeout=60)
       raise "load_file_from_mmc_now: no filename is provided." if !filename
       mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
-      self.send_cmd(params, "#{mmc_init_cmd}; fatload mmc #{params['_env']['mmcdev']} #{load_addr} #{filename} ", @boot_prompt, timeout)
+      self.send_cmd(params, "#{mmc_init_cmd}; fatload mmc #{params['_env']['mmcdev']} #{load_addr} #{filename} ", params['dut'].boot_prompt, timeout)
     end
 
     def load_file_from_rawmmc_now(params, load_addr, blk_num, cnt, timeout=60)
       mmc_init_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'mmc init', 'version'=>@@uboot_version})
-      self.send_cmd(params, "#{mmc_init_cmd}; mmc dev #{params['_env']['mmcdev']}; mmc read #{load_addr} #{blk_num} #{cnt}", @boot_prompt, timeout)
+      self.send_cmd(params, "#{mmc_init_cmd}; mmc dev #{params['_env']['mmcdev']}; mmc read #{load_addr} #{blk_num} #{cnt}", params['dut'].boot_prompt, timeout)
       raise "rawmmc read failed" if !params['dut'].response.match(/read:\s+OK/i)
     end
 
     def load_file_from_usbmsc_now(params, load_addr, filename, timeout=60)
       raise "load_file_from_usbmsc_now: no filename is provided." if !filename
       init_usbmsc(params, timeout)
-      self.send_cmd(params, "#{usb_init_cmd}; fatload usb #{params['_env']['usbdev']} #{load_addr} #{filename} ", @boot_prompt, timeout)
+      self.send_cmd(params, "#{usb_init_cmd}; fatload usb #{params['_env']['usbdev']} #{load_addr} #{filename} ", params['dut'].boot_prompt, timeout)
     end
 
     def erase_nand(params, nand_loc, size, timeout=60)
-      self.send_cmd(params, "nand erase.part #{nand_loc} ", @boot_prompt, timeout)
+      self.send_cmd(params, "nand erase.part #{nand_loc} ", params['dut'].boot_prompt, timeout)
       raise "erase_nand failed!" if !params['dut'].response.match(/OK/) 
     end
 
     def write_file_to_nand(params, mem_addr, nand_loc, size, timeout=60)
-      self.send_cmd(params, "nand write #{mem_addr} #{nand_loc} #{size}", @boot_prompt, timeout)
+      self.send_cmd(params, "nand write #{mem_addr} #{nand_loc} #{size}", params['dut'].boot_prompt, timeout)
       raise "write to nand failed!" if !params['dut'].response.match(/bytes\s+written:\s+OK/i) 
     end
 
     def load_file_from_nand(params, mem_addr, nand_loc, timeout=60)
-      self.send_cmd(params, "nand read #{mem_addr} #{nand_loc} ", @boot_prompt, timeout)
+      self.send_cmd(params, "nand read #{mem_addr} #{nand_loc} ", params['dut'].boot_prompt, timeout)
       raise "read from nand failed!" if !params['dut'].response.match(/bytes\s+read:\s+OK/i) 
     end
 
@@ -218,7 +218,7 @@ module SystemLoader
       # size passed here is in hex format
       roundup_size = (size.to_i(16).to_f / spi_erase_size.to_f).ceil * spi_erase_size.to_f 
       roundup_size = roundup_size.to_i.to_s(16)
-      self.send_cmd(params, "sf probe; sf erase #{spi_loc} #{roundup_size}", @boot_prompt, timeout)
+      self.send_cmd(params, "sf probe; sf erase #{spi_loc} #{roundup_size}", params['dut'].boot_prompt, timeout)
       raise "erase_spi failed!" if !params['dut'].response.match(/OK/) 
     end
 
@@ -231,17 +231,17 @@ module SystemLoader
     end
 
     def write_file_to_spi(params, mem_addr, spi_loc, size, timeout=60)
-      self.send_cmd(params, "sf probe; sf write #{mem_addr} #{spi_loc} #{size}", @boot_prompt, timeout)
+      self.send_cmd(params, "sf probe; sf write #{mem_addr} #{spi_loc} #{size}", params['dut'].boot_prompt, timeout)
       raise "write to spi failed!" if !params['dut'].response.match(/written:\s+OK/i) 
     end
 
     def load_file_from_spi(params, mem_addr, spi_loc, timeout=60)
-      self.send_cmd(params, "sf probe; sf read #{mem_addr} #{spi_loc} ", @boot_prompt, timeout)
+      self.send_cmd(params, "sf probe; sf read #{mem_addr} #{spi_loc} ", params['dut'].boot_prompt, timeout)
       raise "read from spi failed!" if !params['dut'].response.match(/bytes\s+read:\s+OK/i) 
     end
 
     def fatwrite(params, interface, dev, mem_addr, filename, filesize, timeout)
-      self.send_cmd(params, "fatwrite #{interface} #{dev} #{mem_addr} #{filename} #{filesize}", @boot_prompt, timeout)
+      self.send_cmd(params, "fatwrite #{interface} #{dev} #{mem_addr} #{filename} #{filesize}", params['dut'].boot_prompt, timeout)
       raise "fatwrite to #{interface} failed! Please make sure there is FAT partition in #{interface} device!" if !params['dut'].response.match(/bytes\s+written/i)
     end
 
@@ -255,18 +255,18 @@ module SystemLoader
     end
 
     def write_file_to_rawmmc(params, mem_addr, blk_num, cnt, timeout)    
-      self.send_cmd(params, "mmc dev #{params['_env']['mmcdev']}; mmc write #{mem_addr} #{blk_num} #{cnt}", @boot_prompt, timeout)
+      self.send_cmd(params, "mmc dev #{params['_env']['mmcdev']}; mmc write #{mem_addr} #{blk_num} #{cnt}", params['dut'].boot_prompt, timeout)
       raise "write rawmmc failed!" if !params['dut'].response.match(/written:\s+OK/i)
     end
 
     def init_usbmsc(params, timeout)
       usb_init_cmd = "usb stop; usb start"
-      self.send_cmd(params, "#{usb_init_cmd}", @boot_prompt, timeout)
+      self.send_cmd(params, "#{usb_init_cmd}", params['dut'].boot_prompt, timeout)
       raise "No usbmsc device being found" if ! params['dut'].response.match(/[1-9]+\s+Storage\s+Device.*found/i)
     end
 
     def get_filesize(params, timeout)
-      self.send_cmd(params, "print filesize", @boot_prompt, timeout)
+      self.send_cmd(params, "print filesize", params['dut'].boot_prompt, timeout)
       size = /filesize\s*=\s*(\h+)/im.match(params['dut'].response).captures[0]
       return size
     end
@@ -402,7 +402,7 @@ module SystemLoader
         append_text params, 'bootargs', "ip=:::::eth0:dhcp "
         send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'", nil, 2, false, false
         send_cmd params, "setenv autoload 'no'", nil, 2, false, false
-        send_cmd params, "dhcp", /DHCP client bound to address.*#{@boot_prompt}/im, 60
+        send_cmd params, "dhcp", /DHCP client bound to address.*#{params['dut'].boot_prompt}/im, 60
       end
     end
   end
@@ -569,7 +569,7 @@ module SystemLoader
       end
       if params['pmmc_dev'] != 'none'
         pmmc_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'run_pmmc', 'version'=>@@uboot_version})
-        self.send_cmd(params, pmmc_cmd, @boot_prompt, 60)
+        self.send_cmd(params, pmmc_cmd, params['dut'].boot_prompt, 60)
       end
     end
 
@@ -579,7 +579,7 @@ module SystemLoader
     end
 
     def load_pmmc_from_ubi(params)
-      self.send_cmd(params, "ubifsload ${loadaddr} #{params['pmmc_image_name']}", @boot_prompt, 60)
+      self.send_cmd(params, "ubifsload ${loadaddr} #{params['pmmc_image_name']}", params['dut'].boot_prompt, 60)
     end
 
   end
@@ -934,7 +934,7 @@ module SystemLoader
     def run(params)
       @steps.each {|step| step.run(params)}
       rescue Exception => e
-        raise SystemloaderException.new(e.backtrace)
+        raise SystemloaderException.new(e)
     end
   end
 
