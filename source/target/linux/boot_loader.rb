@@ -1,9 +1,9 @@
 module BootLoader
 
   class BootloaderException < Exception
-    def initialize(b_trace=nil)
+    def initialize(e=nil)
       super()
-      set_backtrace(b_trace) if b_trace
+      set_backtrace(b_trace.insert(0, e.to_s)) if e
     end
   end
   ####################################################################################
@@ -72,7 +72,7 @@ class BaseLoader
     @load_method.call params
     stop_at_boot_prompt params
     rescue Exception => e
-      raise BootloaderException.new(e.backtrace)
+      raise BootloaderException.new(e)
   end
 
   def create_bootloader_load_script_uart_spl(params)
