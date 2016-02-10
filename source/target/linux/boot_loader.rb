@@ -3,7 +3,7 @@ module BootLoader
   class BootloaderException < Exception
     def initialize(e=nil)
       super()
-      set_backtrace(b_trace.insert(0, e.to_s)) if e
+      set_backtrace(e.backtrace.insert(0,e.to_s)) if e
     end
   end
   ####################################################################################
