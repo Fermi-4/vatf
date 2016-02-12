@@ -79,7 +79,7 @@ module Equipment
       end
       
     # Select BootLoader's load_method based on params
-    def set_bootloader(params)
+    def set_bootloader(params)        
       @boot_loader = case params['primary_bootloader_dev']
       when /uart/i
         BaseLoader.new method( get_uart_boot_method(@name) )
@@ -87,6 +87,9 @@ module Equipment
         BaseLoader.new method(:LOAD_FROM_ETHERNET)
       when /nand/i
         BaseLoader.new method( get_nand_boot_method(@name) )
+      when /no-boot/i
+        puts "*** Note: DUT boot mode will be changed via BMC commands. ***"
+        DSPOnlyLoader.new method( get_no_boot_method(@name) )
       else
         BaseLoader.new 
       end
@@ -103,6 +106,8 @@ module Equipment
         @system_loader = SystemLoader::UbootDefaultEnvSystemLoader.new
       elsif params['var_use_default_env'].to_s == '2'
         @system_loader = SystemLoader::UbootLetItGoSystemLoader.new
+      elsif params['secondary_bootloader_dev'].to_s == 'no-boot'
+        @system_loader = SystemLoader::BaseSystemLoader.new
       else
         @system_loader = SystemLoader::UbootSystemLoader.new
         if params['fs_dev'].downcase == 'nand' 

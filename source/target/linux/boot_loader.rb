@@ -36,6 +36,7 @@ module BootLoader
   def LOAD_FROM_NAND_BY_BMC(params)
     puts "########LOAD_FROM_NAND_BY_BMC########"
     params['bootloader_class'].bmc_trigger_boot(params['dut'], 'nand')
+
   end
 
   def LOAD_FROM_NAND(params)
@@ -48,11 +49,14 @@ module BootLoader
   def LOAD_FROM_ETHERNET(params)
     raise "Loading bootloader from ethernet is not supported on default device"
   end
+  def LOAD_FROM_NO_BOOT_DSP_BY_BMC(params)
+    params['dut'].power_cycle(params)
+    params['bootloader_class'].bmc_trigger_boot(params['dut'], 'dsp_no')
+  end
   ####################################################################################
   ####################################################################################
 
 end
-
 
 class BaseLoader
   attr_accessor :load_method
@@ -167,6 +171,8 @@ class BaseLoader
     case device.downcase
     when 'uart'
       cmd_key = "uart_bootmode"
+    when 'dsp_no'
+      cmd_key = "dsp_no_bootmode"
     when 'nand'
       cmd_key = "nand_bootmode"
     else
@@ -211,6 +217,17 @@ class BaseLoader
     }
     b_prompt_th.join()
     raise "Failed to load bootloader" if dut.timeout?
+  end
+
+end
+
+class DSPOnlyLoader < BaseLoader
+
+  def initialize(load_method=nil)
+    super(load_method)
+  end
+
+  def stop_at_boot_prompt(params)
   end
 
 end
