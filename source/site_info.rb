@@ -29,6 +29,7 @@ module SiteInfo
  end
  
  #LOGS_SERVER                    = "http://automationlogs.gt.design.ti.com/gtsystst_logs/vatf"
+ COREDUMP_UTIL                  = "http://tigt_qa.gt.design.ti.com/qacm/test_area/nightlytools/testautomation/coredump.tar.gz"
  LOGS_SERVER                    = "http://gtsystest.telogy.design.ti.com/vatf"
  ANALYTICS_SERVER               = "lcpdresults.itg.ti.com:80"
  WINCE_DOWNLOAD_APP             = 'cedownload.exe'
