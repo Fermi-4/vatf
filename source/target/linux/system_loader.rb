@@ -655,6 +655,14 @@ module SystemLoader
     def set_ramfs(params)
       # Make sure file have required headers (i.e. mkimage have been run)
       fs_image_full_path = File.join(params['server'].tftp_path, params['fs_image_name'])
+      y=`mkimage -l #{fs_image_full_path}`
+      if !y.match(/Image\s+Name:\s+Arago\s+Test\s+Image/i)
+        ramdisk_image_name="#{File.dirname params['fs_image_name']}/uRamdisk"
+        x=`mkimage -A arm -T ramdisk -C gzip -n 'Arago Test Image' -d #{fs_image_full_path} #{File.join(params['server'].tftp_path, ramdisk_image_name)}`
+        raise "Could not run mkimage on #{params['fs_image_name']}" if !x.match(/Image\s+Name:\s+Arago\s+Test\s+Image/i)
+        params['fs_image_name']=ramdisk_image_name
+      end
+
 
       # Avoid relocation of ramfs and device tree data
       send_cmd params, "setenv initrd_high '0xffffffff'"
@@ -663,8 +671,10 @@ module SystemLoader
       case params['fs_src_dev']
       when /eth/i
         load_file_from_eth_now params, params['_env']['ramdisk_loadaddr'], params['fs_image_name'], 600
+        send_cmd params, "setenv _initramfs #{params['_env']['ramdisk_loadaddr']}:#{params['_env']['filesize']}"
       when /mmc/i
         load_file_from_mmc params, params['_env']['ramdisk_loadaddr'], params['fs_image_name']
+        send_cmd params, "setenv _initramfs #{params['_env']['ramdisk_loadaddr']}:#{params['_env']['filesize']}"
       else
         raise "Don't know how to get ramfs image from #{params['fs_src_dev']}"
       end
