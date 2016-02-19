@@ -196,8 +196,9 @@ module Equipment
 
     def at_prompt?(params)
       prompt = params['prompt']
+      wait_time = params['wait'] ? params['wait'] : 2
       3.times {
-        send_cmd("#check prompt", prompt, 2)
+        send_cmd("#check prompt", prompt, wait_time)
         break if !timeout?
       }
       !timeout?
