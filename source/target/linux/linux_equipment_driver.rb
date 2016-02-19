@@ -125,6 +125,10 @@ module Equipment
         @system_loader.insert_step_before('boot', SetExtraArgsStep.new) 
       end
 
+      if params.has_key?("autologin")
+        @system_loader.replace_step('boot', BootAutologinStep.new)
+      end
+
     end
 
     # Update primary and secondary bootloader 
@@ -286,6 +290,15 @@ module Equipment
     # Gracefully bring down the system to avoid FS corruption
     def poweroff(params=nil)
       send_cmd("sync;poweroff",/System halted|System will go to power_off|Power down|reboot: Power/i,120)
+    end
+
+    def check_for_boot_errors(params=nil)
+      errors = {
+        'CPU failed to come online' => /\[[\s\d\.]+\]\s+.*CPU\d+:\s+failed to come online/i,
+      }
+      errors.each {|n,r|
+        raise n if boot_log.match(r)
+      }
     end
     
     ###############################################################################################
