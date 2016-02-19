@@ -190,6 +190,7 @@ module Equipment
       version = /Linux\s+version\s+([\d\.]+)\s*/.match(response).captures[0]
       raise "Could not find linux version" if version == nil
       puts "\nlinux version = #{version}\n\n"
+      @linux_version = version
       return version
     end
 
