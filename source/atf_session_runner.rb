@@ -327,7 +327,6 @@ class SessionHandler
       @results_html_file.add_logs_table
       @results_html_file.add_test_result_table
       @equipment = Hash.new
-      @connection_handler = ConnectionHandler.new(@files_dir)
       @power_handler = PowerHandler.new()
       @usb_switch_handler = UsbSwitchHandler.new()
       @logs_array = Array.new
@@ -406,7 +405,6 @@ class SessionHandler
               else
                   @equipment[test_vars] = test_vars
               end
-              @connection_handler.load_switch_connections(@equipment[test_vars],equip_type,eq_id, i, iter)
               @power_handler.load_power_ports($equipment_table[equip_type][eq_id][i].power_port)
               if $equipment_table[equip_type][eq_id][i].params
                 $equipment_table[equip_type][eq_id][i].params.each do |key,val|
@@ -421,7 +419,6 @@ class SessionHandler
         rescue Exception => e
             raise e.to_s+"\n"+e.backtrace.to_s+"\n Unable to assign equipment #{current_etype}, #{eq_id} entry #{current_instance} to #{current_var}. Verify that #{@rtp_db.get_config_script} contains valid bench file entries; that you can communicate with #{current_etype}, #{eq_id} entry #{current_instance}; and that #{current_etype}, #{eq_id} entry #{current_instance} IO information is correct."
       end
-      @connection_handler.media_switches.each{|key,val| @logs_array << ["MediaSwitch"+key.to_s, val[1].sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")]}
       test_script_found = false
       #require @view_drive+@rtp_db.get_test_script.gsub(".rb","")
       t_case_read, t_case_write = IO.pipe()
@@ -437,6 +434,7 @@ class SessionHandler
           if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
             @rtp_db.monitor_log("\n===== Calling #{@rtp_db.get_test_script}'s setup() at time #{t_setup}")
           end
+          @connection_handler = ConnectionHandler.new(@files_dir)
           setup
           t_run = Time.now.to_s
           puts "\n===== Calling "+@rtp_db.get_test_script+"'s run() at time "+t_run
@@ -445,11 +443,13 @@ class SessionHandler
           end
           run
           test_script_found = true
+          @connection_handler.logs.each{|key,val| @logs_array << [key.to_s, val.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")]}
           Marshal.dump([@new_keys, @test_result, @results_html_file, @logs_array] ,t_case_write)
         rescue Exception => e
           n_e = Exception.new(e.to_s) #workaround since e sometimes gets mangled with non-Exception object
           Marshal.dump([@new_keys, n_e, e.backtrace.to_s.gsub(/\s+/," ")] , t_case_write)
         ensure
+          @connection_handler.disconnect if @connection_handler
           clean if test_script_found
         end
       end
@@ -512,13 +512,11 @@ class SessionHandler
         if (is_db_type_xml?(@db_type) && @rtp_db.is_staf_enabled)
           @rtp_db.monitor_log("===== Calling #{@rtp_db.get_test_script}'s clean() at time #{t_clean}")
         end
-      @connection_handler.media_switches.each {|key,val| val[0].stop_logger} if @connection_handler
       @equipment.each_value do |val|
         # puts val.class.to_s+" = "+ObjectSpace.each_object(val.class){}.to_s  # DEBUG: Uncomment this line to get a print out of the number of test equipment objects
         val.stop_logger if val.respond_to?(:stop_logger)
         val.disconnect if val.respond_to?(:disconnect) && val.respond_to?(:stop_logger)
       end
-      @connection_handler.disconnect if @connection_handler
     end
 
     #This function is used inside the test script to set the result for the test. Takes test_result the result of the test (FrameworkConstants::Result), and comment a comment associated with the test result (string) as parameters.
@@ -618,10 +616,14 @@ class SessionHandler
     #
     # After calling this function the new instantiated driver can be accessed with call to @equipment. For the example presented
     # before the equipment can accessed with @equipment['test_equip']
-    def add_equipment(equip_var, link_log=true)
+    def add_equipment(equip_var, equip_info=nil, link_log=true)
       raise "Could not add equipment, equipment hash already contains an equipment referenced with key #{equip_var}" if @equipment.has_key?(equip_var)
       equip_log = File.join(@files_dir,equip_var.strip+"_"+@current_test_iteration.to_s+"_log.txt")
-      equip_object = yield equip_log
+      if equip_info
+        equip_object = yield Object.const_get(equip_info.driver_class_name), equip_log
+      else
+        equip_object = yield equip_log
+      end
       @equipment[equip_var] = equip_object
       @logs_array << [equip_var, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if link_log
     end
