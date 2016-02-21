@@ -154,8 +154,7 @@ class BaseLoader
     dut = params['dut']
     # Kill anything which has the serial port open already.
     3.times { break if kill_tasks_holding_serial_port(params) }
-    # Ensure the board is reset.
-    dut.power_cycle(params)
+
     # Make sure that we're ready to catch the board coming out of reset
     sleep 1
     tx_thread = Thread.new do
@@ -163,6 +162,9 @@ class BaseLoader
     end
     if dut.params and dut.params.key? 'bmc_port'
       bmc_trigger_boot(dut, 'uart')
+    else
+      # Ensure the board is reset.
+      dut.power_cycle(params)
     end
     tx_thread.join()
   end
