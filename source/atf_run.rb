@@ -98,7 +98,7 @@ def run_session
     else
       if(options.browser)
         sep = "/"
-        sep = "\\" if Config::CONFIG["arch"].match(/win\d{2}/i)
+        sep = "\\" if RbConfig::CONFIG["arch"].match(/win\d{2}/i)
         if OsFunctions::is_windows?
           system("explorer #{multi_session_html.gsub(options.results_base_dir,options.results_base_url).gsub(/\\|\//,sep)}")
         elsif OsFunctions::is_linux?
