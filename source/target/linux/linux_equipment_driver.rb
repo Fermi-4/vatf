@@ -294,6 +294,26 @@ module Equipment
       send_cmd("sync;poweroff",/System halted|System will go to power_off|Power down|reboot: Power/i,120)
     end
 
+    def shutdown(params)
+      @power_handler = params['power_handler'] if !@power_handler
+      connected = true
+      begin
+        connect({'type'=>'serial'}) if !target.serial
+        send_cmd(@login,@prompt, 3) if at_login_prompt?
+      rescue Exception => e
+        raise e if !@power_port
+        log_info("Problems while trying to connect to the board...\n" \
+                 "#{e.to_s}\nWill try to connect again after power cycle...")
+        connected = false
+      end
+      if @power_port !=nil
+        puts 'Shuting down using power switch'
+        poweroff(params) if connected && at_prompt?({'prompt'=>@prompt})
+        disconnect('serial')
+        @power_handler.switch_off(@power_port)
+      end
+    end
+
     def check_for_boot_errors(params=nil)
       errors = {
         'CPU failed to come online' => /\[[\s\d\.]+\]\s+.*CPU\d+:\s+failed to come online/i,
