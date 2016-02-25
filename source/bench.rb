@@ -188,6 +188,14 @@ EquipmentInfo.new("usb_switch_controller", "1") do
   driver_class_name = 'TiUsbSwitch'
 end
 
+# MSP432-Based test gadget. Currently used to switch micro sd cards between host and dut
+ti_test_gadget = EquipmentInfo.new("msp432", "0") do
+  serial_port = '/dev/ttyACM0'
+  serial_params = {"baud" => 115200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+  driver_class_name = 'TiMultiPurposeTestGadget'
+end
+dut.params = {'microsd_switch' => {ti_test_gadget => 'r' } # value 'r' or 'l' indicates side connected to DUT
+
 #Objective Speech Tester information
 EquipmentInfo.new("speech_tester") do
   driver_class_name = "OperaForClr"
