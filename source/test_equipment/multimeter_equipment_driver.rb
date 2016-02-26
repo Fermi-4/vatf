@@ -241,7 +241,7 @@ module TestEquipment
           rails_str += "-r #{_translate_domain_names(d)} "
       }
       send_cmd("./ptool -c configs/#{@dut_config_file} #{rails_str} -n #{loop_count} -s #{delay_between_samples}", @prompt, loop_count.to_i*delay_between_samples.to_i + 10)
-      response().scan(/^\|\s*\d+\s*\|\s*(\w+)\s*\|\s*([\d\.]+)\s*\|\s*([\d\.]+)\s*\|\s*([\d\.]+)\s*\|\s*([\d\.]+)\s*\|/).each{|data|
+      response().scan(/^\|\s*\d+\s*\|\s*(\w+)\s*\|\s*([\d\.\-]+)\s*\|\s*([\d\.\-]+)\s*\|\s*([\d\.\-]+)\s*\|\s*([\d\.]+)\s*\|/).each{|data|
         puts "domain \t drop V \t volt \t current \t power"
         puts "#{data[0]} \t #{data[1]} \t #{data[2]} \t #{data[3]} \t #{data[4]}"
         h["domain_"+ _reverse_translate_domain_names(data[0]) + "drop_volt_readings"] << data[1].to_f * 10**-6
