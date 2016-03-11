@@ -265,12 +265,6 @@ module SystemLoader
       raise "No usbmsc device being found" if ! params['dut'].response.match(/[1-9]+\s+Storage\s+Device.*found/i)
     end
 
-    def get_filesize(params, timeout)
-      self.send_cmd(params, "print filesize", params['dut'].boot_prompt, timeout)
-      size = /filesize\s*=\s*(\h+)/im.match(params['dut'].response).captures[0]
-      return size
-    end
-
     def flash_run(params, part, timeout)
       case params["#{part}_src_dev"]
       when 'mmc'
@@ -283,9 +277,6 @@ module SystemLoader
         raise "Unsupported src_dev -- " + params["#{part}_src_dev"] + " for flashing"
       end
       
-      # filesize will be updated to the size of file which was just loaded
-      params['_env']['filesize'] = get_filesize(params, 10) 
-
       case params["#{part}_dev"]
       when 'nand'
         erase_nand params, params["nand_#{part}_loc"], params['_env']['filesize'], timeout
