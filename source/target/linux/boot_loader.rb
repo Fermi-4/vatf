@@ -169,6 +169,13 @@ class BaseLoader
     tx_thread.join()
   end
 
+  def bmc_get_version(dut)
+    prompt = dut.params.key?('bmc_prompt') ? dut.params['bmc_prompt'] : />/
+    dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>'version', 'version'=>'1.0', 'platform'=>dut.name}), prompt, 3, false )
+    @bmc_version = dut.target.bmc.response.to_s.match(/\[[\d\:]+\][^\d]+([\d\.]+).+/m).captures[0]
+    return @bmc_version
+  end
+
   def bmc_trigger_boot(dut, device)
     case device.downcase
     when 'uart'
@@ -191,7 +198,7 @@ class BaseLoader
         puts "Timeout waiting for prompt"
       end
     }
-    dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>cmd_key, 'version'=>'1.0', 'platform'=>dut.name}), prompt, 3, false )
+    dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>cmd_key, 'version'=>bmc_get_version(dut), 'platform'=>dut.name}), prompt, 3, false )
     dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>'reboot', 'version'=>'1.0'}), prompt, 10, false )
   end
 
