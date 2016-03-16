@@ -172,7 +172,7 @@ class BaseLoader
   def bmc_get_version(dut)
     prompt = dut.params.key?('bmc_prompt') ? dut.params['bmc_prompt'] : />/
     dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>'version', 'version'=>'1.0', 'platform'=>dut.name}), prompt, 3, false )
-    @bmc_version = dut.target.bmc.response.to_s.match(/\[[\d\:]+\][^\d]+([\d\.]+).+/m).captures[0]
+    @bmc_version = dut.target.bmc.response.to_s.match(/\[[\d\:]+\][^\d]+(\d\.[\d\.]+).+/m).captures[0]
     return @bmc_version
   end
 
