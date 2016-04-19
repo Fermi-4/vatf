@@ -265,6 +265,12 @@ module SystemLoader
       raise "No usbmsc device being found" if ! params['dut'].response.match(/[1-9]+\s+Storage\s+Device.*found/i)
     end
 
+    def get_filesize(params, timeout)
+      self.send_cmd(params, "print filesize", params['dut'].boot_prompt, timeout)
+      size = /filesize\s*=\s*(\h+)/im.match(params['dut'].response).captures[0]
+      return size
+    end
+
     def flash_run(params, part, timeout)
       case params["#{part}_src_dev"]
       when 'mmc'
@@ -277,13 +283,15 @@ module SystemLoader
         raise "Unsupported src_dev -- " + params["#{part}_src_dev"] + " for flashing"
       end
       
+      txed_size = get_filesize(params, 10)
+
       case params["#{part}_dev"]
       when 'nand'
-        erase_nand params, params["nand_#{part}_loc"], params['_env']['filesize'], timeout
-        write_file_to_nand params, params['_env']['loadaddr'], params["nand_#{part}_loc"], params['_env']['filesize'], timeout
+        erase_nand params, params["nand_#{part}_loc"], txed_size, timeout
+        write_file_to_nand params, params['_env']['loadaddr'], params["nand_#{part}_loc"], txed_size, timeout
       when 'spi'
-        erase_spi params, params["spi_#{part}_loc"], params['_env']['filesize'], timeout
-        write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], params['_env']['filesize'], timeout
+        erase_spi params, params["spi_#{part}_loc"], txed_size, timeout
+        write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], txed_size, timeout
       when 'rawmmc'
         write_file_to_rawmmc params, params['_env']['loadaddr'], params["rawmmc_#{part}_loc"], params["rawmmc_#{part}_blkcnt"], timeout
       when 'mmc'
