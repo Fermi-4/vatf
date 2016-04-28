@@ -317,6 +317,8 @@ module Equipment
     def check_for_boot_errors(params=nil)
       errors = {
         'CPU failed to come online' => /\[[\s\d\.]+\]\s+.*CPU\d+:\s+failed to come online/i,
+        'Kernel Oops' => /Internal error: Oops/i,
+        'NFS Failure' => /Unable to mount root fs via NFS/i,
       }
       errors.each {|n,r|
         raise n if boot_log.match(r)
