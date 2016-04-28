@@ -425,7 +425,13 @@ class SessionHandler
       t_proc_pid = Process.fork() do
         t_case_read.close()
         Signal.trap('INT') do
-          Kernel.exit!()
+          begin
+            clean if test_script_found
+          rescue Exception => e
+            puts e.backtrace.to_s.gsub(/\s+/," ")
+          ensure
+            Kernel.exit!()
+          end
         end
         begin
           load File.join(@view_drive,@rtp_db.get_test_script)
