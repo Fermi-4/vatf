@@ -58,8 +58,6 @@ module SystemLoader
       params['_env']['loadaddr'] = load_addr
       # filesize will be updated to the size of file which was just loaded
       params['_env']['filesize'] = '${filesize}'
-
-      send_cmd params, 'setenv _initramfs -'
       params['_env']['initramfs'] = '${_initramfs}'
 
       # Determine dtb loadaddr
@@ -384,6 +382,7 @@ module SystemLoader
         }
       end
       send_cmd params, "setenv mmcdev '#{params['mmcdev']} '", nil, 2, false, false if params.has_key?('mmcdev')
+      send_cmd params, 'setenv _initramfs -'
       get_environment(params)
     end
   end
