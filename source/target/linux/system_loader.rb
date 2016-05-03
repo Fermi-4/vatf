@@ -252,7 +252,8 @@ module SystemLoader
       fatwrite(params, "usb", "#{params['_env']['usbdev']}:1", mem_addr, filename, filesize, timeout)
     end
 
-    def write_file_to_rawmmc(params, mem_addr, blk_num, cnt, timeout)    
+    def write_file_to_rawmmc(params, mem_addr, blk_num, filesize, timeout)    
+      cnt = get_blk_cnt(filesize, 512)
       self.send_cmd(params, "mmc dev #{params['_env']['mmcdev']}; mmc write #{mem_addr} #{blk_num} #{cnt}", params['dut'].boot_prompt, timeout)
       raise "write rawmmc failed!" if !params['dut'].response.match(/written:\s+OK/i)
     end
@@ -261,6 +262,15 @@ module SystemLoader
       usb_init_cmd = "usb stop; usb start"
       self.send_cmd(params, "#{usb_init_cmd}", params['dut'].boot_prompt, timeout)
       raise "No usbmsc device being found" if ! params['dut'].response.match(/[1-9]+\s+Storage\s+Device.*found/i)
+    end
+
+    # filesize: in hex
+    # blk_len: in decimal
+    # return: in hex
+    def get_blk_cnt(filesize, blk_len)
+      b = (filesize.to_i(16).to_f / blk_len.to_f).ceil
+      cnt = "0x" + b.to_s(16)
+      return cnt
     end
 
     def get_filesize(params, timeout)
@@ -291,27 +301,27 @@ module SystemLoader
         erase_spi params, params["spi_#{part}_loc"], txed_size, timeout
         write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], txed_size, timeout
       when 'rawmmc'
-        write_file_to_rawmmc params, params['_env']['loadaddr'], params["rawmmc_#{part}_loc"], params["rawmmc_#{part}_blkcnt"], timeout
+        write_file_to_rawmmc params, params['_env']['loadaddr'], params["rawmmc_#{part}_loc"], txed_size, timeout
       when 'mmc'
         if part.match(/primary_bootloader/)
-          write_file_to_mmc_boot params, params['_env']['loadaddr'], "MLO", params['_env']['filesize'], timeout
+          write_file_to_mmc_boot params, params['_env']['loadaddr'], "MLO", txed_size, timeout
         elsif part.match(/secondary_bootloader/)
-          write_file_to_mmc_boot params, params['_env']['loadaddr'], "u-boot.img", params['_env']['filesize'], timeout
+          write_file_to_mmc_boot params, params['_env']['loadaddr'], "u-boot.img", txed_size, timeout
         elsif part.match(/kernel/)
-          write_file_to_mmc_boot params, params['_env']['loadaddr'], File.basename(params['kernel_image_name']), params['_env']['filesize'], timeout
+          write_file_to_mmc_boot params, params['_env']['loadaddr'], File.basename(params['kernel_image_name']), txed_size, timeout
         elsif part.match(/dtb/)
-          write_file_to_mmc_boot params, params['_env']['loadaddr'], File.basename(params['dtb_image_name']), params['_env']['filesize'], timeout
+          write_file_to_mmc_boot params, params['_env']['loadaddr'], File.basename(params['dtb_image_name']), txed_size, timeout
         end
       when 'usbmsc'
         init_usbmsc(params, timeout)
         if part.match(/primary_bootloader/)
-          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], "MLO", params['_env']['filesize'], timeout
+          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], "MLO", txed_size, timeout
         elsif part.match(/secondary_bootloader/)
-          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], "u-boot.img", params['_env']['filesize'], timeout
+          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], "u-boot.img", txed_size, timeout
         elsif part.match(/kernel/)
-          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], File.basename(params['kernel_image_name']), params['_env']['filesize'], timeout
+          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], File.basename(params['kernel_image_name']), txed_size, timeout
         elsif part.match(/dtb/)
-          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], File.basename(params['dtb_image_name']), params['_env']['filesize'], timeout
+          write_file_to_usbmsc_boot params, params['_env']['loadaddr'], File.basename(params['dtb_image_name']), txed_size, timeout
         end
       else
         raise "Unsupported dst dev: " + params["#{part}_dev"]
