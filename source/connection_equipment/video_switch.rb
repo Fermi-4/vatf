@@ -166,21 +166,23 @@ This class allows the user to control the extron video switch via a telnet sessi
   
     def initialize(switch_info,log_path = nil)
       super(log_path)
-      @switch = SerialPort.new(switch_info.serial_port, switch_info.serial_params)
-      begin
-        send_cmd('') # make sure there are no commands queued in sw
-      rescue 
-      end
+      @switch_info = switch_info
     end
     
     def disconnect()
-      @switch.close()
+      stop_logger
+      sleep 1
     end
     
     #Select and EDID for the inputs
     def set_edid(edid_num)
       res = esc_cmd("A#{edid_num}EDID")
       raise "Unable to set EDID" if !res.match(/EdidA#{edid_num}/im)
+    end
+    
+    def disable_hdcp()
+      res = esc_cmd('E0HDCP')
+      raise "Unable to disable HDCP" if !res.match(/HdcpE0/im)
     end
 
     #Returns the edid_num of the currently selected EDID
@@ -190,7 +192,7 @@ This class allows the user to control the extron video switch via a telnet sessi
     
     #Returns the EDID data in Hex format
     def get_edid_data()
-      esc_cmd('REDID')
+      esc_cmd('REDID').match(/^[0-9A-F]+.*/im)[0]
     end
     
     #Connects an HDMI input to the HDMI output.
@@ -289,22 +291,25 @@ This class allows the user to control the extron video switch via a telnet sessi
     private
       
       def send_cmd(cmd_to_send, prefix='', suffix="\r", c_id=0)
-        log_info("Host: #{prefix+cmd_to_send} (#{caller[c_id].split("in")[1].strip()})")
-        @switch.write(prefix+cmd_to_send+suffix)
+        switch = SerialPort.new(@switch_info.serial_port, @switch_info.serial_params)
+        log_info("Host: #{prefix+cmd_to_send} (#{caller[c_id].split("in")[1].strip()})")        
+        switch.write(prefix+cmd_to_send+suffix)
         tries = 0
-        while true
+        rcv_data = ''
+        while (rcv_data == '' || IO::select([switch],nil,nil,1)) && tries < 6
           begin
-            sleep 1 #need to wait until switch is ready to respond
-            rcv_data = @switch.read_nonblock(10000)
-            break
-          rescue Exception => e
-            raise e if tries == 1 #try twice to read
+            sleep 1
+            rcv_data += switch.read_nonblock(1000)
+          rescue IO::WaitReadable
             tries += 1
+            log_info("Read would block") if tries == 6
           end
         end
         log_info("Switch: "+rcv_data)
         raise ERROR_RESPONSE_TABLE[Regexp.last_match(0)] + " (#{cmd_to_send}) " if rcv_data.match(/E\d{2}/i) && check_error
         rcv_data
+        ensure
+          switch.close() if switch
       end
       
       def esc_cmd(cmd_to_send)
