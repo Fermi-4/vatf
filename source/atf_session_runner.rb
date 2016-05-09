@@ -453,7 +453,7 @@ class SessionHandler
           Marshal.dump([@new_keys, @test_result, @results_html_file, @logs_array] ,t_case_write)
         rescue Exception => e
           n_e = Exception.new(e.to_s) #workaround since e sometimes gets mangled with non-Exception object
-          Marshal.dump([@new_keys, n_e, e.backtrace.to_s.gsub(/\s+/," ")] , t_case_write)
+          Marshal.dump([@new_keys, n_e, e.backtrace.to_s.gsub(/\s+/," "), @logs_array] , t_case_write)
         ensure
           @connection_handler.disconnect if @connection_handler
           clean if test_script_found
@@ -471,10 +471,10 @@ class SessionHandler
       Process.wait(t_proc_pid)
       t_proc_result = Marshal.load(t_proc_result)
       @new_keys = t_proc_result[0]
+      @logs_array = t_proc_result[3]
       if t_proc_result[1].is_a?(TestResult)
         @test_result = t_proc_result[1]
         @results_html_file = t_proc_result[2]
-        @logs_array = t_proc_result[3]
       else
         raise (t_proc_result[1].to_s+"\n"+t_proc_result[2])
       end
@@ -609,8 +609,10 @@ class SessionHandler
     end
 
     # This function allows the user to add equipment to the @equipment hash within the test script.
-    # The functions takes the desired handle specified by the user in equip_var and a boolean specifying if a link to
-    # the log of the equipment should be created in the result html. The function yields a path where the equipment object can
+    # The functions takes the desired handle specified by the user in equip_var, an optional EquipmentInfo object
+    # containing the equipment's to add info, an optional boolen specifying if replacement of existing equipment 
+    # should be allowed, and an optional boolean specifying if a link to the log of the equipment should be 
+    # created in the result html. The function yields a path where the equipment object can
     # create a log file and expects a reference to the new Equipment object as the result of the yield.
     # An example call would be like (NewEquipmentDriver and InfoObject are place holders for the equipment driver needed for an
     # equipment and the input parameters used by the constructor of the driver respectively)
@@ -620,18 +622,24 @@ class SessionHandler
     #     NewEquipmentDriver.new(equip_info,log_path)
     #   end
     #
+    #   or
+    #   equip_info = InfoObject.new
+    #   add_equipment('test_equip',equip_info) do |e_class, log_path|
+    #     e_class.new(equip_info,log_path)
+    #   end
+    #   
     # After calling this function the new instantiated driver can be accessed with call to @equipment. For the example presented
     # before the equipment can accessed with @equipment['test_equip']
-    def add_equipment(equip_var, equip_info=nil, link_log=true)
-      raise "Could not add equipment, equipment hash already contains an equipment referenced with key #{equip_var}" if @equipment.has_key?(equip_var)
+    def add_equipment(equip_var, equip_info=nil, replace=false, link_log=true)
+      raise "Could not add equipment, equipment hash already contains an equipment referenced with key #{equip_var}" if @equipment.has_key?(equip_var) && !replace
       equip_log = File.join(@files_dir,equip_var.strip+"_"+@current_test_iteration.to_s+"_log.txt")
+      @logs_array << [equip_var, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if link_log && !@equipment.has_key?(equip_var)
       if equip_info
         equip_object = yield Object.const_get(equip_info.driver_class_name), equip_log
       else
         equip_object = yield equip_log
       end
       @equipment[equip_var] = equip_object
-      @logs_array << [equip_var, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if link_log
     end
 
     private
