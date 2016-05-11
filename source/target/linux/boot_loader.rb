@@ -216,7 +216,7 @@ class BaseLoader
       dut.send_cmd("", dut.boot_prompt, 40, false)
     end
     200.times {
-      dut.target.serial.puts("")
+      dut.target.serial.puts(" ")
       dut.target.serial.flush
       s_time = Time.now()
       while Time.now() - s_time < 0.1
