@@ -72,6 +72,11 @@ module Equipment
     
     def initialize(platform_info, log_path)
       super(platform_info, log_path)
+      if @boot_prompt
+        @boot_prompt = /#{@boot_prompt}|=>/
+      else
+        @boot_prompt = /=>/
+      end
       @boot_args = @@boot_info[@name]
       @boot_loader = nil
       @system_loader = nil
