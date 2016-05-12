@@ -9,12 +9,12 @@ require File.dirname(__FILE__)+'/video_switch'
 module ConnectionEquipment
   include Log4r
 
-  class KraymerHDMIVSSwitch < BaseDigitalVideoSwitch
-    Logger = Log4r::Logger 
+  class KramerHDMIVSSwitch < BaseDigitalVideoSwitch
+    Logger = Log4r::Logger
     def initialize(platform_info, log_path = nil)
         platform_info.instance_variables.each {|var|
             #if platform_info.instance_variable_get(var).kind_of?(String) && platform_info.instance_variable_get(var).to_s.size > 0
-            if platform_info.instance_variable_get(var).to_s.size > 0   
+            if platform_info.instance_variable_get(var).to_s.size > 0
                self.class.class_eval {attr_reader *(var.to_s.gsub('@',''))}
                self.instance_variable_set(var, platform_info.instance_variable_get(var))
            end
@@ -25,17 +25,17 @@ module ConnectionEquipment
         start_logger(log_path) if log_path
         log_info("Starting target session") if @sw_log
 		end
-    
+
     def login
     end
-    
+
     def logout
     end
-    
+
     def connect_video_audio(inp=0, out=nil)
         connect_video(inp, 1)
     end
-    
+
     # Connect input inp to output
     # * address - the port/sw to turn ON
     def connect_video(inp=0, out=nil)
@@ -54,17 +54,17 @@ module ConnectionEquipment
     def disconnect_video_audio(output_ranges=nil)
         connect_video(0x0, 0x0)
     end
-    
+
     # Disconnect video from the output
     def disconnect_video(output_ranges=nil)
         connect_video(0x0, 0x0)
     end
-    
+
     # Disconnect audio from the output
     def disconnect_audio(output_ranges=nil)
         connect_video(0x0, 0x0)
     end
-    
+
     #Starts the logger for the session. Takes the log file path as parameter.
     # * file_path - the path to store the log
     def start_logger(file_path)
@@ -77,17 +77,17 @@ module ConnectionEquipment
         @sw_log.level = Log4r::DEBUG
         @sw_log.add  @sw_log_outputter
         @pattern_formatter = Log4r::PatternFormatter.new(:pattern => "- %d [%l] %c: %M",:date_pattern => "%H:%M:%S")
-        @sw_log_outputter.formatter = @pattern_formatter     
+        @sw_log_outputter.formatter = @pattern_formatter
     end
-    
+
     #Stops the logger.
     def stop_logger
         @sw_log_outputter = nil if @sw_log_outputter
         @sw_log = nil if @sw_log
     end
-    
+
     private
-    
+
     def _switch(typ, inp, out)
         result = nil
         status = 0x40
@@ -104,14 +104,14 @@ module ConnectionEquipment
           result = sock.read(4)
           log_info("Result: #{result.unpack('H*')}")
         }
-        rescue Timeout::Error 
+        rescue Timeout::Error
           raise "Timeout communicating with Kraymer switch"
         ensure
           sock.close() if sock
 
         return result == expected_res
     end
-    
+
     def log_info(info)
       @sw_log.info(info) if @sw_log
     end
@@ -119,11 +119,11 @@ module ConnectionEquipment
     def log_error(error)
       @sw_log.error(error) if @sw_log
     end
-    
+
     def disconnect()
-      
+
     end
-    
+
   end
 end
 
