@@ -297,10 +297,10 @@ module SystemLoader
       when 'nand'
         erase_nand params, params["nand_#{part}_loc"], txed_size, timeout
         write_file_to_nand params, params['_env']['loadaddr'], params["nand_#{part}_loc"], txed_size, timeout
-      when 'spi'
+      when /spi/ # 'qspi' or 'spi'
         erase_spi params, params["spi_#{part}_loc"], txed_size, timeout
         write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], txed_size, timeout
-      when 'rawmmc'
+      when /rawmmc/ # 'rawmmc-emmc' or 'rawmmc-mmc'
         write_file_to_rawmmc params, params['_env']['loadaddr'], params["rawmmc_#{part}_loc"], txed_size, timeout
       when 'mmc'
         if part.match(/primary_bootloader/)

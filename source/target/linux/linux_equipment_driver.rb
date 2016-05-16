@@ -1,6 +1,7 @@
 require File.dirname(__FILE__)+'/../equipment_driver'
 require File.dirname(__FILE__)+'/build_client'
 require File.dirname(__FILE__)+'/../../lib/cmd_translator'
+require File.dirname(__FILE__)+'/../../lib/sysboot'
 require File.dirname(__FILE__)+'/boot_loader'
 require File.dirname(__FILE__)+'/system_loader'
 
@@ -88,13 +89,24 @@ module Equipment
       
     # Select BootLoader's load_method based on params
     def set_bootloader(params)        
+      SysBootModule::reset_sysboot(params['dut']) 
       @boot_loader = case params['primary_bootloader_dev']
       when /uart/i
         BaseLoader.new method( get_uart_boot_method(@name) )
-      when /eth/i
+      when /ethernet/i
         BaseLoader.new method(:LOAD_FROM_ETHERNET)
+      when /usbeth/i
+        BaseLoader.new method(:LOAD_FROM_USBETH)
+      when /usbmsc/i
+        BaseLoader.new method(:LOAD_FROM_USBMSC)
+      when /emmc/i #'rawmmc-emmc' or 'emmc'
+        BaseLoader.new method(:LOAD_FROM_EMMC)
       when /nand/i
         BaseLoader.new method( get_nand_boot_method(@name) )
+      when /qspi/i
+        BaseLoader.new method( get_qspi_boot_method(@name) )
+      when /^spi/i
+        BaseLoader.new method( get_spi_boot_method(@name) )
       when /no-boot/i
         puts "*** Note: DUT boot mode will be changed via BMC commands. ***"
         DSPOnlyLoader.new method( get_no_boot_method(@name) )
@@ -138,7 +150,11 @@ module Equipment
 
     # Update primary and secondary bootloader 
     def update_bootloader(params)
-      set_bootloader(params) if !@boot_loader
+      # Since we don't know if the primary_bootloader_dev boot works, do not call set_bootloader.
+      # Instead, just power cycle the board. Here, we assume the board can boot from default media.
+      # After the board boot to uboot, then we can update primary_bootloader_dev
+      SysBootModule::reset_sysboot(params['dut'])
+      @boot_loader = BaseLoader.new 
       set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashBootloaderSystemLoader})) if !@system_loader
       @boot_loader.run params
       @system_loader.run params
@@ -361,7 +377,10 @@ module Equipment
       return (blocks_to_write*nand_eraseblock_size)
     end
     
-      
+    def reset_sysboot(dut)
+      SysBootModule::reset_sysboot(dut) 
+    end 
   end
+  
   
 end

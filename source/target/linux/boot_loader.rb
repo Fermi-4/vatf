@@ -1,3 +1,5 @@
+require File.dirname(__FILE__)+'/../../lib/sysboot'
+
 module BootLoader
 
   class BootloaderException < Exception
@@ -15,6 +17,8 @@ module BootLoader
 
   def LOAD_FROM_SERIAL(params)
     puts "########LOAD_FROM_SERIAL########"
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'uart')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
     params.merge!({'bootloader_load_script_name' => 'uart-spl-boot.sh'})
     params['bootloader_class'].create_bootloader_load_script_uart_spl(params)
     params['bootloader_class'].run_bootloader_load_script(params)
@@ -27,7 +31,7 @@ module BootLoader
   end
 
   def LOAD_FROM_SERIAL_UBOOT(params)
-    puts "########LOAD_FROM_SERIAL########"
+    puts "########LOAD_FROM_SERIAL_UBOOT########"
     params.merge!({'bootloader_load_script_name' => 'uart-u-boot.sh'})
     params['bootloader_class'].create_bootloader_load_script_uart_uboot(params)
     params['bootloader_class'].run_bootloader_load_script(params)
@@ -36,19 +40,64 @@ module BootLoader
   def LOAD_FROM_NAND_BY_BMC(params)
     puts "########LOAD_FROM_NAND_BY_BMC########"
     params['bootloader_class'].bmc_trigger_boot(params['dut'], 'nand')
-
   end
 
   def LOAD_FROM_NAND(params)
     puts "########LOAD_FROM_NAND########"
-    puts "WARNING: Please make sure the sysboot setting is set to nand boot"
-    puts "WARNING: Automatic sysboot setting change is not supported yet"
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'nand')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
+    params['dut'].power_cycle(params)
+  end
+
+  def LOAD_FROM_QSPI_BY_BMC(params)
+    puts "########LOAD_FROM_QSPI_BY_BMC########"
+    params['bootloader_class'].bmc_trigger_boot(params['dut'], 'qspi')
+  end
+
+  def LOAD_FROM_QSPI(params)
+    puts "########LOAD_FROM_QSPI########"
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'qspi')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
+    params['dut'].power_cycle(params)
+  end
+
+  def LOAD_FROM_SPI_BY_BMC(params)
+    puts "########LOAD_FROM_SPI_BY_BMC########"
+    params['bootloader_class'].bmc_trigger_boot(params['dut'], 'spi')
+  end
+
+  def LOAD_FROM_SPI(params)
+    puts "########LOAD_FROM_SPI########"
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'spi')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
+    params['dut'].power_cycle(params)
+  end
+
+  def LOAD_FROM_EMMC(params)
+    puts "########LOAD_FROM_EMMC########"
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'emmc')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
+    params['dut'].power_cycle(params)
+  end
+
+  def LOAD_FROM_USBETH(params)
+    puts "########LOAD_FROM_USBETH########"
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'usbeth')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
+    params['dut'].power_cycle(params)
+  end
+
+  def LOAD_FROM_USBMSC(params)
+    puts "########LOAD_FROM_USBMSC########"
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'usbmsc')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
     params['dut'].power_cycle(params)
   end
 
   def LOAD_FROM_ETHERNET(params)
     raise "Loading bootloader from ethernet is not supported on default device"
   end
+
   def LOAD_FROM_NO_BOOT_DSP_BY_BMC(params)
     params['dut'].power_cycle(params)
     params['bootloader_class'].bmc_trigger_boot(params['dut'], 'dsp_no')
@@ -184,6 +233,8 @@ class BaseLoader
       cmd_key = "dsp_no_bootmode"
     when 'nand'
       cmd_key = "nand_bootmode"
+    when 'spi'
+      cmd_key = "spi_bootmode"
     else
       raise "The #{device} is not supported in bmc_trigger_boot"
     end
