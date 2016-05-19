@@ -216,7 +216,8 @@ module SystemLoader
       # size passed here is in hex format
       roundup_size = (size.to_i(16).to_f / spi_erase_size.to_f).ceil * spi_erase_size.to_f 
       roundup_size = roundup_size.to_i.to_s(16)
-      self.send_cmd(params, "sf probe; sf erase #{spi_loc} #{roundup_size}", params['dut'].boot_prompt, timeout)
+      #self.send_cmd(params, "sf probe; sf erase #{spi_loc} #{roundup_size}", params['dut'].boot_prompt, timeout)
+      self.send_cmd(params, "sf erase #{spi_loc} #{roundup_size}", params['dut'].boot_prompt, timeout)
       raise "erase_spi failed!" if !params['dut'].response.match(/OK/) 
     end
 
@@ -229,7 +230,8 @@ module SystemLoader
     end
 
     def write_file_to_spi(params, mem_addr, spi_loc, size, timeout=60)
-      self.send_cmd(params, "sf probe; sf write #{mem_addr} #{spi_loc} #{size}", params['dut'].boot_prompt, timeout)
+      #self.send_cmd(params, "sf probe; sf write #{mem_addr} #{spi_loc} #{size}", params['dut'].boot_prompt, timeout)
+      self.send_cmd(params, "sf write #{mem_addr} #{spi_loc} #{size}", params['dut'].boot_prompt, timeout)
       raise "write to spi failed!" if !params['dut'].response.match(/written:\s+OK/i) 
     end
 
