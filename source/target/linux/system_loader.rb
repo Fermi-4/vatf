@@ -210,33 +210,44 @@ module SystemLoader
       raise "read from nand failed!" if !params['dut'].response.match(/bytes\s+read:\s+OK/i) 
     end
 
-    def erase_spi(params, spi_loc, size, timeout=60)
-      spi_erase_size = get_spi_erasesize params
+    def probe_spi(params, dev, timeout=60)
+      case dev.downcase
+        when 'spi'
+          key = 'spi_sf_probe'
+        when 'qspi'
+          key = 'qspi_sf_probe'
+      end
+      sf_probe_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>key, 'version'=>@@uboot_version, 'platform'=>params['dut'].name}) 
+      self.send_cmd(params, sf_probe_cmd, params['dut'].boot_prompt, timeout)
+      raise "sf probe failed!" if !params['dut'].response.match(/SF:\s+Detected/i)
+    end
+
+    def erase_spi(params, dev, spi_loc, size, timeout=60)
+      spi_erase_size = get_spi_erasesize params, dev
       # spi_erase_size is in decimal format
       # size passed here is in hex format
       roundup_size = (size.to_i(16).to_f / spi_erase_size.to_f).ceil * spi_erase_size.to_f 
       roundup_size = roundup_size.to_i.to_s(16)
-      #self.send_cmd(params, "sf probe; sf erase #{spi_loc} #{roundup_size}", params['dut'].boot_prompt, timeout)
       self.send_cmd(params, "sf erase #{spi_loc} #{roundup_size}", params['dut'].boot_prompt, timeout)
       raise "erase_spi failed!" if !params['dut'].response.match(/OK/) 
     end
 
     # The erase size returned is in decimal format
-    def get_spi_erasesize(params)
-      self.send_cmd params, "sf probe"
+    def get_spi_erasesize(params, dev)
+      probe_spi(params, dev)
       erasesize = /erase\s*size\s+([0-9]+)\s*KiB,/im.match(params['dut'].response).captures[0]
       erasesize = erasesize.to_i * 1024
       return erasesize
     end
 
     def write_file_to_spi(params, mem_addr, spi_loc, size, timeout=60)
-      #self.send_cmd(params, "sf probe; sf write #{mem_addr} #{spi_loc} #{size}", params['dut'].boot_prompt, timeout)
       self.send_cmd(params, "sf write #{mem_addr} #{spi_loc} #{size}", params['dut'].boot_prompt, timeout)
       raise "write to spi failed!" if !params['dut'].response.match(/written:\s+OK/i) 
     end
 
-    def load_file_from_spi(params, mem_addr, spi_loc, timeout=60)
-      self.send_cmd(params, "sf probe; sf read #{mem_addr} #{spi_loc} ", params['dut'].boot_prompt, timeout)
+    def load_file_from_spi(params, dev, mem_addr, spi_loc, timeout=60)
+      probe_spi(params, dev)
+      self.send_cmd(params, "sf read #{mem_addr} #{spi_loc} ", params['dut'].boot_prompt, timeout)
       raise "read from spi failed!" if !params['dut'].response.match(/bytes\s+read:\s+OK/i) 
     end
 
@@ -300,7 +311,9 @@ module SystemLoader
         erase_nand params, params["nand_#{part}_loc"], txed_size, timeout
         write_file_to_nand params, params['_env']['loadaddr'], params["nand_#{part}_loc"], txed_size, timeout
       when /spi/ # 'qspi' or 'spi'
-        erase_spi params, params["spi_#{part}_loc"], txed_size, timeout
+        # Only call probe_spi once due to LCPD-6981
+        #probe_spi params, params["#{part}_dev"], timeout
+        erase_spi params, params["#{part}_dev"], params["spi_#{part}_loc"], txed_size, timeout
         write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], txed_size, timeout
       when /rawmmc/ # 'rawmmc-emmc' or 'rawmmc-mmc'
         write_file_to_rawmmc params, params['_env']['loadaddr'], params["rawmmc_#{part}_loc"], txed_size, timeout

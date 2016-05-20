@@ -235,6 +235,8 @@ class BaseLoader
       cmd_key = "nand_bootmode"
     when 'spi'
       cmd_key = "spi_bootmode"
+    when 'qspi'
+      cmd_key = "qspi_bootmode"
     else
       raise "The #{device} is not supported in bmc_trigger_boot"
     end
