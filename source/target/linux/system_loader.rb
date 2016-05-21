@@ -837,7 +837,7 @@ module SystemLoader
       raise "DUT rebooted while Starting Kernel" if params['dut'].boot_log.match(/Hit\s+any\s+key\s+to\s+stop\s+autoboot/i)
       params['dut'].check_for_boot_errors()
       3.times {
-        send_cmd params, params['dut'].login, params['dut'].prompt, 10, false # login to the unit
+        send_cmd params, params['dut'].login, params['dut'].prompt, 40, false # login to the unit
         break if !params['dut'].timeout?
       }
     end
