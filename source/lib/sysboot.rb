@@ -8,7 +8,7 @@ module SysBootModule
 #     default bootmode.
 # Input: 'setting' [n:0], Ex: '110111'
 def SysBootModule.set_sysboot(dut, setting)
-  return if !dut.params or !dut.params.key?('sysboot_ctrl')
+  return if !dut.instance_variable_defined?(:@params) or !dut.params.key?('sysboot_ctrl')
   sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl'])
 
   default_bootmedia = get_default_bootmedia(dut.name)
@@ -25,7 +25,7 @@ def SysBootModule.set_sysboot(dut, setting)
 end
 
 def SysBootModule.reset_sysboot(dut)
-  return if !dut.params or !dut.params.key?('sysboot_ctrl')
+  return if !dut.instance_variable_defined?(:@params) or !dut.params.key?('sysboot_ctrl')
   puts "resetting sysboot to default..."
   sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl'])
 
@@ -50,7 +50,7 @@ end
 
   # the sysboot format [5:0] 
 def SysBootModule.get_sysboot_setting(dut, boot_media)
-    return if !dut.params or !dut.params.key?('sysboot_ctrl')
+    return if !dut.instance_variable_defined?(:@params) or !dut.params.key?('sysboot_ctrl')
     platform = dut.name.downcase
     boot_media  = boot_media.downcase
     machines = {}

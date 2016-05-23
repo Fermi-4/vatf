@@ -209,7 +209,7 @@ class BaseLoader
     tx_thread = Thread.new do
       params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 240)
     end
-    if dut.params and dut.params.key? 'bmc_port'
+    if dut.instance_variable_defined?(:@params) and dut.params.key? 'bmc_port'
       bmc_trigger_boot(dut, 'uart')
     else
       # Ensure the board is reset.
