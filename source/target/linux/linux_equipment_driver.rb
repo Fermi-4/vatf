@@ -44,6 +44,7 @@ module Equipment
      'am572x-idk' => 'console=ttyO2,115200n8  earlyprintk=serial,ttyO2,115200n8 rootwait',
      'am571x-idk' => 'console=ttyO2,115200n8  earlyprintk=serial,ttyO2,115200n8 rootwait',
      'am335x-evm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait ',
+     'am335x-ice' => 'console=ttyO3,115200n8 earlyprintk=serial,ttyO3,115200n8 rootwait ',
      'am335x-sk' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'beaglebone' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'beaglebone-black' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
