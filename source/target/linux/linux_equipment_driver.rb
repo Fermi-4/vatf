@@ -274,6 +274,17 @@ module Equipment
         log_info("Problem occurred while executing sysrq\n" + e.to_s)
     end
 
+    # Send abort (Control-C)
+    def send_abort(read_time=10)
+      thr = Thread.new { @target.read_on_for(@target.serial, read_time) }
+      @target.serial.write("\C-c\n")
+      thr.join()
+      log_info(@target.serial.response)
+      @target.serial.response
+      rescue Exception => e
+        log_info("Problem occurred while sending Control-#{key}\n" + e.to_s)
+    end
+
     def power_cycle(params)
       @power_handler = params['power_handler'] if !@power_handler
       connected = true

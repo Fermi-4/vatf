@@ -425,7 +425,19 @@ module SystemLoader
         append_text params, 'bootargs', "ip=:::::eth0:dhcp "
         send_cmd params, "setenv serverip '#{params['server'].telnet_ip}'", nil, 2, false, false
         send_cmd params, "setenv autoload 'no'", nil, 2, false, false
-        send_cmd params, "dhcp", /DHCP client bound to address.*#{params['dut'].boot_prompt}/im, 60
+        3.times do |trial|
+          begin
+            send_cmd params, "dhcp", /DHCP client bound/im, 10
+            break
+          rescue Exception => e
+            params['dut'].send_abort()
+            if trial == 2
+              new_e = Exception.new(e.inspect+"\nFailed to dhcp from bootloader")
+              new_e.set_backtrace(e.backtrace)
+              raise new_e
+            end
+          end
+        end
       end
     end
   end
