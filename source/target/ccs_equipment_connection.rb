@@ -165,7 +165,7 @@ module BoardController
       @ccs_type = @ccs_type[0].upcase + @ccs_type[1..-1].downcase
       @workspace   = params['ccs_workspace'] ? params['ccs_workspace'] : '.'
       @INSTALL_DIR = params['ccs_install_dir']
-      @AUTO_MAIN_MULTICORE_PATCH = File.dirname(__FILE__)+'/auto_main_patch.txt'
+      @AUTO_MAIN_MULTICORE_TEMPLATE = File.dirname(__FILE__)+'/auto_main_template.js'
       @result =''
       setenv()
       switch_type(@ccs_type)
@@ -314,7 +314,7 @@ module BoardController
         end
         in_file.close
         out_file.close
-        patch_auto_main_js(@AUTO_MAIN_MULTICORE_PATCH)
+        copy_auto_main_template(@AUTO_MAIN_MULTICORE_TEMPLATE)
       end
       outfile_name
     end
@@ -342,17 +342,14 @@ module BoardController
       end
     end
 
-
-    def patch_auto_main_js(patch_filepath)
-       # apply patch. Check return code
-       # if success return, if failure raise excpetion
-       puts "applying auto_main.js #{patch_filepath} patch"
-       send_cmd("patch #{@loadti_dir}/auto_main.js < #{patch_filepath}; echo $?",2,/[0]+/m)
-       if (timeout?)
-          raise "patch unsuccessful"
-       else
-          puts "patch successful"
-       end
+    def copy_auto_main_template(template_filepath)
+        puts "copying #{template_filepath} to #{@loadti_dir}/auto_main.js"
+        send_cmd("cp #{template_filepath} #{@loadti_dir}/auto_main.js")
+        if (timeout?)
+          raise "copy unsuccessful"
+        else
+          puts "copy successful"
+        end
     end
 
     def read_ipc_data(timeout=-1)
