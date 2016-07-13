@@ -427,7 +427,7 @@ module SystemLoader
         send_cmd params, "setenv autoload 'no'", nil, 2, false, false
         3.times do |trial|
           begin
-            send_cmd params, "dhcp", /DHCP client bound to address.*#{params['dut'].boot_prompt}/im, 10
+            send_cmd params, "dhcp", /DHCP client bound to address.*#{params['dut'].boot_prompt}/im, 20
             break
           rescue Exception => e
             params['dut'].send_abort()
