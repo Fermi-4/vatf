@@ -223,7 +223,13 @@ module SystemLoader
     end
 
     def erase_spi(params, dev, spi_loc, size, timeout=60)
-      spi_erase_size = get_spi_erasesize params, dev
+      # workaround for LCPD-6981
+      if !params.include?("spi_erase_size")
+        spi_erase_size = get_spi_erasesize params, dev
+        params['spi_erase_size'] = spi_erase_size
+      else
+        spi_erase_size = params['spi_erase_size']
+      end
       # spi_erase_size is in decimal format
       # size passed here is in hex format
       roundup_size = (size.to_i(16).to_f / spi_erase_size.to_f).ceil * spi_erase_size.to_f 
