@@ -182,6 +182,10 @@ module TestEquipment
                                     'CORE_VDD' => 'vdd_core',
                                     'DDR_MEM' => 'vdd_ddr_mem',
                                    },
+              'dra74x_evm-revh.conf' => {'DDR_CPU'  => 'cpu_vdd_ddr',
+                                    'CORE_VDD' => 'vdd_core',
+                                    'DDR_MEM' => 'vdd_ddr_mem',
+                                   },
              }
       return dict[@dut_config_file][domain] if dict[@dut_config_file] and dict[@dut_config_file][domain]
       return domain.downcase
@@ -189,6 +193,10 @@ module TestEquipment
 
     def _reverse_translate_domain_names(domain)
       dict = {'dra74x_evm.conf' => {'cpu_vdd_ddr' => 'DDR_CPU',
+                                    'vdd_core' => 'CORE_VDD',
+                                    'vdd_ddr_mem' => 'DDR_MEM',
+                                   },
+              'dra74x_evm-revh.conf' => {'cpu_vdd_ddr' => 'DDR_CPU',
                                     'vdd_core' => 'CORE_VDD',
                                     'vdd_ddr_mem' => 'DDR_MEM',
                                    },
