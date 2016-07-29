@@ -200,9 +200,9 @@ module TestEquipment
     def _map_platform_to_config_file(platform)
       case platform
       when 'dra7xx-evm'
-        @dut_config_file = 'dra74x_evm.conf'
+        @dut_config_file = 'dra74x_evm-revh.conf'
       when 'dra72x-evm'
-        @dut_config_file = 'dra72x_evm.conf'
+        @dut_config_file = 'dra72x_evm-revc.conf'
       else
         raise "powertool config file not defined for #{platform}"
       end
