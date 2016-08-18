@@ -127,6 +127,8 @@ module Equipment
         @system_loader = SystemLoader::UbootDefaultEnvSystemLoader.new
       elsif params['var_use_default_env'].to_s == '2'
         @system_loader = SystemLoader::UbootLetItGoSystemLoader.new
+      elsif params['fit_dev'] != 'none'
+        @system_loader = SystemLoader::UbootFitSystemLoader.new
       elsif params['secondary_bootloader_dev'].to_s == 'no-boot'
         @system_loader = SystemLoader::BaseSystemLoader.new
       else

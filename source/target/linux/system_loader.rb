@@ -56,6 +56,7 @@ module SystemLoader
       end
       params['_env']['kernel_loadaddr'] = load_addr
       params['_env']['loadaddr'] = load_addr
+      params['_env']['fitaddr'] = '0xc0000000'
       # filesize will be updated to the size of file which was just loaded
       params['_env']['filesize'] = '${filesize}'
       params['_env']['initramfs'] = '${_initramfs}'
@@ -625,6 +626,37 @@ module SystemLoader
 
   end
 
+  class FitImageStep < SystemLoader::UbootStep
+    def initialize
+      super('fitimage')
+    end
+    def run(params)
+      fit_boot_cmd = "run findfdt; bootm :kernel@1 :ramdisk@1 :${fdtfile};"
+      case params['fit_dev']
+      when 'eth'
+        load_fit_from_eth params
+        append_text params, 'bootcmd', fit_boot_cmd
+      when 'ubi'
+        load_fit_from_ubi params
+        append_text params, 'bootcmd', fit_boot_cmd
+      when 'none'
+        # Do nothing
+      else
+        raise "Don't know how to load FitImage from #{params['pmmc_dev']}"
+      end
+    end
+
+    private
+    def load_fit_from_eth(params)
+      load_file_from_eth_now params, params['_env']['fitaddr'], params['fit_image_name'], 180
+    end
+
+    def load_fit_from_ubi(params)
+      self.send_cmd(params, "ubifsload #{params['_env']['fitaddr']} #{params['fit_image_name']}", params['dut'].boot_prompt, 180)
+    end
+
+  end
+
   class InitRamfsStep < SystemLoader::UbootStep
     def initialize
       super('initramfs')
@@ -1037,6 +1069,21 @@ module SystemLoader
 
     def initialize
       super
+      add_step( BoardInfoStep.new )
+      add_step( BootStep.new )
+    end
+
+  end
+
+
+  class UbootFitSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( PrepStep.new )
+      add_step( SetIpStep.new )
+      add_step( FitImageStep.new )
       add_step( BoardInfoStep.new )
       add_step( BootStep.new )
     end
