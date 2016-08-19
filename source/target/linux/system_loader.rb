@@ -642,7 +642,7 @@ module SystemLoader
       when 'none'
         # Do nothing
       else
-        raise "Don't know how to load FitImage from #{params['pmmc_dev']}"
+        raise "Don't know how to load FitImage from #{params['fit_dev']}"
       end
     end
 
