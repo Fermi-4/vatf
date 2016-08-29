@@ -207,14 +207,14 @@ class BaseLoader
     # Make sure that we're ready to catch the board coming out of reset
     sleep 1
     tx_thread = Thread.new do
-      params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 240)
+      if dut.instance_variable_defined?(:@params) and dut.params.key? 'bmc_port'
+        bmc_trigger_boot(dut, 'uart')
+      else
+        # Ensure the board is reset.
+        dut.power_cycle(params)
+      end
     end
-    if dut.instance_variable_defined?(:@params) and dut.params.key? 'bmc_port'
-      bmc_trigger_boot(dut, 'uart')
-    else
-      # Ensure the board is reset.
-      dut.power_cycle(params)
-    end
+    params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 240)
     tx_thread.join()
   end
 
