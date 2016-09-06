@@ -71,6 +71,7 @@ module Equipment
      'dra72x-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      'am43xx-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      'am57xx-hsevm' => 'console=ttyO2,115200n8  earlyprintk=serial,ttyO2,115200n8 rootwait',
+     'am335x-hsevm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      })
     
     def initialize(platform_info, log_path)
