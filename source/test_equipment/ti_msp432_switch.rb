@@ -55,14 +55,16 @@ include Equipment
     def switch_microsd(e, dev)
       begin
         dut_side = e.params['microsd_switch'].values[0]
+        msp_path = e.params['microsd_switch'].keys[0].serial_port
+        my_staf_handle = STAFHandle.new("my_staf")
         if (dev == 'dut' and dut_side.match(/^r/i)) or (dev == 'host' and !dut_side.match(/^r/i))
-          send_cmd("mmc r-microsd",/Using Right microd*SD connection/mi, 3, false, true)
+          staf_req = my_staf_handle.submit("local","TOGGLE","name #{msp_path} direction evm")
         else
-          send_cmd("mmc l-microsd",/Using Left microSD connection/mi, 3, false, true)
+          staf_req = my_staf_handle.submit("local","TOGGLE","name #{msp_path} direction host")
         end
-      rescue Exception => e
-        e.log_info("microsd_switch parameter is not defined in bench file. See <vatf source>/source/bench.rb")
-        raise e
+      rescue Exception => excep
+        e.log_info("Error using uSD switch. Check microsd_switch parameter is defined in bench file. See <vatf source>/source/bench.rb")
+        raise excep
       end
     end
 
