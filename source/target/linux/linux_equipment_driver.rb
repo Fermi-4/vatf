@@ -141,6 +141,9 @@ module Equipment
         if params['skip_touchcal'].to_s == '1'
           @system_loader.remove_step('touch_cal')
         end
+        if params['var_use_default_env'].to_s == '3'
+          @system_loader.insert_step_before('prep', SetDefaultEnvStep.new) 
+        end
       end
 
       if params.has_key?("bootargs_append")
