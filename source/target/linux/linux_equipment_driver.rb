@@ -162,7 +162,8 @@ module Equipment
       # Instead, just power cycle the board. Here, we assume the board can boot from default media.
       # After the board boot to uboot, then we can update primary_bootloader_dev
       SysBootModule::reset_sysboot(params['dut'])
-      @boot_loader = BaseLoader.new 
+      #@boot_loader = BaseLoader.new 
+      set_bootloader(params) if !@boot_loader
       set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashBootloaderSystemLoader})) if !@system_loader
       @boot_loader.run params
       @system_loader.run params
