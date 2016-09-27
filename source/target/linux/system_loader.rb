@@ -32,7 +32,10 @@ module SystemLoader
 
     def get_uboot_version(params)
       return @@uboot_version if @@uboot_version
-      params['dut'].send_cmd("", params['dut'].boot_prompt, 5, false)
+      5.times {
+        params['dut'].send_cmd("", params['dut'].boot_prompt, 3, false)
+        break if !params['dut'].timeout?
+      }
       raise "Trying to load system before #{params['dut'].name} is at boot prompt" if params['dut'].timeout?
       params['dut'].send_cmd("version", params['dut'].boot_prompt, 10)
       @@uboot_version = /U-Boot\s+([\d\.]+)\s*/.match(params['dut'].response).captures[0]
