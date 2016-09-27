@@ -55,6 +55,7 @@ module PassCriteria
   end
 
   def self.get_perf_value(testplan_id, testcase_id, metric_name, operator)
+    puts "testplan:#{testplan_id}, testcase:#{testcase_id}, metric:#{metric_name}, op:#{operator}"
     host, port = SiteInfo::ANALYTICS_SERVER.split(':')
     port = port ? port.to_i : 3000      # ANALYTICS_SERVER runs on port 3000 by default
     response = Net::HTTP.get(host, "/performance/passcriteria/#{testplan_id}/#{testcase_id}/#{metric_name}/", port)
