@@ -977,6 +977,21 @@ module SystemLoader
     end
   end
 
+  class InstallK2SecBMStep < UbootStep
+    def initialize
+      super('install_k2_sec_bm')
+    end
+
+    def run(params)
+      send_cmd params, "setenv addr_mon 0xc08000", params['dut'].boot_prompt
+      send_cmd params, "setenv addr_mon_mkimg 0xc07ffc0", params['dut'].boot_prompt
+      send_cmd params, "setenv mon_size 0x1210", params['dut'].boot_prompt
+      send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'k2_sec_bm_install', 'version'=>@@uboot_version, 'platform'=>params['dut'].name}), params['dut'].boot_prompt
+      send_cmd params, "run sec_bm_install", params['dut'].boot_prompt
+    end
+
+  end
+
   class BaseSystemLoader < Step
     attr_accessor :steps
 

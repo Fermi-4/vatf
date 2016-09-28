@@ -72,6 +72,7 @@ module Equipment
      'am43xx-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      'am57xx-hsevm' => 'console=ttyO2,115200n8  earlyprintk=serial,ttyO2,115200n8 rootwait',
      'am335x-hsevm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
+     'k2e-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      })
     
     def initialize(platform_info, log_path)
@@ -152,6 +153,10 @@ module Equipment
 
       if params.has_key?("autologin")
         @system_loader.replace_step('boot', BootAutologinStep.new)
+      end
+
+      if params['dut'].name.match(/k2.+\-hs/)
+        @system_loader.insert_step_before('setip', InstallK2SecBMStep.new)
       end
 
     end
