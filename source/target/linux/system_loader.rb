@@ -49,6 +49,7 @@ module SystemLoader
       send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'printenv', 'version'=>@@uboot_version})
       # Determine kernel loadaddr
       load_addr = '${loadaddr}'
+      fit_loadaddr = '0xc0000000'
       case params['dut'].response
       when /kernel_addr=[\da-fA-Fx]+/
         load_addr = '${kernel_addr}'
@@ -57,9 +58,13 @@ module SystemLoader
       when /addr_kern=[\da-fA-Fx]+/
         load_addr = '${addr_kern}'
       end
+      case params['dut'].response
+      when /fit_loadaddr=[\da-fA-Fx]+/
+        fit_loadaddr = '${fit_loadaddr}'
+      end
       params['_env']['kernel_loadaddr'] = load_addr
       params['_env']['loadaddr'] = load_addr
-      params['_env']['fitaddr'] = '0xc0000000'
+      params['_env']['fitaddr'] = fit_loadaddr
       # filesize will be updated to the size of file which was just loaded
       params['_env']['filesize'] = '${filesize}'
       params['_env']['initramfs'] = '${_initramfs}'
