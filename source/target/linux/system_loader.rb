@@ -641,7 +641,7 @@ module SystemLoader
       super('fitimage')
     end
     def run(params)
-      fit_boot_cmd = "run findfdt; bootm :kernel@1 :ramdisk@1 :${fdtfile};"
+      fit_boot_cmd = "run findfdt; bootm #{params['_env']['fitaddr']}#${fdtfile};"
       case params['fit_dev']
       when 'eth'
         load_fit_from_eth params
