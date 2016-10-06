@@ -26,6 +26,7 @@ module SystemLoader
 
     def send_cmd(params, cmd, expect=nil, timeout=20, check_cmd_echo=true, raise_on_error=true)
       expect = params['dut'].boot_prompt if !expect
+      sleep 0.001 
       params['dut'].send_cmd(cmd, expect, timeout, check_cmd_echo)
       raise "Error executing #{cmd}" if raise_on_error and params['dut'].timeout?
     end
