@@ -171,6 +171,9 @@ module Equipment
       set_bootloader(params) if !@boot_loader
       set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashBootloaderSystemLoader})) if !@system_loader
       @boot_loader.run params
+      if params['dut'].name.match(/k2.+\-hs/)
+        @system_loader.insert_step_before('setip', InstallK2SecBMStep.new)
+      end
       @system_loader.run params
     end
 
