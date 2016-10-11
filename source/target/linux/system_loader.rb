@@ -269,8 +269,6 @@ module SystemLoader
 
     def fatwrite(params, interface, dev, mem_addr, filename, filesize, timeout)
       self.send_cmd(params, "fatwrite #{interface} #{dev} #{mem_addr} #{filename} #{filesize}", params['dut'].boot_prompt, timeout)
-      # Temp workaround for LCPD-8131
-      self.send_cmd(params, "fatwrite #{interface} #{dev} #{mem_addr} #{filename} #{filesize}", params['dut'].boot_prompt, timeout)
       raise "fatwrite to #{interface} failed! Please make sure there is FAT partition in #{interface} device!" if !params['dut'].response.match(/bytes\s+written/i)
     end
 
