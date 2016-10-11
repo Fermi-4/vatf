@@ -643,6 +643,10 @@ module SystemLoader
     end
     def run(params)
       fit_boot_cmd = "run findfdt; bootm #{params['_env']['fitaddr']}#${fdtfile};"
+      if params['dut'].name == 'k2e-hsevm'
+        # TODO: remove once findfdt is defined in k2e-hsevm boot environment
+        fit_boot_cmd = "bootm #{params['_env']['fitaddr']}#keystone-k2e-evm.dtb;"
+      end
       case params['fit_dev']
       when 'eth'
         load_fit_from_eth params
