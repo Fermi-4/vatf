@@ -70,14 +70,18 @@ module PassCriteria
       s1 = response.match(/s1=([\-\d\.]+)/).captures[0].to_f
       s2 = response.match(/s2=([\-\d\.]+)/).captures[0].to_f
       data << s1/s0
-      data << Math.sqrt((s0*s2 - s1**2) / (s0 * (s0-1)));
+      val = (s0*s2 - s1**2)
+      val = 0 if val < 0 and val > -1
+      data << Math.sqrt(val / (s0 * (s0-1)));
     else
       data << response.match(/#{operator}=([\-\d\.]+)/).captures[0].to_f
       data << 1E-20 # Practically zero but allow division
     end
     return data
-  rescue
-    return nil
+    rescue Exception => e
+      puts e.to_s+"\n"+e.backtrace.to_s
+      puts "response=#{response}"
+      return nil
   end
 
 end
