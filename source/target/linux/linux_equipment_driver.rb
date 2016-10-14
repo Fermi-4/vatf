@@ -249,8 +249,8 @@ module Equipment
     end
 
     # stop the bootloader after a reboot
-    def stop_boot()
-      0.upto 30 do
+    def stop_boot(seconds=30)
+      0.upto seconds do
         send_cmd(" ", @boot_prompt, 1)
         break if !timeout?
       end
