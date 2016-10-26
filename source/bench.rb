@@ -394,3 +394,14 @@ dut.params = {'smartbits' => {'0' => {'sb_equip' => sb1,                # 'smart
                             }
             }
 
+# Sample entry for BeagleboneSingleTouchDriver use to validate touchscreen
+touchinfo = EquipmentInfo.new("singletouch")
+touchinfo.serial_port = '/dev/ttyUSB10'
+touchinfo.serial_params = {"baud" => 115200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+touchinfo.prompt = /[\w\d]+@.+[@:#]+/
+touchinfo.driver_class_name = 'BeagleboneSingleTouchDriver'
+touchinfo.params = {'executable_path' => '/root', 'number_of_servos' => 3}
+
+dut = EquipmentInfo.new("am437x-sk", "linux_sd_sdhc_singletouch")
+...
+dut.params = {'singletouch' => touchinfo}
