@@ -3,7 +3,8 @@ require 'socket'
 
 module TestEquipment
 
-  # Driver for any board running ptool https://github.com/nmenon/powertool
+  # To install pre-requisite driver on beaglebone, run following command:
+  # sudo pip install Adafruit_BBIO
   class BeagleboneSingleTouchDriver < Equipment::EquipmentDriver
     attr_reader :number_of_servos, :dut_type, :executable_path
 
