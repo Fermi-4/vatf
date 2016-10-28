@@ -50,6 +50,7 @@ module Equipment
      'beaglebone-black' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'omap5-evm' => 'console=ttyO2,115200n8 earlyprintk=serial,ttyO2,115200n8 rootwait',
      'dra7xx-evm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
+     'dra71x-evm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'dra72x-evm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'am43xx-gpevm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'am437x-sk' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
@@ -72,6 +73,7 @@ module Equipment
      'am43xx-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      'am57xx-hsevm' => 'console=ttyO2,115200n8  earlyprintk=serial,ttyO2,115200n8 rootwait',
      'am335x-hsevm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
+     'dra71x-hsevm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'k2e-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      })
     
