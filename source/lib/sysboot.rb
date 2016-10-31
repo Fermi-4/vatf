@@ -56,7 +56,9 @@ def SysBootModule.get_sysboot_setting(dut, boot_media)
     machines = {}
     machines['dra7xx-evm'] = {'qspi'=>'110111', 'mmc'=>'110000', 'emmc'=>'111000', 'uart'=>'010011'}
     machines['dra72x-evm'] = machines['dra7xx-evm']
+    machines['dra71x-evm'] = machines['dra7xx-evm']
     machines['dra72x-hsevm'] = machines['dra7xx-evm']
+    machines['dra71x-hsevm'] = machines['dra7xx-evm']
     machines['dra7xx-hsevm'] = machines['dra7xx-evm']
     machines['am43xx-gpevm'] = {'mmc'=>'101100', 'nand'=>'100110', 'emac'=>'111100', 'usbeth'=>'111101', 'usbmsc'=>'111110', 'uart'=>'111010', 'qspi'=>'101010' }
     machines['am437x-sk'] = machines['am43xx-gpevm']
