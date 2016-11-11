@@ -19,4 +19,5 @@ require File.dirname(__FILE__)+'/linux_beagle_driver'
 require File.dirname(__FILE__)+'/linux_omap5_driver'
 require File.dirname(__FILE__)+'/linux_n900_driver'
 require File.dirname(__FILE__)+'/linux_legacy_driver'
+require File.dirname(__FILE__)+'/linux_k2l_driver'
 include Equipment
