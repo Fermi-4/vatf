@@ -207,7 +207,7 @@ class BaseLoader
     sleep 1
     tx_thread = Thread.new do
       if dut.instance_variable_defined?(:@params) and dut.params.key? 'bmc_port'
-        bmc_trigger_boot(params, 'uart')
+        bmc_trigger_boot(dut, 'uart')
       else
         # Ensure the board is reset.
         dut.power_cycle(params)
