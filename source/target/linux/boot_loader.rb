@@ -39,7 +39,7 @@ module BootLoader
   
   def LOAD_FROM_NAND_BY_BMC(params)
     puts "########LOAD_FROM_NAND_BY_BMC########"
-    params['bootloader_class'].bmc_trigger_boot(params, 'nand')
+    params['bootloader_class'].bmc_trigger_boot(params['dut'], 'nand')
   end
 
   def LOAD_FROM_NAND(params)
@@ -51,7 +51,7 @@ module BootLoader
 
   def LOAD_FROM_QSPI_BY_BMC(params)
     puts "########LOAD_FROM_QSPI_BY_BMC########"
-    params['bootloader_class'].bmc_trigger_boot(params, 'qspi')
+    params['bootloader_class'].bmc_trigger_boot(params['dut'], 'qspi')
   end
 
   def LOAD_FROM_QSPI(params)
@@ -63,7 +63,7 @@ module BootLoader
 
   def LOAD_FROM_SPI_BY_BMC(params)
     puts "########LOAD_FROM_SPI_BY_BMC########"
-    params['bootloader_class'].bmc_trigger_boot(params, 'spi')
+    params['bootloader_class'].bmc_trigger_boot(params['dut'], 'spi')
   end
 
   def LOAD_FROM_SPI(params)
@@ -99,7 +99,8 @@ module BootLoader
   end
 
   def LOAD_FROM_NO_BOOT_DSP_BY_BMC(params)
-    params['bootloader_class'].bmc_trigger_boot(params, 'dsp_no')
+    params['dut'].power_cycle(params)
+    params['bootloader_class'].bmc_trigger_boot(params['dut'], 'dsp_no')
   end
   ####################################################################################
   ####################################################################################
@@ -224,10 +225,7 @@ class BaseLoader
     return @bmc_version
   end
 
-  def bmc_trigger_boot(params, device)
-
-    dut = params['dut']
-
+  def bmc_trigger_boot(dut, device)
     case device.downcase
     when 'uart'
       cmd_key = "uart_bootmode"
@@ -242,8 +240,6 @@ class BaseLoader
     else
       raise "The #{device} is not supported in bmc_trigger_boot"
     end
-
-    dut.power_cycle(params)
 
     prompt = dut.params.key?('bmc_prompt') ? dut.params['bmc_prompt'] : />/
     sleep 3
