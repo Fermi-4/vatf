@@ -895,7 +895,7 @@ module SystemLoader
 
     def run(params)
       boot_timeout = params['var_boot_timeout'] ? params['var_boot_timeout'].to_i : 210
-      send_cmd params, "boot", params['dut'].login_prompt, boot_timeout
+      send_cmd params, "boot", params['dut'].login_prompt, boot_timeout, true, false
       params['dut'].boot_log = params['dut'].response
       raise "DUT rebooted while Starting Kernel" if params['dut'].boot_log.match(/Hit\s+any\s+key\s+to\s+stop\s+autoboot/i)
       params['dut'].check_for_boot_errors()
@@ -903,6 +903,7 @@ module SystemLoader
         send_cmd params, params['dut'].login, params['dut'].prompt, 40, false, false # login to the unit
         break if !params['dut'].timeout?
       }
+      raise "Error executing boot" if params['dut'].timeout?
     end
 
   end
