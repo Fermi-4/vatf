@@ -640,7 +640,7 @@ module SystemLoader
       super('fitimage')
     end
     def run(params)
-      fit_boot_cmd = "run findfdt; bootm #{params['_env']['fitaddr']}" + '#${fdtfile};'
+      fit_boot_cmd = "run findfdt; printenv; iminfo #{params['_env']['fitaddr']}; bootm #{params['_env']['fitaddr']}" + '#${fdtfile};'
       if params['dut'].name == 'k2e-hsevm'
         # TODO: remove once findfdt is defined in k2e-hsevm boot environment
         fit_boot_cmd = "bootm #{params['_env']['fitaddr']}#keystone-k2e-evm.dtb;"
