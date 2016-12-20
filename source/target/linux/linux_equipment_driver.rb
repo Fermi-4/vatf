@@ -406,6 +406,11 @@ module Equipment
       return (blocks_to_write*nand_eraseblock_size)
     end
     
+    def set_sysboot(dut, device)
+      this_sysboot = SysBootModule::get_sysboot_setting(dut, device)
+      SysBootModule::set_sysboot(dut, this_sysboot)
+    end 
+
     def reset_sysboot(dut)
       SysBootModule::reset_sysboot(dut) 
     end 
