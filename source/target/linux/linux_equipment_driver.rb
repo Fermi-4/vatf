@@ -68,6 +68,7 @@ module Equipment
      'k2l-evm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      'k2e-evm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      'k2g-evm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
+     'k2g-ice' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      'dra7xx-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      'dra72x-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      'am43xx-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
