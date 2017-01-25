@@ -43,12 +43,14 @@ module CmdTranslator
                     '3.2.0' => Hash.new('echo uart0_rxd.gpio1_10=0x27,rising > standby_gpio_pad_conf').merge!(
                           {'am335x-evm' => 'echo uart0_rxd.gpio1_10=0x27,rising > standby_gpio_pad_conf', 
                            'am180x-evm' => 'am180x cmd'} ),
+                    '4.0' => Hash.new(''),
     },
     'get_uart_to_gpio_standby' => { 
                     '2.6.37' => 'cmd2.6.37',
                     '3.2.0' => Hash.new('cat standby_gpio_pad_conf').merge!(
                           {'am335x-evm'=>'cat standby_gpio_pad_conf', 
                            'am180x-evm' => 'am180x getcmd'} ),
+                    '4.0' => Hash.new(''),
     },
     'enable_uart_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
