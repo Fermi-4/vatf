@@ -215,7 +215,7 @@ class BaseLoader
       end
     end
     params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 240)
-    raise "run_bootloader_load_script: Transfer failed" if params['server'].response.match(/Transfer\s+incomplete/i)
+    raise "run_bootloader_load_script: Transfer failed" if (params['server'].response.match(/Transfer\s+incomplete/i) || !params['server'].response.match(/Transfer\s+complete/i))
     tx_thread.join()
   end
 
