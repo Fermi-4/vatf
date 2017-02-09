@@ -264,6 +264,8 @@ module BoardController
         puts "TIMEOUT executing #{command}"
         @timeout = true
         raise
+	ensure
+        @logfp.call "Target: \n" + @response
       end
     end
 

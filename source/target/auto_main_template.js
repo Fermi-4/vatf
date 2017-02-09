@@ -180,6 +180,28 @@ function run()
     }
 
       dsArray = new Array();
+    if (autotestEnv.resetSystem)
+    {
+        printTrace("Resetting system...");
+		//Open session before reset
+		dsArray[0] = debugServer.openSession(autotestEnv.ccsPlatform, autotestEnv.ccsCpu[0]);
+        try
+		{
+			dsArray[0].expression.evaluate('GEL_AdvancedReset("System Reset")');
+			wait(5000);
+		}
+		catch (ex)
+		{
+			errCode = getErrorCode(ex);
+			dssScriptEnv.traceWrite("Error code #" + errCode + ", could not reset system!\nAborting!");
+			// Currently reset is showing failure code -1. But reset itself succeeds. Need to follow up with CCS
+			// quit(errCode != 0 ? errCode : 1);
+		}
+		// Close session after reset, so that reset is standalone. Session will be opened again later
+		dsArray[0].terminate();
+		printTrace("Resetting system complete...");
+    }
+
       for (var core = 0; core < autotestEnv.ccsCpu.length; core++) { //open for loop
        printTrace("Connecting to: " + autotestEnv.ccsCpu[core]);
        dsArray[core] = debugServer.openSession(autotestEnv.ccsPlatform, autotestEnv.ccsCpu[core]);
@@ -204,7 +226,10 @@ function run()
       isDebugSession = true;
 
       printTrace("TARGET: " + dsArray[0].getBoardName());
-
+      //Disable auto run to main, needed for IPC
+      dsArray[core].options.setBoolean("AutoRunToLabelOnRestart",false);
+      //Disable software breakpoints, needed for IPC
+      dsArray[core].options.setBoolean("EnableSoftwareBreakpoints",false);
     //Set the default File IO folder
     dsArray[core].options.setString("FileIODefaultDirectory", testEnv.fileIOFolder);
 
@@ -344,8 +369,10 @@ function run()
                         else
                         {
                             //debugSession.target.run();
-                            printTrace("Regular simultaneous run . . .");
-                            if (1) {
+                            //Enable asynchronous core run feature
+                            if (!autotestEnv.asyncRunCores)
+                            {
+                                printTrace("Regular simultaneous run . . .");
                                 debugServer.simultaneous.run();
                             }
                             else
@@ -529,6 +556,9 @@ while ((hdr = elf.getSectionHeader(index++)) != null) {
         print("  " + strPad(hdr.name, 12) + " addr: 0x" +
               Number(baseAddr).toString(16) + " size: " + length);
 
+		// This work around skips big sections. If loggerbuf is in big memory section this may break.
+		if(length > 0xc00000)
+			continue;
         /* Save the data section to the dump file. */
         try {
             var data = debugSession.memory.readData(dataPage, baseAddr, 8, length);
