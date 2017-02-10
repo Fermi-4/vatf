@@ -12,7 +12,7 @@ module PassCriteria
       op = overwrite_perf_comparison_operator(testcase_id, metric['name']) if defined? overwrite_perf_comparison_operator
       data = get_perf_value(testplan_id, testcase_id, metric['name'], op)
       data = overwrite_perf_value(testplan_id, testcase_id, metric['name'], op, data) if defined? overwrite_perf_value
-      return [true, 'Performance data was NOT compared'] if !data
+      return [true, 'Performance data was NOT compared, too few samples available'] if !data
       metric_avg = metric['s1']/metric['s0']
       case op
       when 'max' # more is better
@@ -66,7 +66,7 @@ module PassCriteria
     end
     s0 = response.match(/samples=([\-\d\.]+)/).captures[0].to_f
     data = []
-    if s0 > 1
+    if s0 > 3
       s1 = response.match(/s1=([\-\d\.]+)/).captures[0].to_f
       s2 = response.match(/s2=([\-\d\.]+)/).captures[0].to_f
       data << s1/s0
@@ -74,8 +74,7 @@ module PassCriteria
       val = 0 if val < 0 and val > -1
       data << Math.sqrt(val / (s0 * (s0-1)));
     else
-      data << response.match(/#{operator}=([\-\d\.]+)/).captures[0].to_f
-      data << 1E-20 # Practically zero but allow division
+      return nil
     end
     return data
     rescue Exception => e
