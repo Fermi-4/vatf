@@ -5,15 +5,19 @@ module PassCriteria
   def self.is_performance_good_enough(testplan_id, testcase_id, perf_data, max_dev=0.05)
     pass = true
     msg  = ''
-    return [true, nil] if defined? skip_perf_comparison
+    return [true, nil, true] if defined? skip_perf_comparison
     perf_data.each do |metric|
       metric['name'].gsub!(/\s/,'_')
       op = get_perf_comparison_operator(testcase_id, metric['name'])
       op = overwrite_perf_comparison_operator(testcase_id, metric['name']) if defined? overwrite_perf_comparison_operator
       data = get_perf_value(testplan_id, testcase_id, metric['name'], op)
       data = overwrite_perf_value(testplan_id, testcase_id, metric['name'], op, data) if defined? overwrite_perf_value
-      return [true, 'Performance data was NOT compared, too few samples available'] if !data
+      return [true, 'Performance data was NOT compared, too few samples available', true] if !data
       metric_avg = metric['s1']/metric['s0']
+      # Indicate outlier sample is outside 5 stddev window
+      if (metric_avg - data[0]).abs > (5 * data[1])
+        return [false, "Outlier samples outside 5 stdev window detected. Please check your setup. Performance data won't be saved", false]
+      end
       case op
       when 'max' # more is better
         benchmark = data[0] - 2*data[1]
@@ -31,7 +35,7 @@ module PassCriteria
         end
       end
     end
-    return [pass, msg]
+    return [pass, msg, true]
   end
 
   # Returns operator (min, max) to use to compare performance data
