@@ -47,7 +47,9 @@ module BootLoader
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'nand')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
     params['dut'].power_cycle(params)
+    check_boot_media(params, 'nand')
   end
+
 
   def LOAD_FROM_QSPI_BY_BMC(params)
     puts "########LOAD_FROM_QSPI_BY_BMC########"
@@ -59,6 +61,7 @@ module BootLoader
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'qspi')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
     params['dut'].power_cycle(params)
+    check_boot_media(params, 'spi')
   end
 
   def LOAD_FROM_SPI_BY_BMC(params)
@@ -71,6 +74,7 @@ module BootLoader
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'spi')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
     params['dut'].power_cycle(params)
+    check_boot_media(params, 'spi')
   end
 
   def LOAD_FROM_EMMC(params)
@@ -78,6 +82,7 @@ module BootLoader
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'emmc')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
     params['dut'].power_cycle(params)
+    check_boot_media(params, 'mmc')
   end
 
   def LOAD_FROM_USBETH(params)
@@ -85,6 +90,7 @@ module BootLoader
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'usbeth')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
     params['dut'].power_cycle(params)
+    check_boot_media(params, 'usb eth')
   end
 
   def LOAD_FROM_USBMSC(params)
@@ -92,6 +98,7 @@ module BootLoader
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'usbmsc')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
     params['dut'].power_cycle(params)
+    check_boot_media(params, 'usb')
   end
 
   def LOAD_FROM_ETHERNET(params)
@@ -105,6 +112,13 @@ module BootLoader
   ####################################################################################
   ####################################################################################
 
+  def check_boot_media(params, boot_media)
+    params['dut'].connect({'type'=>'serial'})
+    params['dut'].wait_for(/Trying\s+to\s+boot\s+from\s+[\w\s]+/i)
+    if !params['dut'].timeout?
+      raise "Failed to boot from #{boot_media}!" if !params['dut'].response.match(/#{boot_media}/i)
+    end
+  end
 end
 
 class BaseLoader
