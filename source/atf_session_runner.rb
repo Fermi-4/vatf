@@ -460,7 +460,7 @@ class SessionHandler
         end
       end
       t_case_write.close()
-      ['EXIT','INT','QUIT','ABRT','KILL','TERM','STOP'].each do |s|
+      ['EXIT','INT','QUIT','ABRT','TERM'].each do |s|
         Signal.trap(s) do
           Process.kill('INT',t_proc_pid)
           Process.wait(t_proc_pid)
