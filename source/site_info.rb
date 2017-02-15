@@ -31,7 +31,10 @@ module SiteInfo
  #LOGS_SERVER                    = "http://automationlogs.gt.design.ti.com/gtsystst_logs/vatf"
  COREDUMP_UTIL                  = "http://tigt_qa.gt.design.ti.com/qacm/test_area/nightlytools/testautomation/coredump.tar.gz"
  LOGS_SERVER                    = "http://gtsystest.telogy.design.ti.com/vatf"
- ANALYTICS_SERVER               = "lcpdresults.itg.ti.com:80"
+ # Analytics server is specific to TMS project (e.g. Testlink project)
+ ANALYTICS_SERVER               = {1140921 => "lcpdresults.itg.ti.com:80",
+                                   '' => '',
+                                   }
  WINCE_DOWNLOAD_APP             = 'cedownload.exe'
  WINCE_PERFTOCSV_APP            = 'perftocsv.exe'
  VGDK_OUTPUT_CLIPS		= "//10.218.100.223/video_files/VGDK_logs/output"

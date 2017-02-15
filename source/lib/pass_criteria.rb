@@ -2,7 +2,7 @@ require 'net/http'
 
 module PassCriteria
   # Compares  performance against historical performance for (testplan, testcase, metric) tuple
-  def self.is_performance_good_enough(testplan_id, testcase_id, perf_data, max_dev=0.05)
+  def self.is_performance_good_enough(project_id, testplan_id, testcase_id, perf_data, max_dev=0.05)
     pass = true
     msg  = ''
     return [true, nil, true] if defined? skip_perf_comparison
@@ -10,9 +10,9 @@ module PassCriteria
       metric['name'].gsub!(/\s/,'_')
       op = get_perf_comparison_operator(testcase_id, metric['name'])
       op = overwrite_perf_comparison_operator(testcase_id, metric['name']) if defined? overwrite_perf_comparison_operator
-      data = get_perf_value(testplan_id, testcase_id, metric['name'], op)
+      data = get_perf_value(project_id, testplan_id, testcase_id, metric['name'], op)
+      return [true, "Performance data was NOT compared, #{data}", true] if data.class == String and ! defined? overwrite_perf_value
       data = overwrite_perf_value(testplan_id, testcase_id, metric['name'], op, data) if defined? overwrite_perf_value
-      return [true, 'Performance data was NOT compared, too few samples available', true] if !data
       metric_avg = metric['s1']/metric['s0']
       # Indicate outlier sample is outside 5 stddev window
       if (metric_avg - data[0]).abs > (5 * data[1])
@@ -58,9 +58,11 @@ module PassCriteria
     return op
   end
 
-  def self.get_perf_value(testplan_id, testcase_id, metric_name, operator)
+  def self.get_perf_value(project_id, testplan_id, testcase_id, metric_name, operator)
     puts "testplan:#{testplan_id}, testcase:#{testcase_id}, metric:#{metric_name}, op:#{operator}"
-    host, port = SiteInfo::ANALYTICS_SERVER.split(':')
+    analytics_server = SiteInfo::ANALYTICS_SERVER[project_id]
+    return "Analytics server is not configured. Check you site_info.rb file and make sure you are using latest DownwardTranslator.xsl" if ! analytics_server.match(/:/)
+    host, port = analytics_server.split(':')
     port = port ? port.to_i : 3000      # ANALYTICS_SERVER runs on port 3000 by default
     connection = Net::HTTP.new(host, port, nil)
     resp = connection.get("/performance/passcriteria/#{testplan_id}/#{testcase_id}/#{metric_name}/")
@@ -78,13 +80,13 @@ module PassCriteria
       val = 0 if val < 0 and val > -1
       data << Math.sqrt(val / (s0 * (s0-1)));
     else
-      return nil
+      return "Too few samples available"
     end
     return data
     rescue Exception => e
       puts e.to_s+"\n"+e.backtrace.to_s
       puts "response=#{response}"
-      return nil
+      return "Error trying to get perf data. Make sure your testplan follows naming convention established for your project.\n#{e.to_s}"
   end
 
 end

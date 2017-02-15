@@ -98,6 +98,16 @@ module ATFDBHandlers
             puts "Please update your downward translator file to pass Testplan ID."
             puts e.to_s+"\n"+e.backtrace.to_s
       end
+
+      #Returns the testproject id for the current test session
+      def get_test_project_id
+        @test_data["test_session"]["project"]["id"].to_i
+        rescue Exception=>e
+            puts "Test project ID is a mandatory parameter."
+            puts "Please update your downward translator file to pass Test project ID."
+            puts e.to_s+"\n"+e.backtrace.to_s
+            return ''
+      end
       
       #Returns the testcase id of the current test
       # def get_testcase_id

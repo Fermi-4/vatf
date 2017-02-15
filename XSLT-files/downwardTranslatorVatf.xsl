@@ -19,6 +19,7 @@
 	</xsl:variable>		
 	<xsl:template match="/">
 	<xsl:element name="test_session">
+	<xsl:copy-of select="top/project"/>
     <xsl:copy-of select="top/testplan"/>
 	<xsl:copy-of select="top/build"/>
 	<xsl:for-each select="//testsuite/testcase | //testcases/testcase">

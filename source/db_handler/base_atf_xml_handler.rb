@@ -22,9 +22,10 @@ module ATFDBHandlers
       test = Hash.from_xml(@bb.root.to_s)
       @test_data = recompose_hash(test, Hash.new)
 
-      rescue 
+      rescue Exception => e
         puts "An error occurred opening the input XML file "+ @xml_path
-        raise
+        puts e.to_s
+        raise e
     end
       
     def recompose_hash(in_hash, out_hash)
