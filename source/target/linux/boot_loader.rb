@@ -112,9 +112,9 @@ module BootLoader
   ####################################################################################
   ####################################################################################
 
-  def check_boot_media(params, boot_media)
+  def check_boot_media(params, boot_media, timeout=5)
     params['dut'].connect({'type'=>'serial'})
-    params['dut'].wait_for(/Trying\s+to\s+boot\s+from\s+[\w\s]+/i)
+    params['dut'].wait_for(/Trying\s+to\s+boot\s+from\s+[\w\s]+/i, timeout)
     if !params['dut'].timeout?
       raise "Failed to boot from #{boot_media}!" if !params['dut'].response.match(/#{boot_media}/i)
     end
