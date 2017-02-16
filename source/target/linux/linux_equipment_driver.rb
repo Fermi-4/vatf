@@ -194,8 +194,19 @@ module Equipment
       @system_loader.run params
     end
     
+    def update_bootloaderkernel(params)
+      SysBootModule::reset_sysboot(params['dut'])
+      @boot_loader = BaseLoader.new 
+      #set_bootloader(params) if !@boot_loader
+      set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashBootloaderKernelSystemLoader})) if !@system_loader
+      @boot_loader.run params
+      @system_loader.run params
+    end
+
     def update_all(params)
-      set_bootloader(params) if !@boot_loader
+      SysBootModule::reset_sysboot(params['dut'])
+      @boot_loader = BaseLoader.new 
+      #set_bootloader(params) if !@boot_loader
       set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashAllSystemLoader})) if !@system_loader
       @boot_loader.run params
       @system_loader.run params

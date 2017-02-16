@@ -328,7 +328,7 @@ module SystemLoader
         write_file_to_nand params, params['_env']['loadaddr'], params["nand_#{part}_loc"], txed_size, timeout
       when /spi/ # 'qspi' or 'spi'
         # Only call probe_spi once due to LCPD-6981
-        #probe_spi params, params["#{part}_dev"], timeout
+        probe_spi params, params["#{part}_dev"], timeout
         erase_spi params, params["#{part}_dev"], params["spi_#{part}_loc"], txed_size, timeout
         write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], txed_size, timeout
       when /rawmmc/ # 'rawmmc-emmc' or 'rawmmc-mmc'
@@ -1152,6 +1152,20 @@ module SystemLoader
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
       add_step( FlashFSStep.new )
+    end
+
+  end
+
+  class UbootFlashBootloaderKernelSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( PrepStep.new )
+      add_step( SetIpStep.new )
+      add_step( FlashBootloaderStep.new )
+      add_step( FlashKernelStep.new )
+      add_step( FlashDTBStep.new )
     end
 
   end
