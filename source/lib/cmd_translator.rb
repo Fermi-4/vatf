@@ -5,7 +5,7 @@ module CmdTranslator
     'nand_bootmode' => { '0.0' => Hash.new("bootmode #0\n\r").merge!({'k2g-evm' => "bootmode #11\n\r"})},
     'spi_bootmode' => { '0.0' => Hash.new("bootmode #2\n\r").merge!({'k2g-evm' => "bootmode #5\n\r"})},
     'qspi_bootmode' => { '0.0' => Hash.new("").merge!({'k2g-evm' => "bootmode #9\n\r"})},
-    'dsp_no_bootmode' => { '0.0' => Hash.new("bootmode #1\n\r").merge!({'k2l-evm' => "bootmode #15\n\r"})},
+    'dsp_no_bootmode' => { '0.0' => Hash.new("bootmode #1\n\r").merge!({'k2l-evm' => "bootmode #15\n\r", 'k2g-evm' => "bootmode #0\n\r"})},
     'version' => { '0.0' => Hash.new("ver\n\r")},
     'reboot'        => { '0.0' => "reboot\n\r"},
   }
