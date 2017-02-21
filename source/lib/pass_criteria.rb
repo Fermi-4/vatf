@@ -2,11 +2,20 @@ require 'net/http'
 
 module PassCriteria
   # Compares  performance against historical performance for (testplan, testcase, metric) tuple
+  # perf_data = [{perf elements}], where perf elements is a hash with following keys:
+  # {'name' => "string"
+  #  'value' => []
+  #  'units'  => "string"
+  #  'significant_difference'  => optional param, defaults to 1, signals what's considered a significant change
+  #                             in absolute terms.
+  # }
   def self.is_performance_good_enough(project_id, testplan_id, testcase_id, perf_data, max_dev=0.05)
     pass = true
     msg  = ''
     return [true, nil, true] if defined? skip_perf_comparison
     perf_data.each do |metric|
+      significant_difference = 1
+      significant_difference = metric['significant_difference'] if metric.has_key? 'significant_difference'
       metric['name'].gsub!(/\s/,'_')
       op = get_perf_comparison_operator(testcase_id, metric['name'])
       op = overwrite_perf_comparison_operator(testcase_id, metric['name']) if defined? overwrite_perf_comparison_operator
@@ -15,8 +24,9 @@ module PassCriteria
       data = overwrite_perf_value(testplan_id, testcase_id, metric['name'], op, data) if defined? overwrite_perf_value
       metric_avg = metric['s1']/metric['s0']
       # Indicate outlier sample is outside 5 stddev window
-      if (metric_avg - data[0]).abs > (5 * data[1])
-        return [false, "Outlier samples outside 5 stdev window detected. Please check your setup. Performance data won't be saved", false]
+      diff = (metric_avg - data[0]).abs
+      if diff > 5 * data[1] and diff > significant_difference
+        return [false, ". #{metric['name']} contains outlier samples outside 5 stdev window. measured value=#{metric_avg}, historical mean=#{data[0]}, std=#{data[1]}. Please check your setup. Performance data won't be saved", false]
       end
       case op
       when 'max' # more is better
