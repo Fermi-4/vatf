@@ -25,7 +25,7 @@ module PassCriteria
       metric_avg = metric['s1']/metric['s0']
       # Indicate outlier sample is outside 5 stddev window
       diff = (metric_avg - data[0]).abs
-      if diff > 5 * data[1] and diff > significant_difference
+      if diff > 5 * data[1] and diff > significant_difference and diff > (data[0] * 10 * max_dev).abs
         return [false, ". #{metric['name']} contains outlier samples outside 5 stdev window. measured value=#{metric_avg}, historical mean=#{data[0]}, std=#{data[1]}. Please check your setup. Performance data won't be saved", false]
       end
       case op
