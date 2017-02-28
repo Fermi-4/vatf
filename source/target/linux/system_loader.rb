@@ -422,7 +422,7 @@ module SystemLoader
           send_cmd params, uboot_cmd, nil, 2, false
         }
       end
-      send_cmd params, "setenv mmcdev '#{params['mmcdev']} '", nil, 2, false, false if params.has_key?('mmcdev')
+      send_cmd params, "setenv mmcdev '#{params['mmcdev']}'", nil, 2, false, false if params.has_key?('mmcdev')
       send_cmd params, 'setenv _initramfs -'
       get_environment(params)
     end
