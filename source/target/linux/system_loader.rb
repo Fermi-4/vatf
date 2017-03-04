@@ -1112,6 +1112,7 @@ module SystemLoader
       super
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
+      add_step( FSStep.new )
       add_step( FitImageStep.new )
       add_step( BoardInfoStep.new )
       add_step( BootStep.new )
