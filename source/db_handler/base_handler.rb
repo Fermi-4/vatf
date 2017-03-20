@@ -92,7 +92,7 @@ module ATFDBHandlers
         attr_reader :params_chan, :params_equip, :params_control
         attr_reader *tcase_attr.keys
         attr_reader *additional_parameters.keys
-        attr_accessor :image_path, :platform, :target
+        attr_accessor :image_path, :platform, :target, :var_boot_attempts
         define_method(:initialize) do
           @params_chan = ParamsChan.new()  
           @params_equip = ParamsEquip.new()
