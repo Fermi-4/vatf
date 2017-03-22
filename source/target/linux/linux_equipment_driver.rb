@@ -86,6 +86,7 @@ module Equipment
         @boot_prompt = /=>/
       end
       @boot_args = @@boot_info[@name]
+      @boot_args += ' sysrq_always_enabled'
       @boot_loader = nil
       @system_loader = nil
       @updator = nil
