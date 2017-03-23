@@ -92,7 +92,7 @@ module ATFDBHandlers
         attr_reader :params_chan, :params_equip, :params_control
         attr_reader *tcase_attr.keys
         attr_reader *additional_parameters.keys
-        attr_accessor :image_path, :platform, :target, :var_boot_attempts
+        attr_accessor :image_path, :platform, :target
         define_method(:initialize) do
           @params_chan = ParamsChan.new()  
           @params_equip = ParamsEquip.new()
@@ -117,45 +117,39 @@ module ATFDBHandlers
           end
         end
 	          
-        def method_missing(sym, *args, &block)
-          if @staf_handle
-            staf_req = @staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{sym}")
-            staf_req2 = @staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{sym}")
-            if (staf_req.rc == 0)
-              staf_req.result
-            elsif(staf_req2.rc == 0)
-              staf_req2.result
-            else 
-              raise UndefinedSwAsset.new("Undefined sw asset named #{sym}")
-            end
-          else
-            super
+      def method_missing(sym, *args, &block)
+        return send(sym) if respond_to?(sym)
+        if @staf_handle
+          raise UndefinedSwAsset.new("Undefined sw asset named #{sym}")
+        end
+        super
+      end
+		
+      def instance_variable_defined?(sym)
+        super(sym) || create_w_staf(sym)
+      end
+      
+      def instance_variable_get(sym)
+        super(sym) if instance_variable_defined?(sym)
+      end
+        
+      def respond_to?(method_sym, include_private = false)
+        super(method_sym, include_private) || create_w_staf(method_sym)
+      end
+          
+      def create_w_staf(sym)
+        if @staf_handle
+          symbol_prep = sym.to_s.gsub(/^[:@]+/,'')
+          instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{symbol_prep}")) 
+          instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{symbol_prep}")) if instance_result.rc != 0
+          if instance_result.rc == 0
+            self.class.send(:attr_accessor, symbol_prep)
+            instance_variable_set("@#{symbol_prep}",instance_result.result)
+            return instance_result.result
           end
         end
-		
-		def instance_variable_defined?(sym)
-		  result = super(sym)
-          result = result || (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{sym.to_s.gsub(/^[:@]+/,'')}")).rc == 0 if @staf_handle
-		  result = result || (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{sym.to_s.gsub(/^[:@]+/,'')}")).rc == 0 if @staf_handle
-          result
-		end
-    
-    def instance_variable_get(sym)
-		  result = super(sym)
-      if (!result && @staf_handle)
-        instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{sym.to_s.gsub(/^[:@]+/,'')}")) 
-        instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{sym.to_s.gsub(/^[:@]+/,'')}")) if instance_result.rc != 0
-        result = instance_result.result if instance_result.rc == 0
+        nil
       end
-      result
-		end
-        
-        def respond_to?(method_sym, include_private = false)
-          result = super(method_sym, include_private)
-          result = result || (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{method_sym}")).rc == 0 if @staf_handle
-		  result = result || (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{method_sym}")).rc == 0 if @staf_handle
-          result
-        end
         
       end
       TestParameters.new() 
