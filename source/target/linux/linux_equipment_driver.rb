@@ -77,6 +77,8 @@ module Equipment
      'dra71x-hsevm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'k2e-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      'omapl138-lcdk'  => 'console=ttyS2,115200n8 earlyprintk=serial,ttyS2,115200n8 rootwait',
+     'k2hk-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
+     'k2g-hsevm' => 'console=ttyS0,115200n8 earlyprintk=serial,ttyS0,115200n8 rootwait',
      })
     
     def initialize(platform_info, log_path)
