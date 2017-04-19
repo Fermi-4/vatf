@@ -33,6 +33,7 @@ module SiteInfo
  LOGS_SERVER                    = "http://gtsystest.telogy.design.ti.com/vatf"
  # Analytics server is specific to TMS project (e.g. Testlink project)
  ANALYTICS_SERVER               = {1140921 => "lcpdresults.itg.ti.com:80",
+                                   1862381 => "gttestauto.am.dhcp.ti.com:80",
                                    '' => '',
                                    }
  WINCE_DOWNLOAD_APP             = 'cedownload.exe'
