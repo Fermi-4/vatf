@@ -53,19 +53,16 @@ include Equipment
 
     private
     def switch_microsd(e, dev)
-      begin
-        dut_side = e.params['microsd_switch'].values[0]
-        msp_path = e.params['microsd_switch'].keys[0].serial_port
-        my_staf_handle = STAFHandle.new("my_staf")
-        if (dev == 'dut' and dut_side.match(/^r/i)) or (dev == 'host' and !dut_side.match(/^r/i))
-          staf_req = my_staf_handle.submit("local","TOGGLE","name #{msp_path} direction evm")
-        else
-          staf_req = my_staf_handle.submit("local","TOGGLE","name #{msp_path} direction host")
-        end
+      side = e.params['microsd_switch'].values[0].downcase() 
+      msp_path = e.params['microsd_switch'].keys[0].serial_port
+
+      side = side == 'r' ? 'l' : 'r' if dev =='host' 
+      send_cmd("help", /:print\s+this\s+menu/mi, 5, true, true)
+      send_cmd("mmc #{side}-microsd", /microSD\s+connection/mi, 5, true, true)
+      e.log_info("Switch to #{side}-microsd: #{dev} side")
       rescue Exception => excep
         e.log_info("Error using uSD switch. Check microsd_switch parameter is defined in bench file. See <vatf source>/source/bench.rb")
         raise excep
-      end
     end
 
   end
