@@ -30,15 +30,19 @@ module Equipment
     def disconnect
     end
 
-    def send_sudo_cmd(cmd, expected_match=/.*/ ,timeout=30)
+    def send_sudo_cmd(command, expected_match=/.*/ ,timeout=30)
+      cmd=Array(command)
+      cmd << '' if cmd.length < 2
       begin
         @timeout = false
         Timeout::timeout(timeout) {
         @response = ''
-        log_info("Cmd: sudo -E -S #{cmd}")
-        @response = `sudo -E -S #{cmd} 2>&1 << EOF
+        log_info("Cmd: sudo -E -S #{cmd*','}")
+        @response = `sudo -E -S #{cmd[0]} 2>&1 << EOF
 #{@telnet_passwd}
-EOF` 
+EOF
+#{cmd[1..-1]*"\n"}
+`
         log_info('Response: '+@response)
         }
         @timeout = @response.match(expected_match) == nil
