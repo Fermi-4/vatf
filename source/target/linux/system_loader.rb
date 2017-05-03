@@ -39,7 +39,7 @@ module SystemLoader
       }
       raise "Trying to load system before #{params['dut'].name} is at boot prompt" if params['dut'].timeout?
       params['dut'].send_cmd("version", params['dut'].boot_prompt, 10)
-      @@uboot_version = /U-Boot\s+([\d\.]+)\s*/.match(params['dut'].response).captures[0]
+      @@uboot_version = /U-Boot\s+([\d\.]+)/.match(params['dut'].response).captures[0]
       raise "Could not find uboot version" if @@uboot_version == nil
       puts "\nuboot version = #{@@uboot_version}\n\n"
       return @@uboot_version
@@ -992,11 +992,8 @@ module SystemLoader
     end
 
     def run(params)
-      send_cmd params, "setenv addr_mon 0xc08000", params['dut'].boot_prompt
-      send_cmd params, "setenv addr_mon_mkimg 0xc07ffc0", params['dut'].boot_prompt
-      send_cmd params, "setenv mon_size 0x1210", params['dut'].boot_prompt
+      get_uboot_version params if !@@uboot_version
       send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'k2_sec_bm_install', 'version'=>@@uboot_version, 'platform'=>params['dut'].name}), params['dut'].boot_prompt
-      send_cmd params, "run sec_bm_install", params['dut'].boot_prompt
     end
 
   end
