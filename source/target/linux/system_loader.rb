@@ -1110,6 +1110,7 @@ module SystemLoader
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
       add_step( PmmcStep.new )
+      add_step( InitRamfsStep.new )
       add_step( FSStep.new )
       add_step( FitImageStep.new )
       add_step( BoardInfoStep.new )
