@@ -163,7 +163,6 @@ module Equipment
       end
 
       if params['dut'].name.match(/k2.+\-hs/)
-        @system_loader.insert_step_before('prep', SetDefaultEnvStep.new)
         @system_loader.insert_step_before('setip', InstallK2SecBMStep.new)
       end
 
