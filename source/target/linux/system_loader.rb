@@ -205,11 +205,6 @@ module SystemLoader
       self.send_cmd(params, "#{usb_init_cmd}; fatload usb #{params['_env']['usbdev']} #{load_addr} #{filename} ", params['dut'].boot_prompt, timeout)
     end
 
-    def erase_nand(params, nand_loc, size, timeout=60)
-      self.send_cmd(params, "nand erase.part #{nand_loc} ", params['dut'].boot_prompt, timeout)
-      raise "erase_nand failed!" if !params['dut'].response.match(/OK/) 
-    end
-
     # The erase size returned is in decimal format
     def get_nand_sector_size(params)
       self.send_cmd(params, "nand info", params['dut'].boot_prompt, 10)
@@ -227,6 +222,16 @@ module SystemLoader
       roundup_size = roundup_size.to_i.to_s(16)
       # return in hex format
       return roundup_size
+    end
+
+    def erase_nand(params, nand_loc, size, timeout=60)
+      if nand_loc.match(/^0x|^\d+/)
+        aligned_size = get_aligned_size params, size
+        self.send_cmd(params, "nand erase #{nand_loc} #{aligned_size}", params['dut'].boot_prompt, timeout)
+      else
+        self.send_cmd(params, "nand erase.part #{nand_loc} ", params['dut'].boot_prompt, timeout)
+      end
+      raise "erase_nand failed!" if !params['dut'].response.match(/OK/) 
     end
 
     def write_file_to_nand(params, mem_addr, nand_loc, size, timeout=60)
