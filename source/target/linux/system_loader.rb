@@ -210,8 +210,28 @@ module SystemLoader
       raise "erase_nand failed!" if !params['dut'].response.match(/OK/) 
     end
 
+    # The erase size returned is in decimal format
+    def get_nand_sector_size(params)
+      self.send_cmd(params, "nand info", params['dut'].boot_prompt, 10)
+      # "sector size 128 KiB"
+      sectorsize = /sector\s*size\s+([0-9]+)\s*KiB/im.match(params['dut'].response).captures[0]
+      sectorsize = sectorsize.to_i * 1024
+      return sectorsize
+    end
+
+    def get_aligned_size(params, size)
+      sector_size = get_nand_sector_size params
+      # nand_erase_size is in decimal format
+      # size passed here is in hex format
+      roundup_size = (size.to_i(16).to_f / sector_size.to_f).ceil * sector_size.to_f
+      roundup_size = roundup_size.to_i.to_s(16)
+      # return in hex format
+      return roundup_size
+    end
+
     def write_file_to_nand(params, mem_addr, nand_loc, size, timeout=60)
-      self.send_cmd(params, "nand write #{mem_addr} #{nand_loc} #{size}", params['dut'].boot_prompt, timeout)
+      aligned_size = get_aligned_size params, size
+      self.send_cmd(params, "nand write #{mem_addr} #{nand_loc} #{aligned_size}", params['dut'].boot_prompt, timeout)
       raise "write to nand failed!" if !params['dut'].response.match(/bytes\s+written:\s+OK/i) 
     end
 
