@@ -166,6 +166,10 @@ module Equipment
         @system_loader.insert_step_before('setip', InstallK2SecBMStep.new)
       end
 
+      if params['dut'].name.match(/omapl138-lcdk/)
+        @system_loader.insert_step_before('setip', GenerateRandomMacStep.new)
+      end
+
     end
 
     # Update primary and secondary bootloader 

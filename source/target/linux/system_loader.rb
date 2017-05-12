@@ -1018,6 +1018,19 @@ module SystemLoader
 
   end
 
+  class GenerateRandomMacStep < UbootStep
+    def initialize
+      super('gen_random_mac')
+    end
+
+    def run(params)
+      mac=[]
+      6.times do mac << rand(255).to_s(16) end
+      macstr= mac*":"
+      send_cmd params, "setenv ethaddr #{macstr}"
+    end
+  end
+
   class BaseSystemLoader < Step
     attr_accessor :steps
 
