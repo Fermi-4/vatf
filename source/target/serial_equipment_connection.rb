@@ -44,6 +44,9 @@ class SerialEquipmentConnection < SerialBaseListenerClient
   def wait_for(*params)
     expected_match = params[0] #? params[1] : Regexp.new('.*')
     timeout        = params[1] #? params[2] : 30
+
+    raise "Unsupported timeout value '#{timeout}'" if !timeout || timeout == 0
+
     @is_timeout = false
     listener = BaseListener.new('', expected_match, false)
     add_listener(listener)
