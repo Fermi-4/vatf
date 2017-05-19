@@ -392,9 +392,11 @@ module Equipment
         'CPU failed to come online' => /\[[\s\d\.]+\]\s+.*CPU\d+:\s+failed to come online/i,
         'Kernel Oops' => /Internal error: Oops/i,
         'NFS Failure' => /Unable to mount root fs via NFS/i,
+        'Capture sensor error' => /(?:mt9t11x|ov2659|ov1063x|tvp514x)[^\r\n]+error/i,
       }
       errors.each {|n,r|
-        raise n if boot_log.match(r)
+        e_match = boot_log.match(r)
+        raise "#{n}\n#{e_match[0]}"  if e_match
       }
     end
     
