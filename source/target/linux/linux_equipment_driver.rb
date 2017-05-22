@@ -154,11 +154,11 @@ module Equipment
         end
       end
 
-      if params['var_use_default_env'].to_s != '1' and params['var_use_default_env'].to_s != '2'
-        if params.has_key?("bootargs_append")
-          @system_loader.insert_step_before('boot', SetExtraArgsStep.new)
-        end
+      if params.has_key?("bootargs_append")
+        @system_loader.insert_step_before('boot', SetExtraArgsStep.new)
+      end
 
+      if params['var_use_default_env'].to_s != '1' and params['var_use_default_env'].to_s != '2'
         if params.has_key?("autologin")
           @system_loader.replace_step('boot', BootAutologinStep.new)
         end
