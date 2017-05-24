@@ -17,6 +17,7 @@ module CmdTranslator
                     '2011.06' => 'mmc rescan'   },
     'spi_sf_probe' => { '0.0' => Hash.new('sf probe'),},
     'qspi_sf_probe' => { '0.0' => Hash.new('sf probe').merge!({'k2g-evm' => 'sf probe 4:0'}),},
+    'get_clk_info' => { '0.0' => Hash.new('').merge!({'k2g-evm' => 'getclk 0;getclk 2;getclk 3'}),},
     'printenv' => { '0.0'     => 'printenv', },
     'tftp'     => { '0.0'     => 'tftp', },
     'dhcp'     => { '0.0'     => 'dhcp', },

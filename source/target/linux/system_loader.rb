@@ -975,6 +975,7 @@ module SystemLoader
     def run(params)
       send_cmd params, 'version'
       send_cmd params, 'bdinfo'
+      send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'get_clk_info', 'version'=>@@uboot_version, 'platform'=>params['dut'].name})
     end
   end
 
