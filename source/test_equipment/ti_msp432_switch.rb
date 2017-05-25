@@ -58,7 +58,10 @@ include Equipment
 
       side = side == 'r' ? 'l' : 'r' if dev =='host' 
       send_cmd("help", /:print\s+this\s+menu/mi, 5, true, true)
-      send_cmd("mmc #{side}-microsd", /microSD\s+connection/mi, 5, true, true)
+      3.times do
+        send_cmd("mmc #{side}-microsd", /microSD\s+connection/mi, 3, true, true)
+        break if !timeout?
+      end
       e.log_info("Switch to #{side}-microsd: #{dev} side")
       rescue Exception => excep
         e.log_info("Error using uSD switch. Check microsd_switch parameter is defined in bench file. See <vatf source>/source/bench.rb")
