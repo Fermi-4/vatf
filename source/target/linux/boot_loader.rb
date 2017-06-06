@@ -102,7 +102,16 @@ module BootLoader
   end
 
   def LOAD_FROM_ETHERNET(params)
-    raise "Loading bootloader from ethernet is not supported on default device"
+    puts "########LOAD_FROM_ETHERNET#########"
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'eth')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
+    params['dut'].power_cycle(params)
+    check_boot_media(params, 'eth')
+  end
+
+  def LOAD_FROM_ETHERNET_BY_BMC(params)
+    puts "########LOAD_FROM_ETHERNET_BY_BMC########"
+    params['bootloader_class'].bmc_trigger_boot(params['dut'], 'eth')
   end
 
   def LOAD_FROM_NO_BOOT_DSP_BY_BMC(params)
@@ -252,6 +261,8 @@ class BaseLoader
       cmd_key = "spi_bootmode"
     when 'qspi'
       cmd_key = "qspi_bootmode"
+    when 'eth'
+      cmd_key = "eth_bootmode"
     else
       raise "The #{device} is not supported in bmc_trigger_boot"
     end

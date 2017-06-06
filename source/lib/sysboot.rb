@@ -60,10 +60,10 @@ def SysBootModule.get_sysboot_setting(dut, boot_media)
     machines['dra72x-hsevm'] = machines['dra7xx-evm']
     machines['dra71x-hsevm'] = machines['dra7xx-evm']
     machines['dra7xx-hsevm'] = machines['dra7xx-evm']
-    machines['am43xx-gpevm'] = {'mmc'=>'101100', 'nand'=>'100110', 'emac'=>'111100', 'usbeth'=>'111101', 'usbmsc'=>'111110', 'uart'=>'111010', 'qspi'=>'101010' }
+    machines['am43xx-gpevm'] = {'mmc'=>'101100', 'nand'=>'100110', 'eth'=>'111100', 'usbeth'=>'111101', 'usbmsc'=>'111110', 'uart'=>'111010', 'qspi'=>'101010' }
     machines['am437x-sk'] = machines['am43xx-gpevm']
     machines['am43xx-hsevm'] = machines['am43xx-gpevm']
-    machines['am335x-evm'] = {'mmc'=>'10111', 'nand'=>'10100', 'uart'=>'00101', 'usbeth'=>'01101', 'emac'=>'01010' }
+    machines['am335x-evm'] = {'mmc'=>'10111', 'nand'=>'10100', 'uart'=>'00101', 'usbeth'=>'01101', 'eth'=>'01010' }
 
     raise "Sysboot setting for #{boot_media} not defined for #{platform}" if !machines[platform][boot_media]
     machines[platform][boot_media]

@@ -105,7 +105,7 @@ module Equipment
       when /uart/i
         BaseLoader.new method( get_uart_boot_method(@name) )
       when /ethernet/i
-        BaseLoader.new method(:LOAD_FROM_ETHERNET)
+        BaseLoader.new method( get_eth_boot_method(@name) )
       when /usbeth/i
         BaseLoader.new method(:LOAD_FROM_USBETH)
       when /usbmsc/i
