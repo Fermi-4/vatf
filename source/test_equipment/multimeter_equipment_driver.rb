@@ -17,7 +17,8 @@ module TestEquipment
       @keithley_version = @params['keithley_version']
       @connection_type =  @params['connection_type']
       @dut_power_domains = power_info['power_domains'] 
-      @dut_domain_resistors = power_info['domain_resistors']  
+      @dut_domain_resistors = power_info['domain_resistors']
+      @card_slot = @params['card_slot'] ? @params['card_slot'] : 2
       send_cmd("*IDN?",/\w+/,1,false)
       keithley_model = response.match(/model\s+(\d+)/i).captures[0]
       send_cmd("*RST", ".*", 1, false)
@@ -26,8 +27,8 @@ module TestEquipment
       send_cmd(":VOLT:DC:RANG AUTO ON", ".*", 1, false)
       send_cmd(":FUNC 'VOLT:DC'", ".*", 1, false)
       if keithley_model.to_s == "2701" or keithley_model.to_s == "2700"
-      	 send_cmd(":ROUT:SCAN (@201:2#{"%02d" % @number_of_channels})", ".*", 1, false)
-       else 
+      	 send_cmd(":ROUT:SCAN (@#{@card_slot}01:#{"%d%02d" % [@card_slot,@number_of_channels]})", ".*", 1, false)
+      else 
        	send_cmd(":ROUT:SCAN (@1:#{@number_of_channels})", ".*", 1, false)
       end 
       send_cmd(":ROUT:SCAN:LSEL INT", ".*", 1, false)

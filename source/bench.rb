@@ -164,7 +164,7 @@ minfo = EquipmentInfo.new("multimeter") do
   serial_port = '/dev/ttyUSB5'
   serial_params = {"baud" => 19200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
   driver_class_name = 'KeithleyMultiMeterDriver'
-  params = {'number_of_channels' => 40, 'conn_type' => "<'tcp_ip' or 'serial'>"}
+  params = {'number_of_channels' => 40, 'conn_type' => "<'tcp_ip' or 'serial'>", 'card_slot' => 1}
 end
 
 # FTDI USB-to-I2C power meter integrated in J5/J6 boards
