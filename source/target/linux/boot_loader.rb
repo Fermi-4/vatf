@@ -11,6 +11,10 @@ module BootLoader
   ####################################################################################
   ###################### Define ways to load bootloader here #########################
   ####################################################################################
+  def SKIP_BOOTLOADER(params)
+    puts "Skipping bootloader"
+  end
+
   def LOAD_NOTHING(params)
     params['dut'].power_cycle(params)
   end
@@ -320,4 +324,17 @@ class DSPOnlyLoader < BaseLoader
 
 end
 
+class SkipBootLoader < BaseLoader
 
+  def initialize(load_method=nil)
+    if load_method
+      super(load_method)
+    else
+      super(method(:SKIP_BOOTLOADER))
+    end
+  end
+
+  def stop_at_boot_prompt(params)
+  end
+
+end
