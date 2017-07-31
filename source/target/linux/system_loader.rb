@@ -1,4 +1,5 @@
 require File.dirname(__FILE__)+'/../../lib/cmd_translator'
+require "open3"
 
 module SystemLoader
 
@@ -1044,6 +1045,42 @@ module SystemLoader
     end
   end
 
+  class StartSimulatorStep < Step
+    attr_reader :simulator_socket, :simulator_stdin, :simulator_stdout, :simulator_stderr
+    def initialize
+      super('start_simulator')
+      @simulator_socket_regex=/Opened listening socket on port (\d+) for virtual terminal/
+    end
+
+    def run(params)
+      begin
+        Timeout::timeout(90) {
+          @simulator_response = ''
+          @simulator_stdin, @simulator_stdout, @simulator_stderr = Open3.popen3('sh')
+          puts "Starting simulator"
+          cmd="#{params['dut'].params['simulator_startup_cmd']} '#{params['dut'].params['simulator_python_script']} "
+          @simulator_stdin.puts("#{cmd} @@atf #{params['atf']} @@atf_fdt #{params['atf_fdt']} @@tee #{params['teeos']} @@linux_system #{params['linux_system']}'")
+          sleep 1
+          while !@simulator_response.match(@simulator_socket_regex)
+            if !@simulator_stdout.eof?
+              last_read = @simulator_stdout.read_nonblock(1024)
+              Kernel.print last_read
+              @simulator_response += last_read
+           end
+          end
+          puts "Simulator started at socket #{@simulator_response.match(@simulator_socket_regex).captures[0]}"
+          @simulator_socket = @simulator_response.match(@simulator_socket_regex).captures[0]
+        }
+      rescue Timeout::Error => e
+        puts "TIMEOUT Starting Simulator"
+        raise "TIMEOUT Starting Simulator.\n#{@simulator_response}"
+      end
+
+    end
+
+  end
+
+
   class BaseSystemLoader < Step
     attr_accessor :steps
 
@@ -1240,4 +1277,15 @@ module SystemLoader
     end
 
   end
+
+  class SimulatorSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( StartSimulatorStep.new )
+    end
+
+  end
+
 end
