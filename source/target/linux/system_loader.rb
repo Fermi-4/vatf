@@ -1054,6 +1054,8 @@ module SystemLoader
 
     def run(params)
       begin
+        puts "Sleeping 5 secs to avoid Simulator init errors"
+        sleep 5
         Timeout::timeout(90) {
           @simulator_response = ''
           @simulator_stdin, @simulator_stdout, @simulator_stderr = Open3.popen3('sh')
