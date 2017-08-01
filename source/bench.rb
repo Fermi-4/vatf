@@ -405,3 +405,11 @@ touchinfo.params = {'executable_path' => '/root', 'number_of_servos' => 3}
 dut = EquipmentInfo.new("am437x-sk", "linux_sd_sdhc_singletouch")
 ...
 dut.params = {'singletouch' => touchinfo}
+
+# Sample bench entries to setup a Simulator-based DUT
+dut = EquipmentInfo.new("amXXXX-evm", "linux")
+dut.driver_class_name='LinuxSimulatorDriver'
+dut.serial_server_ip = '192.168.0.1'
+dut.serial_server_port = 51000 # This value will be replaced once simulator starts. It is OK to hardcode to any value in the bench.
+dut.params = {'simulator_startup_cmd' => "cd /home/linux-integrated; ./utilities/simulator/.../startup -c -p ",
+              'simulator_python_script' => "soc_core_linux.py"}
