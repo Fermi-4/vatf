@@ -428,7 +428,7 @@ class SessionHandler
           begin
             clean if test_script_found
           rescue Exception => e
-            puts e.backtrace.to_s.gsub(/\s+/," ")
+            puts e.to_s+"\n"+e.backtrace.to_s.gsub(/\s+/," ")
           ensure
             Kernel.exit!()
           end
@@ -441,6 +441,7 @@ class SessionHandler
             @rtp_db.monitor_log("\n===== Calling #{@rtp_db.get_test_script}'s setup() at time #{t_setup}")
           end
           @connection_handler = ConnectionHandler.new(@files_dir)
+          test_script_found = true
           setup
           t_run = Time.now.to_s
           puts "\n===== Calling "+@rtp_db.get_test_script+"'s run() at time "+t_run
@@ -448,7 +449,6 @@ class SessionHandler
            @rtp_db.monitor_log("\n===== Calling #{@rtp_db.get_test_script}'s run() at time #{t_run}")
           end
           run
-          test_script_found = true
           @connection_handler.logs.each{|key,val| @logs_array << [key.to_s, val.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")]}
           Marshal.dump([@new_keys, @test_result, @results_html_file, @logs_array] ,t_case_write)
         rescue Exception => e
@@ -456,7 +456,11 @@ class SessionHandler
           Marshal.dump([@new_keys, n_e, e.backtrace.to_s.gsub(/\s+/," "), @logs_array] , t_case_write)
         ensure
           @connection_handler.disconnect if @connection_handler
-          clean if test_script_found
+          begin
+            clean if test_script_found
+          rescue Exception => e
+            puts e.to_s+"\n"+e.backtrace.to_s.gsub(/\s+/," ")
+          end
         end
       end
       t_case_write.close()
