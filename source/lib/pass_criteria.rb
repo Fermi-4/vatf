@@ -28,6 +28,7 @@ module PassCriteria
       if diff > 10 * data[1] and diff > significant_difference and diff > (data[0] * 10 * max_dev).abs
         return [false, ". #{metric['name']} contains outlier samples outside 10 stdev window. measured value=#{metric_avg}, historical mean=#{data[0]}, std=#{data[1]}. Please check your setup. Performance data won't be saved", false]
       end
+
       case op
       when 'max' # more is better
         benchmark = data[0] - 2*data[1]
@@ -44,7 +45,13 @@ module PassCriteria
           msg = msg + ", #{metric['name']} out of expected range: #{metric_avg} > #{data[0]} + #{data[1]}"
         end
       end
+      
+      if pass == false and metric.has_key? 'significant_difference' and diff <= significant_difference
+        pass = true 
+        msg = msg + ", but, #{metric['name']} within expected range set by significant_difference."
+      end
     end
+
     return [pass, msg, true]
   end
 
