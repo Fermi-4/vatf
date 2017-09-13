@@ -104,7 +104,7 @@ module Equipment
       @boot_loader = case params['primary_bootloader_dev']
       when /uart/i
         BaseLoader.new method( get_uart_boot_method(@name) )
-      when /ethernet/i
+      when "eth"
         BaseLoader.new method( get_eth_boot_method(@name) )
       when /usbeth/i
         BaseLoader.new method(:LOAD_FROM_USBETH)
