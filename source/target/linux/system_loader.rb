@@ -1160,6 +1160,20 @@ module SystemLoader
 
   end
 
+  class UbootKernelSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( PrepStep.new )
+      add_step( SetIpStep.new )
+      add_step( PmmcStep.new )
+      add_step( KernelStep.new )
+      add_step( DTBStep.new )
+    end
+
+  end
+
   class UbootDefaultEnvSystemLoader < BaseSystemLoader
     attr_accessor :steps
 
