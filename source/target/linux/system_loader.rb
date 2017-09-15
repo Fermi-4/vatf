@@ -490,7 +490,7 @@ module SystemLoader
     end
 
     def run(params)
-      case params['kernel_src_dev']
+      case params['kernel_dev']
       when 'mmc'
         load_kernel_from_mmc params
       when 'rawmmc'
@@ -503,10 +503,10 @@ module SystemLoader
         load_kernel_from_eth params
       when 'ubi'
         load_kernel_from_ubi params
-      when 'serial'
+      when 'serial', 'uart'
         load_kernel_from_serial params
       else
-        raise "Don't know how to load kernel from #{params['kernel_src_dev']}"
+        raise "Don't know how to load kernel from #{params['kernel_dev']}"
       end
     end
 
@@ -547,7 +547,7 @@ module SystemLoader
     end
 
     def run(params)
-      case params['dtb_src_dev']
+      case params['dtb_dev']
       when 'mmc'
         load_dtb_from_mmc params
       when 'rawmmc'
@@ -560,12 +560,12 @@ module SystemLoader
         load_dtb_from_eth params
       when 'ubi'
         load_dtb_from_ubi params
-      when 'serial'
+      when 'serial', 'uart'
         load_dtb_from_serial params
       when 'none'
         # Do nothing
       else
-        raise "Don't know how to load dtb from #{params['dtb_src_dev']}"
+        raise "Don't know how to load dtb from #{params['dtb_dev']}"
       end
     end
 
@@ -781,7 +781,7 @@ module SystemLoader
       send_cmd params, "setenv initrd_high '0xffffffff'"
       send_cmd params, "setenv fdt_high '0x88000000'"
       
-      case params['fs_src_dev']
+      case params['fs_dev']
       when /eth/i
         load_file_from_eth_now params, params['_env']['ramdisk_loadaddr'], params['fs_image_name'], 600
         send_cmd params, "setenv _initramfs #{params['_env']['ramdisk_loadaddr']}:#{params['_env']['filesize']}"
@@ -789,7 +789,7 @@ module SystemLoader
         load_file_from_mmc params, params['_env']['ramdisk_loadaddr'], params['fs_image_name']
         send_cmd params, "setenv _initramfs #{params['_env']['ramdisk_loadaddr']}:#{params['_env']['filesize']}"
       else
-        raise "Don't know how to get ramfs image from #{params['fs_src_dev']}"
+        raise "Don't know how to get ramfs image from #{params['fs_dev']}"
       end
       send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'ramfs_bootargs', 'version'=>@@uboot_version, 'platform'=>params['dut'].name})
     end
