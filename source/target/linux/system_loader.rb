@@ -203,7 +203,7 @@ module SystemLoader
     def load_file_from_usbmsc_now(params, load_addr, filename, timeout=60)
       raise "load_file_from_usbmsc_now: no filename is provided." if !filename
       init_usbmsc(params, timeout)
-      self.send_cmd(params, "#{usb_init_cmd}; fatload usb #{params['_env']['usbdev']} #{load_addr} #{filename} ", params['dut'].boot_prompt, timeout)
+      self.send_cmd(params, "fatload usb #{params['_env']['usbdev']} #{load_addr} #{filename} ", params['dut'].boot_prompt, timeout)
     end
 
     # The erase size returned is in decimal format
@@ -287,10 +287,9 @@ module SystemLoader
       raise "write to spi failed!" if !params['dut'].response.match(/written:\s+OK/i) 
     end
 
-    def load_file_from_spi(params, dev, mem_addr, spi_loc, timeout=60)
-      probe_spi(params, dev)
+    def load_file_from_spi(params, mem_addr, spi_loc, timeout=60)
       self.send_cmd(params, "sf read #{mem_addr} #{spi_loc} ", params['dut'].boot_prompt, timeout)
-      raise "read from spi failed!" if !params['dut'].response.match(/bytes\s+read:\s+OK/i) 
+      raise "read from spi failed!" if !params['dut'].response.match(/read:\s+OK/i) 
     end
 
     def fatwrite(params, interface, dev, mem_addr, filename, filesize, timeout)
@@ -499,6 +498,8 @@ module SystemLoader
         load_kernel_from_usbmsc params
       when 'nand'
         load_kernel_from_nand params
+      when /spi/ # 'qspi' or 'spi'
+        load_kernel_from_spi params
       when 'eth'
         load_kernel_from_eth params
       when 'ubi'
@@ -520,11 +521,17 @@ module SystemLoader
     end
 
     def load_kernel_from_usbmsc(params)
-      load_file_from_usbmsc params, params['_env']['kernel_loadaddr'], File.basename(params['kernel_image_name'])
+      load_file_from_usbmsc_now params, params['_env']['kernel_loadaddr'], File.basename(params['kernel_image_name'])
     end
 
     def load_kernel_from_nand(params)
       load_file_from_nand params, params['_env']['kernel_loadaddr'], params["nand_kernel_loc"]
+    end
+
+    def load_kernel_from_spi(params)
+      # Only call probe_spi once due to LCPD-6981
+      probe_spi params, params["kernel_dev"]
+      load_file_from_spi params, params['_env']['kernel_loadaddr'], params["spi_kernel_loc"]
     end
 
     def load_kernel_from_serial(params)
@@ -556,6 +563,8 @@ module SystemLoader
         load_dtb_from_usbmsc params
       when 'nand'
         load_dtb_from_nand params
+      when /spi/
+        load_dtb_from_spi params
       when 'eth'
         load_dtb_from_eth params
       when 'ubi'
@@ -579,11 +588,17 @@ module SystemLoader
     end
 
     def load_dtb_from_usbmsc(params)
-      load_file_from_usbmsc params, params['_env']['dtb_loadaddr'], File.basename(params['dtb_image_name'])
+      load_file_from_usbmsc_now params, params['_env']['dtb_loadaddr'], File.basename(params['dtb_image_name'])
     end
 
     def load_dtb_from_nand(params)
       load_file_from_nand params, params['_env']['dtb_loadaddr'], params["nand_dtb_loc"]
+    end
+
+    def load_dtb_from_spi(params)
+      # Only call probe_spi once due to LCPD-6981
+      probe_spi params, params["dtb_dev"]
+      load_file_from_spi params, params['_env']['dtb_loadaddr'], params["spi_dtb_loc"]
     end
 
     def load_dtb_from_serial(params)
