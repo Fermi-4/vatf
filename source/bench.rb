@@ -413,3 +413,27 @@ dut.serial_server_ip = '192.168.0.1'
 dut.serial_server_port = 51000 # This value will be replaced once simulator starts. It is OK to hardcode to any value in the bench.
 dut.params = {'simulator_startup_cmd' => "cd /home/linux-integrated; ./utilities/simulator/.../startup -c -p ",
               'simulator_python_script' => "soc_core_linux.py"}
+
+
+# Sample bench entries to setup TI's Automation Interface Driver
+# Please note that 2 separate entries are required, one for multimeter
+# and another one for power_controller as the driver supports both roles.
+minfo = EquipmentInfo.new("multimeter")
+minfo.serial_port = '/dev/ttyACM0'
+minfo.serial_params = {"baud" => 115200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE, "flow_control" => SerialPort::NONE}
+minfo.prompt = /=>/
+minfo.driver_class_name = 'AutomationInterfaceDriver'
+minfo.params = {'number_of_channels' => 40}
+
+pwr = EquipmentInfo.new("power_controller", "autoiface.dra71x")
+pwr.driver_class_name = 'AutomationInterfaceDriver'
+pwr.serial_params = {"baud" => 115200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+pwr.serial_port = '/dev/ttyACM0'
+pwr.prompt = /=>/m
+
+
+dut = EquipmentInfo.new("dra71x-evm", "linux_sd_sdhc_usbhostmsc_power")
+dut.driver_class_name='LinuxEquipmentDriver'
+...
+dut.power_port = {'autoiface.dra71x' => 1}
+dut.params = {'multimeter1' => minfo}
