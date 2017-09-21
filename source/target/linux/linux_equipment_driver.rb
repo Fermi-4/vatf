@@ -352,7 +352,7 @@ module Equipment
         raise "Unable to detect serial node for the dut" if trials >= 600
       else
         puts "Soft reboot..."
-        send_cmd('#check prompt', @prompt, 3)
+        send_cmd('#check prompt', @prompt, 8)
         if timeout?
           # assume at u-boot prompt
           send_cmd('reset', /resetting/i, 3)
