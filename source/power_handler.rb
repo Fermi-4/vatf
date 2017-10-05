@@ -37,10 +37,20 @@ class PowerHandler
     power_port.each {|power_port_element|
       switch_off(power_port_element)
       sleep 1
+      if power_port.size == 1 and block_given?
+        # Do something (if needed) before restoring power
+        yield
+      end
       switch_on(power_port_element)
       # Sleep extra on first power port if there are multiple ports
       # First port most likely controls USB power so allow extra time
-      sleep 3 if (power_port.size > 1 and power_port.index(power_port_element) == 0)
+      if (power_port.size > 1 and power_port.index(power_port_element) == 0)
+        sleep 3
+        # Do something (if needed) before restoring power
+        if block_given?
+          yield
+        end
+      end
     }
   end
 

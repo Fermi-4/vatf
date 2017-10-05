@@ -49,6 +49,7 @@ module SystemLoader
     def get_environment(params)
       params['_env'] = {}
       send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'printenv', 'version'=>@@uboot_version})
+      params['dut'].response.split(/[\r\n]+/).each { |env_str| params['_env'].store(*(env_str.split('=',2))) if env_str.include?('=') }
       # Determine kernel loadaddr
       load_addr = '${loadaddr}'
       fit_loadaddr = '0xc0000000'
@@ -348,14 +349,19 @@ module SystemLoader
       
       txed_size = get_filesize(params, 10)
 
-      case params["#{part}_dev"]
+      case params["#{part}_dst_dev"] ? params["#{part}_dst_dev"] : params["#{part}_dev"]
       when 'nand'
         erase_nand params, params["nand_#{part}_loc"], txed_size, timeout
         write_file_to_nand params, params['_env']['loadaddr'], params["nand_#{part}_loc"], txed_size, timeout
       when /spi/ # 'qspi' or 'spi'
         # Only call probe_spi once due to LCPD-6981
-        probe_spi params, params["#{part}_dev"], timeout
-        erase_spi params, params["#{part}_dev"], params["spi_#{part}_loc"], txed_size, timeout
+        if params["#{part}_dst_dev"]
+          probe_spi params, params["#{part}_dst_dev"], timeout
+          erase_spi params, params["#{part}_dst_dev"], params["spi_#{part}_loc"], txed_size, timeout
+        else
+          probe_spi params, params["#{part}_dev"], timeout
+          erase_spi params, params["#{part}_dev"], params["spi_#{part}_loc"], txed_size, timeout
+        end
         write_file_to_spi params, params['_env']['loadaddr'], params["spi_#{part}_loc"], txed_size, timeout
       when /rawmmc/ # 'rawmmc-emmc' or 'rawmmc-mmc'
         write_file_to_rawmmc params, params['_env']['loadaddr'], params["rawmmc_#{part}_loc"], txed_size, timeout
@@ -1098,6 +1104,291 @@ module SystemLoader
 
   end
 
+  class StartFastbootStep < UbootStep
+    def initialize
+      super('start_fastboot')
+    end
+
+    def run(params)
+      fb_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>'start_fastboot',
+                                    'version'=>@@uboot_version,
+                                    'platform' => params['dut'].name})
+      send_cmd params, fb_cmd, nil, 2, true, false
+      raise "Unable to start fastboot" if !params['dut'].timeout?
+    end
+  end
+
+  class FastbootStep < UbootStep
+    @@updated_imgs = {}
+    @@must_flash = false
+    def initialize(name='')
+      super(name)
+      @partition_tx_table = Hash.new {|h,k| h[k] = k}
+      @partition_tx_table.merge!({
+        'primary_bootloader'   => 'xloader',
+        'secondary_bootloader' => 'bootloader',
+        'dtb'                  => 'environment',
+        })
+    end
+
+    def fastboot_cmd(params, cmd, timeout=20, expect=/OKAY.*finished.\s*total\s*time:[^\r\n]+/im, raise_on_error=true)
+      params['server'].send_sudo_cmd("#{params['fastboot']} -s #{params['dut'].board_id} #{cmd}", expect, timeout)
+      if raise_on_error && params['server'].timeout?
+        send_cmd params, "\x03", nil, 20, false
+        @@updated_imgs.each do |i_name, i_md5|
+          send_cmd params, "setenv #{i_name} #{i_md5}" 
+        end
+        send_cmd params, "saveenv" if  @@updated_imgs.length > 0
+        raise "Error executing #{cmd}" 
+      end
+      params['server'].response
+    end
+
+    def should_flash?(params, part)
+      params['server'].send_cmd("md5sum #{params[part]} | cut -d' ' -f 1")
+      @@must_flash || (params['_env']["#{part}_md5"] != params['server'].response.strip)
+    end
+
+    def flash_run(params, part, timeout=20)
+      if should_flash?(params, part)
+        fastboot_cmd(params, "flash #{@partition_tx_table[part]} #{params[part]}", timeout, /OKAY.*OKAY.*finished.\s*total\s*time:[^\r\n]+/im)
+        params['server'].send_cmd("md5sum #{params[part]} | cut -d' ' -f 1")
+        @@updated_imgs["#{part}_md5"] = params['server'].response.strip
+      end
+    end
+
+    def resize_image(params, orig_image, new_image)
+      result = nil
+      resized_data= "#{params['workdir']}/#{new_image}"
+      raw_data = "#{params['workdir']}/#{File.basename(orig_image)}.raw"
+      data_dir = "#{params['workdir']}/data"
+      if params['make_fs'] && params['simg2img']
+        data_size = 0
+        begin
+          params['server'].send_cmd("#{params['fastboot']} getvar userdata_size", /finished.*total\s*time:[^\r\n]+/)
+          data_size = params['server'].response.match(/userdata_size:([^\r\n]+)/im).captures[0].to_i
+          if data_size > 0
+            params['server'].send_cmd("rm -rf #{data_dir} #{raw_data} #{resized_data}",/.*/,60)
+            if params['server'].response == ''
+              params['server'].send_cmd("mkdir #{data_dir}",/.*/,10)
+              if params['server'].response == ''
+                params['server'].send_cmd("#{params['simg2img']} #{orig_image} #{raw_data}",/.*/,60)
+                if params['server'].response == ''
+                  params['server'].send_sudo_cmd("mount -o loop -o grpid -t ext4 #{raw_data} #{data_dir}")
+                  if params['server'].response == ''
+                    params['server'].send_cmd("#{params['make_fs']} -s -l #{data_size}K -a data #{resized_data} #{data_dir}/",/.*/,60)
+                    if !params['server'].response.match(/error/im)
+                      result = resized_data
+                    end
+                    params['server'].send_cmd("sync",/.*/,60)
+                    params['server'].send_sudo_cmd("umount #{data_dir}")
+                    params['server'].send_cmd("sync",/.*/,60)
+                  end
+                end
+              end
+            end
+          end
+        rescue Exception => e
+          puts e.to_s
+          params['server'].log_error(e.to_s)
+        end
+      end
+      result
+    end
+  end
+
+  class FastbootResetEnvStep < FastbootStep
+    def initialize
+      super('fastboot_reset_env')
+    end
+
+    def run(params)
+      if @@must_flash
+        send_cmd params, "env default -f -a", params['dut'].boot_prompt
+        params['dut'].set_fastboot_partitions(params)
+      end
+      if @@must_flash || params['_env']['serial#'] != params['dut'].board_id
+        send_cmd params, "setenv serial# #{params['dut'].board_id}", params['dut'].boot_prompt
+        send_cmd params, "saveenv", params['dut'].boot_prompt
+      end
+    end
+  end
+
+  class SetOSBootcmdStep < UbootStep
+    def initialize
+      super('os_bootcmd')
+    end
+
+    def run(params)
+      params['dut'].set_os_bootcmd(params)
+    end
+  end
+
+  class StopFastbootStep < FastbootStep
+    def initialize
+      super('stop_fastboot')
+    end
+
+    def run(params)
+      @@must_flash = false
+      send_cmd params, "\x03", nil, 20, false
+    end
+  end
+
+  class FastbootCreatePartitionsStep < FastbootStep
+    def initialize
+      super('fastboot_create_partitions')
+    end
+    
+    def run(params)
+      if @@must_flash
+        fastboot_cmd(params, 'oem format')
+      end
+    end
+  end
+
+  class FastbootSetBootloaderTargetStep < FastbootStep
+    def initialize
+      super('fastboot_set_flash_target')
+    end
+
+    def run(params)
+      dev_table = Hash.new() { |h,k| h[k] = k }
+      dev_table['qspi'] = 'spi'
+      dev_table['emmc'] = 'mmc'
+      dev_table['rawmmc-emmc'] = 'mmc'
+      if @@must_flash && params['primary_bootloader'].to_s != '' && params['secondary_bootloader'].to_s != ''
+        flash_dev = params['primary_bootloader_dev'].sub('none','') != '' ? params['primary_bootloader_dev'] : params['secondary_bootloader_dev'].sub('none','') != '' ? params['secondary_bootloader_dev'] : nil
+        raise "bootloader tartget was not specified" if !flash_dev
+        fastboot_cmd(params, "oem #{dev_table[flash_dev]}")
+      end
+    end
+  end
+
+  class FastbootPrepBootloaderStep < FastbootStep
+    def initialize
+      super('fastboot_prep_bootloader')
+    end
+
+    def run(params)
+      get_environment(params)
+      if params['primary_bootloader'].to_s != '' && params['secondary_bootloader'].to_s != '' && 
+        (should_flash?(params, 'primary_bootloader') || should_flash?(params, 'secondary_bootloader'))
+        @@must_flash = true
+        params['dut'].update_bootloader(params)
+      end
+    end
+  end
+
+  class FastbootFlashBootloaderStep < FastbootStep
+    def initialize
+      super('fastboot_flash_bootloader')
+    end
+
+    def run(params)
+      flash_run(params, 'primary_bootloader') if params['primary_bootloader'].to_s != ''
+      flash_run(params, 'secondary_bootloader') if params['secondary_bootloader'].to_s != ''
+    end
+  end
+  
+  class FastbootRebootBootloaderStep < FastbootStep
+    def initialize
+      super('fastboot_reboot_bootloader')
+    end
+
+    def run(params)
+      params['dut'].boot_to_bootloader(params) if @@must_flash
+    end
+  end
+  
+  class FastbootFlashBootPartitionStep < FastbootStep
+    def initialize
+      super('fastboot_flash_boot_partition')
+    end
+
+    def run(params)
+      flash_run(params, 'boot') if params['boot'].to_s != ''
+    end
+  end
+  
+  class FastbootFlashDTBStep < FastbootStep
+    def initialize
+      super('fastboot_flash_dtb')
+    end
+
+    def run(params)
+      flash_run(params, 'dtb') if params['dtb'].to_s != ''
+    end
+  end
+
+  class FastbootFlashRecoveryPartitionStep < FastbootStep
+    def initialize
+      super('fastboot_flash_recovery_partition')
+    end
+
+    def run(params)
+      flash_run(params, 'recovery') if params['recovery'].to_s != ''
+    end
+  end
+
+  class FastbootFlashSystemPartitionStep < FastbootStep
+    def initialize
+      super('fastboot_flash_system_partition')
+    end
+
+    def run(params)
+      flash_run(params, 'system', 180) if params['system'].to_s != ''
+    end
+  end
+
+  class FastbootFlashCachePartitionStep < FastbootStep
+    def initialize
+      super('fastboot_flash_cache_partition')
+    end
+
+    def run(params)
+      flash_run(params, 'cache') if params['cache'].to_s != ''
+    end
+  end
+
+  class FastbootFlashUserDataPartitionStep < FastbootStep
+    def initialize
+      super('fastboot_flash_userdata_partition')
+    end
+
+    def run(params)
+      if params['userdata'].to_s != ''
+        new_image = resize_image(params, params['userdata'], 'resized_userdata.img')
+        params['userdata'] = new_image if new_image
+        flash_run(params, 'userdata')
+      end
+    end
+  end
+
+  class FastbootFlashVendorPartitionStep < FastbootStep
+    def initialize
+      super('fastboot_flash_vendor_partition')
+    end
+
+    def run(params)
+      if params['vendor'].to_s != ''
+        flash_run(params, 'vendor')
+      end
+    end
+  end
+
+  class SaveImagesInfo < FastbootStep
+    def initialize
+      super('save_images_info')
+    end
+    
+    def run(params)
+      @@updated_imgs.each do |i_name, i_md5|
+        send_cmd params, "setenv #{i_name} #{i_md5}" 
+      end
+      send_cmd params, "saveenv" if  @@updated_imgs.length > 0
+    end
+  end
 
   class BaseSystemLoader < Step
     attr_accessor :steps
@@ -1242,6 +1533,8 @@ module SystemLoader
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
       add_step( FlashBootloaderStep.new )
+      add_step( SetDefaultEnvStep.new )
+      add_step( SaveEnvStep.new )
     end
 
   end
@@ -1255,6 +1548,8 @@ module SystemLoader
       add_step( SetIpStep.new )
       add_step( FlashKernelStep.new )
       add_step( FlashDTBStep.new )
+      add_step( SetDefaultEnvStep.new )
+      add_step( SaveEnvStep.new )
     end
 
   end
@@ -1267,6 +1562,8 @@ module SystemLoader
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
       add_step( FlashFSStep.new )
+      add_step( SetDefaultEnvStep.new )
+      add_step( SaveEnvStep.new )
     end
 
   end
@@ -1281,6 +1578,8 @@ module SystemLoader
       add_step( FlashBootloaderStep.new )
       add_step( FlashKernelStep.new )
       add_step( FlashDTBStep.new )
+      add_step( SetDefaultEnvStep.new )
+      add_step( SaveEnvStep.new )
     end
 
   end
@@ -1296,6 +1595,8 @@ module SystemLoader
       add_step( FlashKernelStep.new )
       add_step( FlashDTBStep.new )
       add_step( FlashFSStep.new )
+      add_step( SetDefaultEnvStep.new )
+      add_step( SaveEnvStep.new )
     end
 
   end
@@ -1316,6 +1617,37 @@ module SystemLoader
     def initialize
       super
       add_step( StartSimulatorStep.new )
+    end
+
+  end
+
+  class FastbootFlashSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( FastbootPrepBootloaderStep.new )
+      add_step( FastbootResetEnvStep.new )
+      add_step( FastbootRebootBootloaderStep.new )
+      add_step( StartFastbootStep.new )
+      add_step( FastbootCreatePartitionsStep.new)
+      add_step( FastbootSetBootloaderTargetStep.new )
+      add_step( FastbootFlashBootloaderStep.new )
+      add_step( FastbootRebootBootloaderStep.new )
+      add_step( StartFastbootStep.new )
+      add_step( FastbootCreatePartitionsStep.new)
+      add_step( FastbootFlashBootPartitionStep.new )
+      add_step( FastbootFlashDTBStep.new )
+      add_step( FastbootFlashRecoveryPartitionStep.new )
+      add_step( FastbootFlashSystemPartitionStep.new )
+      add_step( FastbootFlashVendorPartitionStep.new )
+      add_step( FastbootFlashUserDataPartitionStep.new )
+      add_step( FastbootFlashCachePartitionStep.new )
+      add_step( StopFastbootStep.new )
+      add_step( SetOSBootcmdStep.new )
+      add_step( SaveImagesInfo.new )
+      add_step( BoardInfoStep.new )
+      add_step( BootStep.new )
     end
 
   end

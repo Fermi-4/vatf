@@ -1,119 +1,35 @@
-require File.dirname(__FILE__)+'/../equipment_driver'
+require File.dirname(__FILE__)+'/../linux/linux_equipment_driver'
 require File.dirname(__FILE__)+'/../linux/boot_loader'
 require File.dirname(__FILE__)+'/../linux/system_loader'
 
 module Equipment
   include SystemLoader
   
-  class AndroidBootStep < BootStep
-    def run(params)
-      send_cmd params, "boot", params['dut'].prompt, 180
-    end
-  end
-  
-  class AndroidFSStep < FSStep
-    def set_mmcfs(params)
-      append_text params, 'bootargs', "root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait "
-    end
-  end
-  
-  class AndroidEquipmentDriver < EquipmentDriver
+  class AndroidEquipmentDriver < LinuxEquipmentDriver
+    @@boot_info = Hash.new('')
     
-    @@boot_info = {'am3517-evm' => 'console=ttyO2,115200n8 androidboot.console=ttyO2 mem=256M init=/init ip=dhcp rw mpurate=600 omap_vout.vid1_static_vrfb_alloc=y vram="8M" omapfb.vram=0:8M',
-                   'am37x-evm' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M init=/init ip=dhcp omap_vout.vid1_static_vrfb_alloc=y vram=8M omapfb.vram=0:8M',
-                   'ti816x-evm' => 'mem=166M@0x80000000 mem=768M@0x90000000 console=ttyO2,115200n8 androidboot.console=ttyO2 noinitrd ip=dhcp rw init=/init',
-		           'ti814x-evm' => 'mem=128M console=ttyO0,115200n8 noinitrd ip=dhcp rw init=/init vram=50M',
-		           'am335x-evm' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=512M init=/init ip=dhcp',
-		           'am335x-sk' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M  init=/init ip=dhcp',
-		           'beaglebone' => 'console=ttyO0,115200n8 androidboot.console=ttyO0 mem=256M init=/init ip=dhcp',
-		           'flashboard' => 'console=ttyO2,115200n8 androidboot.console=ttyO2 mem=256M init=/init ip=dhcp omap_vout.vid1_static_vrfb_alloc=y vram=8M omapfb.vram=0:8M',
-		           'beagleboard' => 'console=ttyO2,115200n8 androidboot.console=ttyO2 mem=256M init=/init ip=dhcp omap_vout.vid1_static_vrfb_alloc=y vram=8M omapfb.vram=0:8M omapdss.def_disp=dvi omapfb.mode=dvi:1024x768MR-16',}   
+#    @@boot_info = {'dra72x-evm'=> 'init=/init rootfstype=ext4 rootwait drm.rnodes=1 androidboot.selinux=permissive snd.slots_reserved=1,1 snd-soc-core.pmdown_time=-1 uio_pdrv_genirq.of_id=generic-uio console=ttyS0,115200'\
+#                                  ' androidboot.console=ttyS0 androidboot.hardware=jacinto6evmboard console=ttyS0,115200 androidboot.console=ttyS0 androidboot.hardware=jacinto6evmboard',
+#                   'dra7xx-evm'=> 'init=/init rootfstype=ext4 rootwait drm.rnodes=1 androidboot.selinux=permissive snd.slots_reserved=1,1 snd-soc-core.pmdown_time=-1 uio_pdrv_genirq.of_id=generic-uio console=ttyS0,115200'\
+#                                  ' androidboot.console=ttyS0 androidboot.hardware=jacinto6evmboard console=ttyS0,115200 androidboot.console=ttyS0 androidboot.hardware=jacinto6evmboard'}
 
     def initialize(platform_info, log_path)
       super(platform_info, log_path)
-      @boot_args = @@boot_info[@name]
-      @boot_loader = nil
-      @system_loader = nil
-    end
-    
-    # Select BootLoader's load_method based on params
-    def set_bootloader(params)
-      @boot_loader = case params['primary_bootloader_dev']
-      when /uart/i
-        BaseLoader.new method(:LOAD_FROM_SERIAL)
-      when /eth/i
-        BaseLoader.new method(:LOAD_FROM_ETHERNET)
-      else
-        BaseLoader.new 
-      end
+      @boot_args += " androidboot.serialno=#{platform_info.board_id}"
+      @bootdev_table = Hash.new { |h,k| h[k] = k }
+      @bootdev_table['rawmmc-emmc'] = 'emmc' 
     end
 
-    # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
-      @system_loader = SystemLoader::UbootSystemLoader.new
-      @system_loader.replace_step('boot', AndroidBootStep.new)
-      @system_loader.replace_step('fs', AndroidFSStep.new)
-    end
-    
-    def boot (params)
-      @power_handler = params['power_handler'] if !@power_handler
-      params['bootargs'] = @boot_args if !params['bootargs']
-      set_bootloader(params) if !@boot_loader
-      set_systemloader(params) if !@system_loader
-      params.each{|k,v| puts "#{k}:#{v}"}
-      @boot_loader.run params
-      @system_loader.run params
-      
-      begin
-        Timeout::timeout(600) do
-          send_adb_cmd("wait-for-device")
-        end
-        rescue Timeout::Error => e
-          raise "Unable to connect to device #{@name} id #{@board_id} after booting\n"+e.backtrace.to_s
-      end
-      
-      begin
-        Timeout::timeout(600) do
-          response = send_adb_cmd("logcat -d")
-          while(!response.match(/(bootCompleted)|(Boot\s*animation\s*finished)/m)) do
-            response = send_adb_cmd("logcat -d")
-            sleep(1)
-          end
-        end
-        rescue Timeout::Error => e
-          raise "device #{@name} id #{@board_id} has not finished booting after 600 sec\n"+e.backtrace.to_s
+      if params['var_use_default_env'].to_s == '4'
+        @system_loader = SystemLoader::FastbootFlashSystemLoader.new
+      else
+        super(params)
       end
     end
 
-    # stop the bootloader after a reboot
-    def stop_boot()
-      0.upto 3 do
-        send_cmd("\e", @boot_prompt, 1)
-      end
-    end
-    
-    def boot_to_bootloader(params=nil)
-      set_bootloader(params) if !@boot_loader
-      @boot_loader.run params
-    end
-    
-    def power_cycle(params)
-      @power_handler = params['power_handler'] if !@power_handler
-      if @power_port !=nil
-        puts 'Resetting @using power switch'
-        @power_handler.reset(@power_port)
-      else
-        puts "Soft reboot..."
-        connect({'type'=>'serial'}) if !target.serial
-        send_cmd('', @prompt, 3)
-        if timeout?
-          # assume at u-boot prompt
-          send_cmd('reset', /resetting/i, 3)
-        else
-          # at linux prompt
-          send_cmd('reboot', /(Restarting|Rebooting|going\s+down)/i, 40)
-        end
-      end
+    def poweroff(params=nil)
+      send_cmd("sync",@prompt,120)
     end
 
     # Send command to an android device
@@ -127,18 +43,49 @@ module Equipment
       log_info("#{endpoint}-Response: "+response)
       response
     end
+
+    # Update primary and secondary bootloader 
+    def update_bootloader(params)
+      return if @updated_bootloader
+      raise "Only (q)spi|rawmmc-emmc boot is supported for Android" if !params['primary_bootloader_dev'].to_s.match(/spi|rawmmc-emmc/) || !params['secondary_bootloader_dev'].to_s.match(/spi|rawmmc-emmc/)
+      ub_params = params.dup
+      init_loader = SystemLoader::UbootFlashBootloaderSystemLoader.new()        
+      ub_params['mmcdev'] = 1 if params['primary_bootloader_dev'].to_s.match(/rawmmc-emmc/)
+      init_loader.run ub_params
+      SysBootModule::set_sysboot(params['dut'], SysBootModule::get_sysboot_setting(params['dut'], @bootdev_table[params['primary_bootloader_dev']]))
+      @boot_loader = nil
+      boot_to_bootloader params
+    end
     
-    def get_uboot_version(params=nil)
-      return @uboot_version if @uboot_version
-      if !at_prompt?({'prompt'=>@boot_prompt})
-        puts "Not at uboot prompt, reboot to boot prompt...\n"
-        boot_to_bootloader(params)
-      end
-      send_cmd("version", @boot_prompt, 10)
-      @uboot_version = /U-Boot\s+([\d\.]+)\s*\(/.match(response).captures[0]
-      raise "Could not find uboot version" if @uboot_version == nil
-      puts "\nuboot version = #{@uboot_version}\n\n"
-      return @uboot_version
+    def recover_bootloader(params)
+      raise "Only (q)spi|rawmmc-emmc boot is supported for Android" if !params['primary_bootloader_dev'].to_s.match(/spi|rawmmc-emmc/) || !params['secondary_bootloader_dev'].to_s.match(/spi|rawmmc-emmc/)
+      ub_params = params.dup
+      init_loader = SystemLoader::UbootFlashBootloaderSystemLoader.new()        
+      SysBootModule::reset_sysboot(params['dut'])
+      ub_params['primary_bootloader_dev'] = SysBootModule.get_default_bootmedia(params['dut'].name)
+      ub_params['secondary_bootloader_dev'] = SysBootModule.get_default_bootmedia(params['dut'].name)
+      ub_params['primary_bootloader_dst_dev'] = params['primary_bootloader_dev']
+      ub_params['secondary_bootloader_dst_dev'] = params['secondary_bootloader_dev']
+      raise "Bootloader cannot be recovered from failing device(s), #{params['primary_bootloader_dev']} and #{params['secondary_bootloader_dev']} are also the recovery devices" if ub_params['primary_bootloader_dev'] == params['primary_bootloader_dev'] || ub_params['secondary_bootloader_dev'] == params['secondary_bootloader_dev']
+      msg = "Failed to boot to bootloader from #{params['primary_bootloader_dev']}, trying to recover from #{SysBootModule.get_default_bootmedia(params['dut'].name)}"
+      puts msg
+      log_info(msg)
+      @boot_loader = nil
+      boot_to_bootloader(ub_params)
+      ub_params['mmcdev'] = 1 if params['primary_bootloader_dev'].to_s.match(/rawmmc-emmc/)
+      init_loader.run ub_params
+      SysBootModule::set_sysboot(params['dut'], SysBootModule::get_sysboot_setting(params['dut'], @bootdev_table[params['primary_bootloader_dev']]))
+      @boot_loader = nil
+      boot_to_bootloader params
+      @updated_bootloader = true
+    end
+    
+    def set_fastboot_partitions(params)
+      send_cmd('setenv partitions $partitions_android', @boot_prompt)
+    end
+
+    def set_os_bootcmd(params)
+      send_cmd("setenv bootcmd 'run emmc_android_boot'", @boot_prompt)
     end
 
     def get_android_version()

@@ -136,15 +136,27 @@ module ATFDBHandlers
       def respond_to?(method_sym, include_private = false)
         super(method_sym, include_private) || create_w_staf(method_sym)
       end
-          
+
+      def instance_variables
+        if @staf_handle && @staf_service_name
+          instance_result = @staf_handle.submit("local","VAR", "LIST SHARED")
+          if instance_result.rc == 0
+            instance_result.result.scan(/display-name@SDT\/\$S:\d+:([^:]+)/).flatten.each do |s_var|
+              instance_variable_defined?("@#{s_var.split(/[\/\\]+/)[-1]}") if s_var.downcase().start_with?(@staf_service_name.downcase())
+            end
+          end
+        end
+        super()
+      end
+
       def create_w_staf(sym)
         if @staf_handle
           symbol_prep = sym.to_s.gsub(/^[:@]+/,'')
           instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/sw_assets/#{symbol_prep}")) 
           instance_result = (@staf_handle.submit("local","VAR","GET SHARED VAR #{@staf_service_name ? @staf_service_name+'/' : ''}auto/tee/#{symbol_prep}")) if instance_result.rc != 0
           if instance_result.rc == 0
-            self.class.send(:attr_accessor, symbol_prep)
-            instance_variable_set("@#{symbol_prep}",instance_result.result)
+            self.class.send(:attr_accessor, symbol_prep.gsub('-','_'))
+            instance_variable_set("@#{symbol_prep.gsub('-','_')}",instance_result.result)
             return instance_result.result
           end
         end

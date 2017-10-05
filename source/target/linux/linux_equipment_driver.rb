@@ -198,14 +198,18 @@ module Equipment
     def update_kernel(params)
       set_bootloader(params) if !@boot_loader
       set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashKernelSystemLoader})) if !@system_loader
-      @boot_loader.run params
+      @boot_loader.run params do
+        recover_bootloader params
+      end
       @system_loader.run params
     end
 
     def update_fs(params)
       set_bootloader(params) if !@boot_loader
       set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashFSSystemLoader})) if !@system_loader
-      @boot_loader.run params
+      @boot_loader.run params do
+        recover_bootloader params
+      end
       @system_loader.run params
     end
     
@@ -214,7 +218,9 @@ module Equipment
       #@boot_loader = BaseLoader.new 
       set_bootloader(params) if !@boot_loader
       set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashBootloaderKernelSystemLoader})) if !@system_loader
-      @boot_loader.run params
+      @boot_loader.run params do
+        recover_bootloader params
+      end
       @system_loader.run params
     end
 
@@ -223,7 +229,9 @@ module Equipment
       #@boot_loader = BaseLoader.new 
       set_bootloader(params) if !@boot_loader
       set_systemloader(params.merge({'systemloader_class' => SystemLoader::UbootFlashAllSystemLoader})) if !@system_loader
-      @boot_loader.run params
+      @boot_loader.run params do
+        recover_bootloader params
+      end
       @system_loader.run params
     end
 
@@ -234,8 +242,14 @@ module Equipment
       set_bootloader(params) if !@boot_loader
       set_systemloader(params) if !@system_loader
       params.each{|k,v| puts "#{k}:#{v}"}
-      @boot_loader.run params
+      @boot_loader.run params do
+        recover_bootloader params
+      end
       @system_loader.run params
+    end
+
+    def recover_bootloader(params)
+      raise "Bootloader recover method not implemented"
     end
     
     def set_boot_env (params)
@@ -245,7 +259,9 @@ module Equipment
       set_systemloader(params) if !@system_loader
       params.each{|k,v| puts "#{k}:#{v}"}
       @system_loader.remove_step('boot')
-      @boot_loader.run params
+      @boot_loader.run params do
+        recover_bootloader params
+      end
       @system_loader.run params
     end
 
@@ -345,7 +361,9 @@ module Equipment
         puts 'Resetting @using power switch'
         poweroff(params) if connected && at_prompt?({'prompt'=>@prompt})
         disconnect('serial')
-        @power_handler.reset(@power_port)
+        @power_handler.reset(@power_port) do
+          yield if block_given?
+        end
         trials = 0
         while (@serial_port && !File.exist?(@serial_port) && trials < 600)
           sleep 0.1
@@ -355,6 +373,7 @@ module Equipment
       else
         puts "Soft reboot..."
         send_cmd('#check prompt', @prompt, 8)
+        yield if block_given?
         if timeout?
           # assume at u-boot prompt
           send_cmd('reset', /resetting/i, 3)
@@ -442,7 +461,8 @@ module Equipment
 
     def reset_sysboot(dut)
       SysBootModule::reset_sysboot(dut) 
-    end 
+    end
+
   end
   
   

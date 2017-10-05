@@ -3,9 +3,12 @@ require File.dirname(__FILE__)+'/../../lib/sysboot'
 module BootLoader
 
   class BootloaderException < Exception
-    def initialize(e=nil)
+    def initialize(*e)
       super()
-      set_backtrace(e.backtrace.insert(0,e.to_s)) if e
+      if e.length > 0
+        set_backtrace(e[0].backtrace.insert(0,e[0].to_s))
+        e[1..-1].each { |c_e| backtrace.insert(0,c_e.to_s) }
+      end
     end
   end
   ####################################################################################
@@ -64,8 +67,7 @@ module BootLoader
     puts "########LOAD_FROM_QSPI########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'qspi')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    params['dut'].power_cycle(params)
-    check_boot_media(params, 'spi')
+    early_conn_power_cycle(params, 'spi', 'c')
   end
 
   def LOAD_FROM_SPI_BY_BMC(params)
@@ -77,16 +79,14 @@ module BootLoader
     puts "########LOAD_FROM_SPI########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'spi')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    params['dut'].power_cycle(params)
-    check_boot_media(params, 'spi')
+    early_conn_power_cycle(params, 'spi', 'c')
   end
 
   def LOAD_FROM_EMMC(params)
     puts "########LOAD_FROM_EMMC########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'emmc')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    params['dut'].power_cycle(params)
-    check_boot_media(params, 'mmc2')
+    early_conn_power_cycle(params, 'mmc2')
   end
 
   def LOAD_FROM_USBETH(params)
@@ -132,6 +132,25 @@ module BootLoader
       raise "Failed to boot from #{boot_media}!" if !params['dut'].response.match(/#{boot_media}/i)
     end
   end
+  
+  def early_conn_power_cycle(params, media, stop_char=' ')
+    b_thread = nil
+    params['dut'].power_cycle(params) do 
+      params['dut'].connect({'type'=>'serial'})
+      b_thread = Thread.new do
+        200.times {
+          params['dut'].target.serial.puts(stop_char)
+          params['dut'].target.serial.flush
+          s_time = Time.now()
+          while Time.now() - s_time < 0.1
+            #busy wait
+          end
+        }
+      end
+    end
+    check_boot_media(params, media)
+    b_thread.kill() if b_thread.alive?
+  end
 end
 
 class BaseLoader
@@ -152,7 +171,15 @@ class BaseLoader
     @load_method.call params
     stop_at_boot_prompt params
     rescue Exception => e
-      raise BootloaderException.new(e)
+      if block_given?
+        begin
+          yield 
+        rescue Exception => e2
+          raise BootloaderException.new(e,e2)
+        end
+      else
+        raise BootloaderException.new(e)
+      end
   end
 
   def create_bootloader_load_script_uart_spl(params)
