@@ -42,6 +42,8 @@ module Equipment
      'beagleboard-vanilla' => 'console=ttyO2,115200n8  earlyprintk=serial,ttyO2,115200n8 rootwait',
      'am57xx-evm' => 'console=ttyO2,115200n8  earlyprintk=serial,ttyO2,115200n8 rootwait',
      'am572x-idk' => 'console=ttyO2,115200n8  earlyprintk=serial,ttyO2,115200n8 rootwait',
+     'am574x-idk' => 'console=ttyO2,115200n8  earlyprintk=serial,ttyO2,115200n8 rootwait',
+     'am574x-hsidk' => 'console=ttyO2,115200n8  earlyprintk=serial,ttyO2,115200n8 rootwait',
      'am571x-idk' => 'console=ttyO2,115200n8  earlyprintk=serial,ttyO2,115200n8 rootwait',
      'am335x-evm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait ',
      'am335x-ice' => 'console=ttyO3,115200n8 earlyprintk=serial,ttyO3,115200n8 rootwait ',
