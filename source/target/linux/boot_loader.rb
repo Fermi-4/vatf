@@ -298,7 +298,7 @@ class BaseLoader
     b_prompt_th = Thread.new do
       dut.send_cmd("", dut.boot_prompt, 40, false)
     end
-    200.times {
+    300.times {
       dut.target.serial.puts(" ")
       dut.target.serial.flush
       s_time = Time.now()
