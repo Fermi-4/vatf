@@ -148,6 +148,7 @@ module SystemLoader
          serial_connected = true
       end
       params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],'serial_load_script'), params['server'].prompt, timeout) 
+      raise "run_serial_load_script: Transfer failed" if (params['server'].response.match(/Transfer\s+incomplete/i) || !params['server'].response.match(/Transfer\s+complete/i))
       params['dut'].connect({'type'=>'serial'}) if serial_connected
     end
 
