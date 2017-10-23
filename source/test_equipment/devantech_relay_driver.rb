@@ -55,6 +55,19 @@ include Log4r
       switch_on(address)
     end
 
+
+    # Will active relays for each '1' in index
+    def sysboot(settings, address=nil)
+      settings.split("").each_with_index do |val,idx|
+        if val == '0'
+          _switch("OFF", idx.to_i + 1)
+        else
+          _switch("ON", idx.to_i + 1)
+        end
+      end
+    end
+
+
     #Starts the logger for the session. Takes the log file path as parameter.
     # * file_path - the path to store the log
     def start_logger(file_path)

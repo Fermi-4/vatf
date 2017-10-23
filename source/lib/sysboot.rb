@@ -10,33 +10,29 @@ module SysBootModule
 def SysBootModule.set_sysboot(dut, setting)
   return if !dut.instance_variable_defined?(:@params) or !dut.params.key?('sysboot_ctrl')
   sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl'])
-
   default_bootmedia = get_default_bootmedia(dut.name)
   default_sysboot = get_sysboot_setting(dut, default_bootmedia)
-
   # find out which bit need to be change, either on->off or off->on
-  sysboot_diff = get_sysboot_diff(default_sysboot, setting)
-  # if bit in sysboot_diff is 1, means there is change; otherwise, no change
-  sysboot_diff.reverse.split("").each_with_index do |val,idx|
-    next if val == '0'
-    puts "Changing state for sysboot pin: #{idx}"
-    sysboot_controller.switch_off(idx.to_i + 1)   #idx starts from 0 and relay port starts from 1
+  sysboot_diff = get_sysboot_diff(default_sysboot, setting).reverse
+  if dut.params['sysboot_ctrl'].driver_class_name == 'DevantechRelayController'
+    sysboot_controller.sysboot(sysboot_diff)  # Farm boards with this setup connect relays in fail-safe mode
+  else
+    sysboot_controller.sysboot(setting)
   end
 end
 
 def SysBootModule.reset_sysboot(dut)
   return if !dut.instance_variable_defined?(:@params) or !dut.params.key?('sysboot_ctrl')
-  puts "resetting sysboot to default..."
   sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl'])
-
+  puts "resetting sysboot to default..."
   default_bootmedia = get_default_bootmedia(dut.name)
   default_sysboot = get_sysboot_setting(dut, default_bootmedia)
-
-  default_sysboot.split("").each_with_index do |val,idx|
-    puts "resetting pin: #{idx}"
-    sysboot_controller.switch_on(idx.to_i + 1)
+  puts "default sysboot:#{default_sysboot}"
+  if dut.params['sysboot_ctrl'].driver_class_name == 'DevantechRelayController'
+    sysboot_controller.sysboot('000000')  # Farm boards with this setup connect relays in fail-safe mode
+  else
+    sysboot_controller.sysboot(default_sysboot)
   end
-
 end
 
 
@@ -60,6 +56,8 @@ def SysBootModule.get_sysboot_setting(dut, boot_media)
     machines['dra72x-hsevm'] = machines['dra7xx-evm']
     machines['dra71x-hsevm'] = machines['dra7xx-evm']
     machines['dra7xx-hsevm'] = machines['dra7xx-evm']
+    machines['dra76x-evm'] = machines['dra7xx-evm']
+    machines['dra76x-hsevm'] = machines['dra7xx-evm']
     machines['am43xx-gpevm'] = {'mmc'=>'101100', 'nand'=>'100110', 'eth'=>'111100', 'usbeth'=>'111101', 'usbmsc'=>'111110', 'uart'=>'111010', 'qspi'=>'101010' }
     machines['am437x-sk'] = machines['am43xx-gpevm']
     machines['am43xx-hsevm'] = machines['am43xx-gpevm']
