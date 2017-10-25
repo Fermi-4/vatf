@@ -86,7 +86,7 @@ module BootLoader
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'emmc')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
     params['dut'].power_cycle(params)
-    check_boot_media(params, 'mmc')
+    check_boot_media(params, 'mmc2')
   end
 
   def LOAD_FROM_USBETH(params)
