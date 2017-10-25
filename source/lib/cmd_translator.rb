@@ -68,6 +68,7 @@ module CmdTranslator
                           }),
                     '4.1' => Hash.new('').merge!(
                           {'dra7xx-evm' => 'echo enabled > /sys/devices/platform/44000000.ocp/4806a000.serial/tty/ttyS0/power/wakeup',
+                           'dra76x-evm' => 'echo enabled > /sys/devices/platform/44000000.ocp/4806a000.serial/tty/ttyS0/power/wakeup',
                            'dra72x-evm' => 'echo enabled > /sys/devices/platform/44000000.ocp/4806a000.serial/tty/ttyS0/power/wakeup',
                            'dra71x-evm' => 'echo enabled > /sys/devices/platform/44000000.ocp/4806a000.serial/tty/ttyS0/power/wakeup',
                            'am57xx-evm' => 'echo -n "enabled" > /sys/devices/platform/44000000.ocp/48020000.serial/tty/ttyS2/power/wakeup',
