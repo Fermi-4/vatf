@@ -82,10 +82,10 @@ module PassCriteria
     host, port = analytics_server.split(':')
     port = port ? port.to_i : 3000      # ANALYTICS_SERVER runs on port 3000 by default
     connection = Net::HTTP.new(host, port, nil)
-    resp = connection.get("/performance/passcriteria/#{testplan_id}/#{testcase_id}/#{metric_name}/")
+    resp = connection.get("/#{project_id}/performance/passcriteria/#{testplan_id}/#{testcase_id}/#{metric_name}/")
     response = resp.body
     if resp.code != "200"
-      response = Net::HTTP.get(host, "/performance/passcriteria/#{testplan_id}/#{testcase_id}/#{metric_name}/", port)
+      response = Net::HTTP.get(host, "/#{project_id}/performance/passcriteria/#{testplan_id}/#{testcase_id}/#{metric_name}/", port)
     end
     s0 = response.match(/samples=([\-\d\.]+)/).captures[0].to_f
     data = []
