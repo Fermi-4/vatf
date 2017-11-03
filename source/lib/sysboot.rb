@@ -22,17 +22,11 @@ def SysBootModule.set_sysboot(dut, setting)
 end
 
 def SysBootModule.reset_sysboot(dut)
-  return if !dut.instance_variable_defined?(:@params) or !dut.params.key?('sysboot_ctrl')
-  sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl'])
   puts "resetting sysboot to default..."
   default_bootmedia = get_default_bootmedia(dut.name)
   default_sysboot = get_sysboot_setting(dut, default_bootmedia)
   puts "default sysboot:#{default_sysboot}"
-  if dut.params['sysboot_ctrl'].driver_class_name == 'DevantechRelayController'
-    sysboot_controller.sysboot('000000')  # Farm boards with this setup connect relays in fail-safe mode
-  else
-    sysboot_controller.sysboot(default_sysboot)
-  end
+  set_sysboot(dut, default_sysboot)
 end
 
 
@@ -41,7 +35,8 @@ end
 # Output: binary string 
 #   '1' means there is difference; '0' means no diff
 def SysBootModule.get_sysboot_diff(s1, s2)
-  return ( s1.to_i(2) ^ s2.to_i(2) ).to_s(2)
+  fill= [s1.length, s2.length].max
+  return "%0#{fill}b"%[s1.to_i(2) ^ s2.to_i(2)]
 end
 
   # the sysboot format [5:0] 
