@@ -1065,7 +1065,7 @@ module SystemLoader
     attr_reader :simulator_socket, :simulator_stdin, :simulator_stdout, :simulator_stderr
     def initialize
       super('start_simulator')
-      @simulator_socket_regex=/Opened listening socket on port (\d+) for virtual terminal/
+      @simulator_socket_regex=/Opened listening socket on port (\d+) for virtual terminal usart0/
     end
 
     def run(params)
