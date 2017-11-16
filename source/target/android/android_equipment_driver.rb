@@ -6,15 +6,17 @@ module Equipment
   include SystemLoader
   
   class AndroidEquipmentDriver < LinuxEquipmentDriver
-    @@boot_info = Hash.new('')
+    @@android_boot_info = Hash.new().merge(@@boot_info)
     
-#    @@boot_info = {'dra72x-evm'=> 'init=/init rootfstype=ext4 rootwait drm.rnodes=1 androidboot.selinux=permissive snd.slots_reserved=1,1 snd-soc-core.pmdown_time=-1 uio_pdrv_genirq.of_id=generic-uio console=ttyS0,115200'\
+#    @@android_boot_info = {'dra72x-evm'=> 'init=/init rootfstype=ext4 rootwait drm.rnodes=1 androidboot.selinux=permissive snd.slots_reserved=1,1 snd-soc-core.pmdown_time=-1 uio_pdrv_genirq.of_id=generic-uio console=ttyS0,115200'\
 #                                  ' androidboot.console=ttyS0 androidboot.hardware=jacinto6evmboard console=ttyS0,115200 androidboot.console=ttyS0 androidboot.hardware=jacinto6evmboard',
 #                   'dra7xx-evm'=> 'init=/init rootfstype=ext4 rootwait drm.rnodes=1 androidboot.selinux=permissive snd.slots_reserved=1,1 snd-soc-core.pmdown_time=-1 uio_pdrv_genirq.of_id=generic-uio console=ttyS0,115200'\
 #                                  ' androidboot.console=ttyS0 androidboot.hardware=jacinto6evmboard console=ttyS0,115200 androidboot.console=ttyS0 androidboot.hardware=jacinto6evmboard'}
 
     def initialize(platform_info, log_path)
       super(platform_info, log_path)
+      @boot_args = @@android_boot_info[@name]
+      @boot_args += ' sysrq_always_enabled'
       @boot_args += " androidboot.serialno=#{platform_info.board_id}"
       @bootdev_table = Hash.new { |h,k| h[k] = k }
       @bootdev_table['rawmmc-emmc'] = 'emmc' 
