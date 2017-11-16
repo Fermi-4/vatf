@@ -1255,12 +1255,12 @@ module SystemLoader
     def run(params)
       dev_table = Hash.new() { |h,k| h[k] = k }
       dev_table['qspi'] = 'spi'
-      dev_table['emmc'] = 'mmc'
-      dev_table['rawmmc-emmc'] = 'mmc'
+      dev_table['emmc'] = nil
+      dev_table['rawmmc-emmc'] = nil
       if @@must_flash && params['primary_bootloader'].to_s != '' && params['secondary_bootloader'].to_s != ''
         flash_dev = params['primary_bootloader_dev'].sub('none','') != '' ? params['primary_bootloader_dev'] : params['secondary_bootloader_dev'].sub('none','') != '' ? params['secondary_bootloader_dev'] : nil
         raise "bootloader tartget was not specified" if !flash_dev
-        fastboot_cmd(params, "oem #{dev_table[flash_dev]}")
+        fastboot_cmd(params, "oem #{dev_table[flash_dev]}") if dev_table[flash_dev]
       end
     end
   end
