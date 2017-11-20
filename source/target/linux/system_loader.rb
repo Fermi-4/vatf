@@ -1532,6 +1532,7 @@ module SystemLoader
       super
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
+      add_step( BoardInfoStep.new )
       add_step( FlashBootloaderStep.new )
       add_step( SetDefaultEnvStep.new )
       add_step( SaveEnvStep.new )
@@ -1546,6 +1547,7 @@ module SystemLoader
       super
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
+      add_step( BoardInfoStep.new )
       add_step( FlashKernelStep.new )
       add_step( FlashDTBStep.new )
       add_step( SetDefaultEnvStep.new )
@@ -1561,6 +1563,7 @@ module SystemLoader
       super
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
+      add_step( BoardInfoStep.new )
       add_step( FlashFSStep.new )
       add_step( SetDefaultEnvStep.new )
       add_step( SaveEnvStep.new )
