@@ -1066,6 +1066,20 @@ module SystemLoader
       send_cmd params, "setenv ethaddr #{macstr}"
     end
   end
+  
+  class ResetMd5InfoStep < UbootStep
+    def initialize
+      super('reset_md5_info_env')
+    end
+
+    def run(params)
+      get_environment(params)
+      params['_env'].each do |k,v|
+        send_cmd params, "setenv #{k}" if k.end_with?('_md5')
+      end
+      send_cmd params, "saveenv"
+    end
+  end
 
   class StartSimulatorStep < Step
     attr_reader :simulator_socket, :simulator_stdin, :simulator_stdout, :simulator_stderr
@@ -1530,12 +1544,11 @@ module SystemLoader
 
     def initialize
       super
+      add_step( ResetMd5InfoStep.new )
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
       add_step( BoardInfoStep.new )
       add_step( FlashBootloaderStep.new )
-      add_step( SetDefaultEnvStep.new )
-      add_step( SaveEnvStep.new )
     end
 
   end
@@ -1545,13 +1558,12 @@ module SystemLoader
 
     def initialize
       super
+      add_step( ResetMd5InfoStep.new )
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
       add_step( BoardInfoStep.new )
       add_step( FlashKernelStep.new )
       add_step( FlashDTBStep.new )
-      add_step( SetDefaultEnvStep.new )
-      add_step( SaveEnvStep.new )
     end
 
   end
@@ -1561,12 +1573,11 @@ module SystemLoader
 
     def initialize
       super
+      add_step( ResetMd5InfoStep.new )
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
       add_step( BoardInfoStep.new )
       add_step( FlashFSStep.new )
-      add_step( SetDefaultEnvStep.new )
-      add_step( SaveEnvStep.new )
     end
 
   end
@@ -1576,13 +1587,12 @@ module SystemLoader
 
     def initialize
       super
+      add_step( ResetMd5InfoStep.new )
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
       add_step( FlashBootloaderStep.new )
       add_step( FlashKernelStep.new )
       add_step( FlashDTBStep.new )
-      add_step( SetDefaultEnvStep.new )
-      add_step( SaveEnvStep.new )
     end
 
   end
@@ -1592,14 +1602,13 @@ module SystemLoader
 
     def initialize
       super
+      add_step( ResetMd5InfoStep.new )
       add_step( PrepStep.new )
       add_step( SetIpStep.new )
       add_step( FlashBootloaderStep.new )
       add_step( FlashKernelStep.new )
       add_step( FlashDTBStep.new )
       add_step( FlashFSStep.new )
-      add_step( SetDefaultEnvStep.new )
-      add_step( SaveEnvStep.new )
     end
 
   end
