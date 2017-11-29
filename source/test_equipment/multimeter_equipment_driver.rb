@@ -212,6 +212,8 @@ module TestEquipment
         @dut_config_file = 'dra74x_evm-revh.conf'
       when 'dra72x-evm'
         @dut_config_file = 'dra72x_evm-revc.conf'
+      when 'dra71x-evm'
+        @dut_config_file = 'dra71x_evm.conf'
       else
         raise "powertool config file not defined for #{platform}"
       end
