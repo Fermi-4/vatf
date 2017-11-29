@@ -27,7 +27,7 @@ module CmdTranslator
     'env default' => { '0.0'  => 'env default -f',
                        '2011.10' => 'env default -a -f',},
     'run_pmmc' => {'0.0' => 'run run_pmmc', },
-    'ramfs_bootargs' => {'0.0' => Hash.new("setenv bootargs ''${bootargs}' root=/dev/ram0 rw '").merge!({'k2g-evm' => 'run args_ramfs'})},
+    'ramfs_bootargs' => {'0.0' => Hash.new("setenv bootargs ''${bootargs}' root=/dev/ram0 rw rootfstype=ramfs'").merge!({'k2g-evm' => 'run args_ramfs'})},
     'k2_sec_bm_install' => {'0.0' => "setenv sec_bm_install 'go ${addr_mon}4 0xc084000 ${mon_size}; mon_install ${addr_mon_mkimg}'",
                              '2017.01' => "run run_mon_hs" },
     'start_fastboot'     => { '0.0' => Hash.new('fastboot 0').merge!({'am57xx-evm' => 'fastboot 1'})}
