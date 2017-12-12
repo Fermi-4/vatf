@@ -23,6 +23,7 @@ module Equipment
     end
 
     def set_systemloader(params)
+      @adb =  params['adb'] if !adb
       if params['var_use_default_env'].to_s == '4'
         @system_loader = SystemLoader::FastbootFlashSystemLoader.new
       else
@@ -36,7 +37,7 @@ module Equipment
 
     # Send command to an android device
     def send_adb_cmd (cmd)  
-      send_host_cmd("adb -s #{@board_id} #{cmd}", 'ADB')
+      send_host_cmd("#{@adb} -s #{@board_id} #{cmd}", 'ADB')
     end
     
     def send_host_cmd(cmd, endpoint='Host')
