@@ -23,7 +23,8 @@ module Equipment
     end
 
     def set_systemloader(params)
-      @adb =  params['adb'] if !adb
+      @adb =  params['adb'] if !@adb
+      @server = params['server'] if params['server']
       if params['var_use_default_env'].to_s == '4'
         @system_loader = SystemLoader::FastbootFlashSystemLoader.new
       else
@@ -36,8 +37,8 @@ module Equipment
     end
 
     # Send command to an android device
-    def send_adb_cmd (cmd)  
-      send_host_cmd("#{@adb} -s #{@board_id} #{cmd}", 'ADB')
+    def send_adb_cmd (cmd)
+      send_host_sudo_cmd("#{@adb} -s #{@board_id} #{cmd}", 'ADB')
     end
     
     def send_host_cmd(cmd, endpoint='Host')
@@ -45,6 +46,28 @@ module Equipment
       response = `#{cmd} 2>&1`
       log_info("#{endpoint}-Response: "+response)
       response
+    end
+    
+    def send_host_sudo_cmd(command, expected_match=/.*/ ,timeout=30)
+      cmd=Array(command)
+      cmd << '' if cmd.length < 2
+      begin
+        @timeout = false
+        @response = ''
+        log_info("Host-Cmd: sudo -E -S #{cmd*','}")
+        Timeout::timeout(timeout) {
+        @response = `sudo -E -S #{cmd[0]} 2>&1 << EOF
+#{@server.telnet_passwd}
+EOF
+#{cmd[1..-1]*"\n"}
+`
+        }
+        log_info('Host-Response: '+@response)
+        @response
+      rescue Timeout::Error => e
+        puts "TIMEOUT executing #{cmd}"
+        log_error("On command "+cmd.to_s+"\n"+e.to_s+"Target: \n" + @response.to_s)
+      end
     end
 
     # Update primary and secondary bootloader 
