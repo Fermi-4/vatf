@@ -22,9 +22,12 @@ module Equipment
       @bootdev_table['rawmmc-emmc'] = 'emmc' 
     end
 
-    def set_systemloader(params)
-      @adb =  params['adb'] if !@adb
+    def set_android_tools(params)
+      @adb =  params['adb'] if params['adb']
       @server = params['server'] if params['server']
+    end
+    
+    def set_systemloader(params)
       if params['var_use_default_env'].to_s == '4'
         @system_loader = SystemLoader::FastbootFlashSystemLoader.new
       else
