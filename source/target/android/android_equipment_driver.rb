@@ -58,16 +58,15 @@ module Equipment
         @timeout = false
         @response = ''
         log_info("Host-Cmd: sudo -E -S #{cmd*','}")
-        Timeout::timeout(timeout) {
         @response = `sudo -E -S #{cmd[0]} 2>&1 << EOF
 #{@server.telnet_passwd}
 EOF
 #{cmd[1..-1]*"\n"}
 `
-        }
+        puts @response
         log_info('Host-Response: '+@response)
         @response
-      rescue Timeout::Error => e
+      rescue Exception => e
         puts "TIMEOUT executing #{cmd}"
         log_error("On command "+cmd.to_s+"\n"+e.to_s+"Target: \n" + @response.to_s)
       end
