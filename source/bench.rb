@@ -437,3 +437,22 @@ dut.driver_class_name='LinuxEquipmentDriver'
 ...
 dut.power_port = {'autoiface.dra71x' => 1}
 dut.params = {'multimeter1' => minfo}
+
+#Sample bench entries for an Android vatf setup that is shared with a lava-dispatcher setup
+dut = EquipmentInfo.new("amXXXX-evm", "android_linux")
+dut.driver_class_name='AndriodEquipmentDriver'
+dut.board_id = '12345678'
+.... 
+dut.params = {'lxc-info' => {'name' => 'lxc-vatf@am57xx-evm', #name for the lxc container that created should be system unique
+                             'adb-device' => '/dev/vatf@android-am57xx-evm-adb', #symlink pointing to the usb connection used for adb connectivity, 
+                                                                                 #to handle dev node reassignment on reboot it is best to create a udev rule based on th board_id value 
+                                                                                 # SUBSYSTEM=="usb", ATTR{serial}=="12345678", MODE="0666", GROUP="plugdev", SYMLINK+="vatf@android-am57xx-evm-adb
+                             #config entry below is optional and overrides the default lxc container config of ubuntu,xenial,systemd, amd64
+                             #all these config value can be overrided from the build description with var_lxc_xxxx definition, i.e var_lxc_template=trusty
+                             'config' => { 'template' => 'ubuntu', #optional
+                                           'release' => 'xenial', #optional
+                                           'packages' => ['systemd'], #optional
+                                           'arch' => 'amd64' #optional
+                                         } 
+                            }
+             }
