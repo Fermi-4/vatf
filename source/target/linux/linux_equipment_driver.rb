@@ -349,7 +349,7 @@ module Equipment
       @power_handler = params['power_handler'] if !@power_handler
       connected = true
       begin
-        connect({'type'=>'serial'}) if !target.serial
+        connect({'type'=>'serial'}) 
         send_cmd(@login,@prompt, 3) if at_login_prompt?
       rescue Exception => e
         raise e if !@power_port
@@ -394,7 +394,7 @@ module Equipment
       @power_handler = params['power_handler'] if !@power_handler
       connected = true
       begin
-        connect({'type'=>'serial'}) if !target.serial
+        connect({'type'=>'serial'}) 
         send_cmd(@login,@prompt, 3) if at_login_prompt?
       rescue Exception => e
         raise e if !@power_port
