@@ -260,17 +260,19 @@ class BaseLoader
 
     # Make sure that we're ready to catch the board coming out of reset
     sleep 1
-    tx_thread = Thread.new do
-      if dut.instance_variable_defined?(:@params) and dut.params.key? 'bmc_port'
-        bmc_trigger_boot(dut, 'uart')
-      else
-        # Ensure the board is reset.
+    if dut.instance_variable_defined?(:@params) and dut.params.key? 'bmc_port' 
+      bmc_set_boot(dut, 'uart')
+      if dut.params.key? ('dut_soft_reboot') and dut.params['dut_soft_reboot'] == 1
         dut.power_cycle(params)
+      else
+        bmc_issue_boot(dut)
       end
+    else
+      # Ensure the board is reset.
+      dut.power_cycle(params)
     end
     params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 240)
     raise "run_bootloader_load_script: Transfer failed" if (params['server'].response.match(/Transfer\s+incomplete/i) || !params['server'].response.match(/Transfer\s+complete/i))
-    tx_thread.join()
   end
 
   def bmc_get_version(dut)
@@ -280,7 +282,7 @@ class BaseLoader
     return @bmc_version
   end
 
-  def bmc_trigger_boot(dut, device)
+  def bmc_set_boot(dut, device)
     case device.downcase
     when 'uart'
       cmd_key = "uart_bootmode"
@@ -309,7 +311,16 @@ class BaseLoader
       end
     }
     dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>cmd_key, 'version'=>bmc_get_version(dut), 'platform'=>dut.name}), prompt, 3, false )
+  end
+
+  def bmc_issue_boot(dut)
+    prompt = dut.params.key?('bmc_prompt') ? dut.params['bmc_prompt'] : />/
     dut.target.bmc.send_cmd(CmdTranslator::get_bmc_cmd({'cmd'=>'reboot', 'version'=>'1.0'}), prompt, 10, false )
+  end
+
+  def bmc_trigger_boot(dut, device)
+    bmc_set_boot(dut, device)
+    bmc_issue_boot(dut)
   end
 
   def kill_tasks_holding_serial_port(params)
