@@ -1,4 +1,5 @@
 require File.dirname(__FILE__)+'/../../lib/cmd_translator'
+require File.dirname(__FILE__)+'/../../site_info.rb'
 require "open3"
 
 module SystemLoader
@@ -1085,8 +1086,16 @@ module SystemLoader
           @simulator_response = ''
           @simulator_stdin, @simulator_stdout, @simulator_stderr = Open3.popen3('sh')
           puts "Starting simulator"
-          cmd="#{params['dut'].params['simulator_startup_cmd']} '#{params['dut'].params['simulator_python_script']} "
-          @simulator_stdin.puts("#{cmd} @@atf #{params['atf']} @@atf_fdt #{params['atf_fdt']} @@tee #{params['teeos']} @@linux_system #{params['linux_system']}'")
+          cmd="#{params['dut'].params['simulator_startup_cmd']} '"
+          install_directory = File.join(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name']), File.basename(params['simulator_startup_files']))
+          script_file = Dir.glob("#{install_directory}/**/#{params['dut'].params['simulator_python_script']}")[0]
+          cmd += script_file
+          cmd += " @@atf #{params['atf']}" if params.key?('atf') and params['atf'].to_s != ''
+          cmd += " @@atf_fdt #{params['atf_fdt']}" if params.key?('atf_fdt') and params['atf_fdt'].to_s != ''
+          cmd += " @@dmsc #{params['dmsc']}" if params.key?('dmsc') and params['dmsc'].to_s != ''
+          cmd += " @@tee #{params['teeos']}" if params.key?('teeos') and params['teeos'].to_s != ''
+          cmd += " @@linux_system #{params['linux_system']}" if params.key?('linux_system') and params['linux_system'].to_s != ''
+          @simulator_stdin.puts("#{cmd}'")
           sleep 1
           while !@simulator_response.match(@simulator_socket_regex)
             if !@simulator_stdout.eof?
