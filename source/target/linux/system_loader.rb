@@ -1085,12 +1085,12 @@ module SystemLoader
 
     def run(params)
       begin
-        puts "Sleeping 5 secs to avoid Simulator init errors"
-        sleep 5
+        log_data(params, "Sleeping 2 secs to avoid Simulator init errors\n")
+        sleep 2
         Timeout::timeout(90) {
           @simulator_response = ''
           @simulator_stdin, @simulator_stdout, @simulator_stderr = Open3.popen3('sh')
-          log_data(params, "Starting simulator\n")
+          log_data(params, "Parsing parameters\n")
           cmd="#{params['dut'].params['simulator_startup_cmd']} '"
           script_file = params['dut'].params['simulator_python_script']
           if params['dut'].params.key?('simulator_startup_files') and params['dut'].params['simulator_startup_files'].size > 0
@@ -1103,6 +1103,7 @@ module SystemLoader
           cmd += " @@dmsc #{params['dmsc']}" if params.key?('dmsc') and params['dmsc'].to_s != ''
           cmd += " @@tee #{params['teeos']}" if params.key?('teeos') and params['teeos'].to_s != ''
           cmd += " @@linux_system #{params['linux_system']}" if params.key?('linux_system') and params['linux_system'].to_s != ''
+          log_data(params, "Starting simulator with command:\n#{cmd}'\n")
           @simulator_stdin.puts("#{cmd}'")
           sleep 1
           while !@simulator_response.match(@simulator_socket_regex)
