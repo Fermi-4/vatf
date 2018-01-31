@@ -1078,6 +1078,11 @@ module SystemLoader
       @simulator_socket_regex=/Opened listening socket on port (\d+) for virtual terminal usart0/
     end
 
+    def log_data(params, msg)
+      Kernel.print msg
+      params['server'].log_info("SIMULATOR: #{msg}")
+    end
+
     def run(params)
       begin
         puts "Sleeping 5 secs to avoid Simulator init errors"
@@ -1085,10 +1090,13 @@ module SystemLoader
         Timeout::timeout(90) {
           @simulator_response = ''
           @simulator_stdin, @simulator_stdout, @simulator_stderr = Open3.popen3('sh')
-          puts "Starting simulator"
+          log_data(params, "Starting simulator\n")
           cmd="#{params['dut'].params['simulator_startup_cmd']} '"
-          install_directory = File.join(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name']), File.basename(params['simulator_startup_files']))
-          script_file = Dir.glob("#{install_directory}/**/#{params['dut'].params['simulator_python_script']}")[0]
+          script_file = params['dut'].params['simulator_python_script']
+          if params['dut'].params.key?('simulator_startup_files') and params['dut'].params['simulator_startup_files'].size > 0
+            install_directory = File.join(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name']), File.basename(params['simulator_startup_files']))
+            script_file = Dir.glob("#{install_directory}/**/#{params['dut'].params['simulator_python_script']}")[0]
+          end
           cmd += script_file
           cmd += " @@atf #{params['atf']}" if params.key?('atf') and params['atf'].to_s != ''
           cmd += " @@atf_fdt #{params['atf_fdt']}" if params.key?('atf_fdt') and params['atf_fdt'].to_s != ''
@@ -1100,11 +1108,11 @@ module SystemLoader
           while !@simulator_response.match(@simulator_socket_regex)
             if !@simulator_stdout.eof?
               last_read = @simulator_stdout.read_nonblock(1024)
-              Kernel.print last_read
+              log_data(params, last_read)
               @simulator_response += last_read
            end
           end
-          puts "Simulator started at socket #{@simulator_response.match(@simulator_socket_regex).captures[0]}"
+          log_data(params, "Simulator started at socket #{@simulator_response.match(@simulator_socket_regex).captures[0]}\n")
           @simulator_socket = @simulator_response.match(@simulator_socket_regex).captures[0]
         }
       rescue Timeout::Error => e

@@ -35,7 +35,7 @@ module Equipment
     def login_simulator(params)
       connect({'type'=>'serial'}) if !target.serial
       boot_timeout = params['var_boot_timeout'] ? params['var_boot_timeout'].to_i : 600
-      wait_for(/(Please press Enter to activate this console|params['dut'].login_prompt)/, boot_timeout)
+      wait_for(/(Please press Enter to activate this console|#{params['dut'].login_prompt}|#{params['dut'].prompt})/, 600)
       params['dut'].boot_log = params['dut'].response
       if params['dut'].boot_log.match(/Please press Enter to activate this console/)
         2.times {
@@ -72,10 +72,10 @@ module Equipment
     def boot (params)
       set_bootloader(params) if !@boot_loader
       set_systemloader(params) if !@system_loader
-      if params.key?('simulator_startup_files')
+      if params.key?('simulator_startup_files') and params['simulator_startup_files'].size > 0
         install_startup_files(params)
       end
-      if params.key?('var_simulator_startup_script_name')
+      if params.key?('var_simulator_startup_script_name') and params['var_simulator_startup_script_name'].size > 0
         params['dut'].params['simulator_python_script'] = params['var_simulator_startup_script_name']
       end
       params.each{|k,v| puts "#{k}:#{v}"}
