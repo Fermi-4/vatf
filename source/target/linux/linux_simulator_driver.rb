@@ -61,8 +61,8 @@ module Equipment
       startup_tarball = params['simulator_startup_files']
       install_directory = File.join(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name']), File.basename(startup_tarball))
       if !File.directory?(install_directory)
-        params['server'].send_sudo_cmd("mkdir -p #{install_directory}", params['server'].prompt, 30)
-        params['server'].send_sudo_cmd("tar -C #{install_directory} -xvf #{startup_tarball}; echo $?", /^0/, 30)
+        params['server'].send_cmd("mkdir -p #{install_directory}", params['server'].prompt, 30)
+        params['server'].send_cmd("tar -C #{install_directory} -xvf #{startup_tarball}; echo $?", /^0/, 30)
         raise "Error installing simulator_startup_files" if params['server'].timeout?
       end
       params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; `find . -name vlab-startup` -c -p "
