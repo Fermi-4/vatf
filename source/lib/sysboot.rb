@@ -57,6 +57,7 @@ def SysBootModule.get_sysboot_setting(dut, boot_media)
     machines['am437x-sk'] = machines['am43xx-gpevm']
     machines['am43xx-hsevm'] = machines['am43xx-gpevm']
     machines['am335x-evm'] = {'mmc'=>'10111', 'nand'=>'10100', 'uart'=>'00101', 'usbeth'=>'01101', 'eth'=>'01010' }
+    machines['beaglebone-black'] = {'mmc'=>'11100', 'uart'=>'10000', 'eth'=>'10000' }
 
     raise "Sysboot setting for #{boot_media} not defined for #{platform}" if !machines[platform][boot_media]
     machines[platform][boot_media]
