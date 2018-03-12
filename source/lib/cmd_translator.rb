@@ -23,7 +23,7 @@ module CmdTranslator
     'tftp'     => { '0.0'     => 'tftp', },
     'dhcp'     => { '0.0'     => 'dhcp', },
     'wdt'     => { '0.0' => Hash.new('').merge!({'omap5-evm' => 'omap-wdt.kernelpet=0', 'dra7xx-evm' => 'omap-wdt.kernelpet=0'})},
-    'spi'     => { '0.0' => Hash.new('').merge!({'am43xx-epos' => 'spi-ti-qspi.enable_qspi=1'})},
+    'spi'     => { '0.0' => Hash.new('').merge!({'am43xx-epos' => 'spi-ti-qspi.enable_qspi=1', 'k2hk-evm' => 'mtdparts=spi0.0:1m(u-boot-spl)ro,-(misc)' })},
     'env default' => { '0.0'  => 'env default -f',
                        '2011.10' => 'env default -a -f',},
     'run_pmmc' => {'0.0' => 'run run_pmmc', },
