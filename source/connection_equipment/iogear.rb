@@ -90,7 +90,6 @@ module ConnectionEquipment
     private
 
     def _switch(typ, inp, out)
-        expected_res = /.*?Command OK/
         cmd="sw #{typ}#{inp}"
         result = _send_cmd(cmd)
         return result.match(/.*?Command OK/)
@@ -125,6 +124,7 @@ module ConnectionEquipment
                conn.write("\r")
                conn.close()
            end
+           sleep 1
     end
 
   end
