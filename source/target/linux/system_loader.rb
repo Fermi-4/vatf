@@ -1338,6 +1338,7 @@ module SystemLoader
     end
 
     def run(params)
+      fastboot_cmd(params, "erase #{@partition_tx_table['dtb']}", 10, /OKAY.*OKAY.*finished.\s*total\s*time:[^\r\n]+/im, false) if params['dtb'] == nil
       flash_run(params, 'dtb') if params['dtb'].to_s != ''
     end
   end
