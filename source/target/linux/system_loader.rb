@@ -1177,6 +1177,13 @@ module SystemLoader
         @@updated_imgs["#{part}_md5"] = params['server'].response.strip
       end
     end
+    
+    def erase_partition(params, part, timeout=20)
+      if params.has_key?(part) && params[part] == nil && params['_env']["#{part}_md5"] != 'nil' 
+        fastboot_cmd(params, "erase #{@partition_tx_table[part]}", timeout, /OKAY.*OKAY.*finished.\s*total\s*time:[^\r\n]+/im, false)
+        @@updated_imgs["#{part}_md5"] = 'nil'
+      end
+    end
 
     def resize_image(params, orig_image, new_image)
       result = nil
@@ -1338,7 +1345,7 @@ module SystemLoader
     end
 
     def run(params)
-      fastboot_cmd(params, "erase #{@partition_tx_table['dtb']}", 10, /OKAY.*OKAY.*finished.\s*total\s*time:[^\r\n]+/im, false) if params['dtb'] == nil
+      erase_partition(params, 'dtb', timeout=20)
       flash_run(params, 'dtb') if params['dtb'].to_s != ''
     end
   end
