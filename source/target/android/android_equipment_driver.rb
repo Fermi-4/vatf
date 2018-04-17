@@ -170,7 +170,7 @@ EOF
         destroy_lxc_container()
       end
       containers = send_host_sudo_cmd("lxc-ls", /.*/, 10,'')
-      if /^#{params['name']}$/i.match(containers)
+      if /#{params['name']}/i.match(containers)
         stop_lxc_container(params['name'])
         destroy_lxc_container(params['name'])
       end
@@ -179,7 +179,7 @@ EOF
       c_params = {'template'=>'ubuntu', 'release' => 'xenial', 'packages' => ['systemd'], 'arch' => 'amd64'}
       c_params.merge!(params['config']) if params['config']
       lxc_config_cmd("#{@proxy_info} lxc-create -t #{c_params['template']} -n  #{@lxc_container} -- --release #{c_params['release']} --packages #{Array(c_params['packages']).join(',')} --arch #{c_params['arch']}", /.*/, 60)
-      lxc_config_cmd("lxc-ls",  /^#{@lxc_container}$/i, 10)
+      lxc_config_cmd("lxc-ls",  /#{@lxc_container}/i, 10)
     end
     
     def start_lxc_container(cfg={})
