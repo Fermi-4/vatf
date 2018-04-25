@@ -139,7 +139,7 @@ EOF
     end
 
     def set_os_bootcmd(params)
-      send_cmd("setenv bootcmd 'run emmc_android_boot'", @boot_prompt)
+      send_cmd("setenv bootcmd 'run findfdt; run emmc_android_boot'", @boot_prompt)
     end
 
     def get_android_version()
