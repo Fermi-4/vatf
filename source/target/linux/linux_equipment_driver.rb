@@ -55,7 +55,7 @@ module Equipment
      'dra7xx-evm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'dra76x-evm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'dra71x-evm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
-     'dra71-lcard' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
+     'dra71x-lcard' => 'console=ttyO2,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'dra72x-evm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'am43xx-gpevm' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
      'am437x-sk' => 'console=ttyO0,115200n8 earlyprintk=serial,ttyO0,115200n8 rootwait',
