@@ -381,7 +381,9 @@ module Equipment
           send_cmd('reset', /resetting/i, 3)
         else
           # at linux prompt
-          send_cmd('reboot', /(Restarting|Rebooting|going\s+down)/i, 40)
+          reboot_regexp = /(Restarting|Rebooting|going\s+down|Reboot\s+start)/i
+          reboot_regexp = params['reboot_regex'] if params['reboot_regex']
+          send_cmd('reboot', reboot_regexp, 40)
         end
         disconnect('serial')
       end
