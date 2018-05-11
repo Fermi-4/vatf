@@ -65,7 +65,11 @@ module Equipment
         params['server'].send_cmd("tar -C #{install_directory} -xvf #{startup_tarball}; echo $?", /^0/, 30)
         raise "Error installing simulator_startup_files" if params['server'].timeout?
       end
-      params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; `find . -name vlab-startup` -c -p "
+      if not params.key?('linux_system') or params['linux_system'].size < 2
+        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; `find . -name vlab-startup` -c -d `pwd` -p "
+      else
+        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; `find . -name vlab-startup` -c -p "
+      end
     end
 
     # Take the DUT from power on to system prompt

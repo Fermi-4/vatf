@@ -1093,10 +1093,6 @@ module SystemLoader
           log_data(params, "Parsing parameters\n")
           cmd="#{params['dut'].params['simulator_startup_cmd']} '"
           script_file = params['dut'].params['simulator_python_script']
-          if params['dut'].params.key?('simulator_startup_files') and params['dut'].params['simulator_startup_files'].size > 0
-            install_directory = File.join(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name']), File.basename(params['simulator_startup_files']))
-            script_file = Dir.glob("#{install_directory}/**/#{params['dut'].params['simulator_python_script']}")[0]
-          end
           cmd += script_file
           cmd += " @@atf #{params['atf']}" if params.key?('atf') and params['atf'].to_s != ''
           cmd += " @@atf_fdt #{params['atf_fdt']}" if params.key?('atf_fdt') and params['atf_fdt'].to_s != ''
