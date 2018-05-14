@@ -66,9 +66,9 @@ module Equipment
         raise "Error installing simulator_startup_files" if params['server'].timeout?
       end
       if not params.key?('linux_system') or params['linux_system'].size < 2
-        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; `find . -name vlab-startup` -c -d `pwd` -p "
+        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; cd $(dirname $(find . -name vlab-startup)); ./vlab-startup -c -d `pwd` -p "
       else
-        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; `find . -name vlab-startup` -c -p "
+        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; cd $(dirname $(find . -name vlab-startup)); ./vlab-startup -c -p "
       end
     end
 
