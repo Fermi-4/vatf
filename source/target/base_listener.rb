@@ -81,6 +81,7 @@ class SerialBaseListenerClient < SerialPort
     if @listen_thread
       @listen_thread.kill 
       @listen_thread.join(5)
+      @listen_thread = nil
     end
   end
 

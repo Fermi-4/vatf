@@ -139,8 +139,8 @@ module BootLoader
       params['dut'].connect({'type'=>'serial'})
       b_thread = Thread.new do
         200.times {
-          params['dut'].target.serial.puts(stop_char)
-          params['dut'].target.serial.flush
+          params['dut'].target.bootloader.puts(stop_char)
+          params['dut'].target.bootloader.flush
           s_time = Time.now()
           while Time.now() - s_time < 0.1
             #busy wait
@@ -337,8 +337,8 @@ class BaseLoader
       dut.send_cmd("", dut.boot_prompt, 40, false)
     end
     300.times {
-      dut.target.serial.puts(" ")
-      dut.target.serial.flush
+      dut.target.bootloader.puts(" ")
+      dut.target.bootloader.flush
       s_time = Time.now()
       while Time.now() - s_time < 0.1
         #busy wait

@@ -5,8 +5,8 @@ require File.dirname(__FILE__)+'/ccs_equipment_connection'
 require File.dirname(__FILE__)+'/tcp_ip_equipment_connection'
 
 class EquipmentConnection
-  attr_reader :default, :telnet, :serial, :ccs, :tcp_ip, :bmc
-  attr_accessor :platform_info
+  attr_reader :telnet, :serial, :ccs, :tcp_ip, :bmc, :bootloader, :firmware
+  attr_accessor :platform_info, :default
   def initialize(platform_info)
     @platform_info = platform_info
     @default = nil
@@ -15,6 +15,8 @@ class EquipmentConnection
     @bmc    = nil
     @ccs    = nil
     @tcp_ip = nil
+    @bootloader = nil
+    @firmware = nil
   end
 
   def connect(params)
@@ -42,6 +44,32 @@ class EquipmentConnection
         puts "Serial connection already exists, using existing connection"
       end
       @default = @serial 
+
+      if !@bootloader || @bootloader.closed?
+        if @platform_info.params['bootloader_port'].to_s.strip != ''
+          mod_platform_info = @platform_info.clone
+          mod_platform_info.serial_port = @platform_info.params['bootloader_port']
+          mod_platform_info.serial_params = @platform_info.params['bootloader_serial_params']
+          mod_platform_info.prompt = @platform_info.params['bootloader_prompt']
+          @bootloader = SerialEquipmentConnection.new(mod_platform_info)
+          @bootloader.start_listening
+          @default = @bootloader
+        end
+      end
+
+      if !@firmware || @firmware.closed?
+        if @platform_info.params['firmware_port'].to_s.strip != ''
+          mod_platform_info = @platform_info.clone
+          mod_platform_info.serial_port = @platform_info.params['firmware_port']
+          mod_platform_info.serial_params = @platform_info.params['firmware_serial_params']
+          mod_platform_info.prompt = @platform_info.params['firmware_prompt']
+          @firmware = SerialEquipmentConnection.new(mod_platform_info)
+          @firmware.start_listening
+        end
+      end
+
+      @bootloader = @serial if !@bootloader
+      @firmware = @serial if !@firmware
 
     when 'bmc'
       if !@bmc || @bmc.closed?
@@ -87,8 +115,12 @@ class EquipmentConnection
     end
     if type == 'serial' || type == 'all'
       @serial.disconnect if @serial
+      @bootloader.disconnect if @bootloader
+      @firmware.disconnect if @firmware
       @default = nil if type.downcase.strip == 'all' || @default == @serial
       @serial = nil
+      @bootloader = nil
+      @firmware = nil
     end
     if type == 'bmc' || type == 'all'
       @bmc.disconnect if @bmc
