@@ -97,7 +97,7 @@ class SerialBaseListenerClient < SerialPort
 
   def disconnect
     stop_listening
-    self.close
+    self.close if !self.closed?
   end    
 end
 
