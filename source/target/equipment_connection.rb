@@ -53,7 +53,6 @@ class EquipmentConnection
           mod_platform_info.prompt = @platform_info.params['bootloader_prompt']
           @bootloader = SerialEquipmentConnection.new(mod_platform_info)
           @bootloader.start_listening
-          @default = @bootloader
         end
       end
 
