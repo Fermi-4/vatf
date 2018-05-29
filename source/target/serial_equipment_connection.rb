@@ -3,7 +3,7 @@ require 'timeout'
 require File.dirname(__FILE__)+'/base_listener'
 
 class SerialEquipmentConnection < SerialBaseListenerClient
-  
+
   def initialize(platform_info)
     super(platform_info)
     rescue Exception => e

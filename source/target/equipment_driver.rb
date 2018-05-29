@@ -20,7 +20,7 @@ module Equipment
         self.class.class_eval {attr_accessor *(var.to_s.gsub('@',''))}
         self.instance_variable_set(var, platform_info.instance_variable_get(var))
       }
-      @target = EquipmentConnection.new(@platform_info) 
+      @target = EquipmentConnection.new(@platform_info, log_path)
       rescue Exception => e
         log_info("Initialize: "+e.to_s)
         raise

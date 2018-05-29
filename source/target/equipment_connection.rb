@@ -7,7 +7,7 @@ require File.dirname(__FILE__)+'/tcp_ip_equipment_connection'
 class EquipmentConnection
   attr_reader :telnet, :serial, :ccs, :tcp_ip, :bmc, :bootloader, :firmware
   attr_accessor :platform_info, :default
-  def initialize(platform_info)
+  def initialize(platform_info, log_path)
     @platform_info = platform_info
     @default = nil
     @telnet = nil
@@ -17,6 +17,7 @@ class EquipmentConnection
     @tcp_ip = nil
     @bootloader = nil
     @firmware = nil
+    @base_log_dir=File.dirname(log_path)
   end
 
   def connect(params)
@@ -39,7 +40,7 @@ class EquipmentConnection
           sleep 1
           @serial = SerialServerConnection.new(@platform_info)
         end
-        @serial.start_listening
+        @serial.start_listening { [@platform_info, File.join(@base_log_dir, @platform_info.serial_port.gsub(/\W/,'_'))]  }
       else
         puts "Serial connection already exists, using existing connection"
       end
@@ -52,7 +53,7 @@ class EquipmentConnection
           mod_platform_info.serial_params = @platform_info.params['bootloader_serial_params']
           mod_platform_info.prompt = @platform_info.params['bootloader_prompt']
           @bootloader = SerialEquipmentConnection.new(mod_platform_info)
-          @bootloader.start_listening
+          @bootloader.start_listening {[mod_platform_info, File.join(@base_log_dir, mod_platform_info.serial_port.gsub(/\W/,'_'))]}
         end
       end
 
@@ -63,7 +64,7 @@ class EquipmentConnection
           mod_platform_info.serial_params = @platform_info.params['firmware_serial_params']
           mod_platform_info.prompt = @platform_info.params['firmware_prompt']
           @firmware = SerialEquipmentConnection.new(mod_platform_info)
-          @firmware.start_listening
+          @firmware.start_listening { [mod_platform_info, File.join(@base_log_dir, mod_platform_info.serial_port.gsub(/\W/,'_'))] }
         end
       end
 
@@ -78,7 +79,7 @@ class EquipmentConnection
           mod_platform_info.prompt = @platform_info.params['bmc_prompt']
           @bmc = SerialEquipmentConnection.new(mod_platform_info)
         end
-        @bmc.start_listening
+        @bmc.start_listening { [mod_platform_info, File.join(@base_log_dir, mod_platform_info.serial_port.gsub(/\W/,'_'))] }
       else
         puts "BMC connection already exists, using existing connection"
       end
@@ -169,5 +170,19 @@ class EquipmentConnection
   
   def update_response
     @default.update_response
+  end
+
+  def get_raw_logs
+    logs = []
+    if @platform_info.serial_port
+      logs << ['serial_raw', File.join(@base_log_dir, @platform_info.serial_port.gsub(/\W/,'_'))]
+    end
+    if @platform_info.params && @platform_info.params['bootloader_port']
+      logs << ['bootloader_raw', File.join(@base_log_dir, @platform_info.params['bootloader_port'].gsub(/\W/,'_'))]
+    end
+    if @platform_info.params && @platform_info.params['firmware_port']
+      logs << ['firmware_raw', File.join(@base_log_dir, @platform_info.params['firmware_port'].gsub(/\W/,'_'))]
+    end
+    return logs
   end
 end

@@ -413,6 +413,11 @@ class SessionHandler
                 end
               end
               @logs_array << [test_vars, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if $equipment_table[equip_type][eq_id][i].driver_class_name && $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
+              if @equipment[test_vars].respond_to?(:target) && @equipment[test_vars].target.respond_to?(:get_raw_logs)
+                @equipment[test_vars].target.get_raw_logs().each {|log_info|
+                  @logs_array << [test_vars+'_'+log_info[0], log_info[1].sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")]
+                }
+              end
             end
           end
         end

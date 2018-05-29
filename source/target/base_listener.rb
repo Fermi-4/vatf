@@ -1,6 +1,9 @@
 require 'serialport'
 require 'thread'
 require 'socket'
+require File.dirname(__FILE__)+'/../lib/vatf_logger'
+
+include VatfLog
 
 class BaseListener 
   attr_reader :match, :cmd, :expect, :response
@@ -29,8 +32,7 @@ class BaseListener
 end
   
 class SerialBaseListenerClient < SerialPort
-  include Log4r  
-  attr_reader :response
+  attr_reader :response, :local_logger
   
   def SerialBaseListenerClient::new(platform_info)
     @port   = platform_info.serial_port
@@ -60,6 +62,8 @@ class SerialBaseListenerClient < SerialPort
   end
   
   def start_listening
+    @platform_info, @log_path = yield if block_given?
+    @local_logger = RawVatfLogger.new(@log_path, @platform_info.serial_port.gsub(/\W/,'_')) if !@local_logger
     self.read_timeout = 125
     @listeners = Array.new
     @session_data = ''
@@ -71,6 +75,7 @@ class SerialBaseListenerClient < SerialPort
           last_read = read_nonblock(1024) 
           notify_listeners(last_read)
           Kernel.print last_read
+          @local_logger.log_info(last_read)
        end
       end
     }  
