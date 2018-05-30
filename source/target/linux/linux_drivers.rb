@@ -21,4 +21,5 @@ require File.dirname(__FILE__)+'/linux_n900_driver'
 require File.dirname(__FILE__)+'/linux_legacy_driver'
 require File.dirname(__FILE__)+'/linux_k2l_driver'
 require File.dirname(__FILE__)+'/linux_simulator_driver'
+require File.dirname(__FILE__)+'/linux_am65x_driver'
 include Equipment
