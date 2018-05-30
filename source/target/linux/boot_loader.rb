@@ -334,7 +334,7 @@ class BaseLoader
     dut = params['dut']
     dut.connect({'type'=>'serial'}) 
     b_prompt_th = Thread.new do
-      dut.send_cmd("", dut.boot_prompt, 40, false)
+      dut.target.bootloader.send_cmd("", dut.boot_prompt, 40, false)
     end
     300.times {
       dut.target.bootloader.puts(" ")
@@ -346,7 +346,7 @@ class BaseLoader
       break if !b_prompt_th.alive?
     }
     b_prompt_th.join()
-    raise "Failed to load bootloader" if dut.timeout?
+    raise "Failed to load bootloader" if dut.target.bootloader.timeout?
   end
 
 end
