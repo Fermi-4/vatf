@@ -684,6 +684,92 @@ module SystemLoader
 
   end
 
+  class AtfStep < SystemLoader::UbootStep
+    def initialize
+      super('atf')
+    end
+    def run(params)
+      case params['atf_dev']
+      when 'eth'
+        load_atf_from_eth params
+      when 'ubi'
+        load_atf_from_ubi params
+      when 'none'
+        # Do nothing
+      else
+        raise "Don't know how to load atf from #{params['atf_dev']}"
+      end
+    end
+
+    private
+    def load_atf_from_eth(params)
+      load_file_from_eth_now params, '0x70000000', params['atf_image_name']
+    end
+
+    def load_atf_from_ubi(params)
+      self.send_cmd(params, "ubifsload 0x70000000 #{params['atf_image_name']}", params['dut'].boot_prompt, 60)
+    end
+
+  end
+
+
+  class TeeosStep < SystemLoader::UbootStep
+    def initialize
+      super('teeos')
+    end
+    def run(params)
+      case params['teeos_dev']
+      when 'eth'
+        load_teeos_from_eth params
+      when 'ubi'
+        load_teeos_from_ubi params
+      when 'none'
+        # Do nothing
+      else
+        raise "Don't know how to load teeos from #{params['teeos_dev']}"
+      end
+    end
+
+    private
+    def load_teeos_from_eth(params)
+      load_file_from_eth_now params, '${tee_loadaddr}', params['teeos_image_name']
+    end
+
+    def load_teeos_from_ubi(params)
+      self.send_cmd(params, "ubifsload ${tee_loadaddr} #{params['teeos_image_name']}", params['dut'].boot_prompt, 60)
+    end
+
+  end
+
+  class LinuxSystemStep < SystemLoader::UbootStep
+    def initialize
+      super('linux_system')
+    end
+    def run(params)
+      case params['linux_system_dev']
+      when 'eth'
+        load_linux_system_from_eth params
+      when 'ubi'
+        load_linux_system_from_ubi params
+      when 'none'
+        # Do nothing
+      else
+        raise "Don't know how to load linux_system from #{params['linux_system_dev']}"
+      end
+    end
+
+    private
+    def load_linux_system_from_eth(params)
+      load_file_from_eth_now params, '0x80000000', params['linux_system_image_name']
+    end
+
+    def load_linux_system_from_ubi(params)
+      self.send_cmd(params, "ubifsload 0x80000000 #{params['linux_system_image_name']}", params['dut'].boot_prompt, 60)
+    end
+
+  end
+
+
   class FitImageStep < SystemLoader::UbootStep
     def initialize
       super('fitimage')
@@ -1491,6 +1577,21 @@ module SystemLoader
       add_step( BootCmdStep.new )
       add_step( BoardInfoStep.new )
       add_step( TouchCalStep.new )
+      add_step( BootStep.new )
+    end
+
+  end
+
+  class AtfSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( SetIpStep.new )
+      add_step( AtfStep.new )
+      add_step( TeeosStep.new )
+      add_step( LinuxSystemStep.new )
+      add_step( BoardInfoStep.new )
       add_step( BootStep.new )
     end
 
