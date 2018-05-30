@@ -1671,9 +1671,9 @@ module SystemLoader
       add_step( FastbootFlashUserDataPartitionStep.new )
       add_step( FastbootFlashCachePartitionStep.new )
       add_step( StopFastbootStep.new )
-      add_step( SetOSBootcmdStep.new )
       add_step( SaveImagesInfo.new )
       add_step( BoardInfoStep.new )
+      add_step( SetOSBootcmdStep.new )
       add_step( BootStep.new )
     end
 
