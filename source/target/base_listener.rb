@@ -63,7 +63,7 @@ class SerialBaseListenerClient < SerialPort
   
   def start_listening
     @platform_info, @log_path = yield if block_given?
-    @local_logger = RawVatfLogger.new(@log_path, @platform_info.serial_port.gsub(/\W/,'_')) if !@local_logger
+    @local_logger = RawVatfLogger.new(@log_path, @platform_info.serial_port.gsub(/\W/,'_')) if @log_path && !@local_logger 
     self.read_timeout = 125
     @listeners = Array.new
     @session_data = ''
@@ -75,7 +75,7 @@ class SerialBaseListenerClient < SerialPort
           last_read = read_nonblock(1024) 
           notify_listeners(last_read)
           Kernel.print last_read
-          @local_logger.log_info(last_read)
+          @local_logger.log_info(last_read) if @local_logger
        end
       end
     }  
