@@ -51,7 +51,7 @@ class EquipmentConnection
       @default = @serial 
 
       if !@bootloader || @bootloader.closed?
-        if @platform_info.params['bootloader_port'].to_s.strip != ''
+        if @platform_info.params && @platform_info.params['bootloader_port'].to_s.strip != ''
           mod_platform_info = @platform_info.clone
           mod_platform_info.serial_port = @platform_info.params['bootloader_port']
           mod_platform_info.serial_params = @platform_info.params['bootloader_serial_params']
@@ -66,7 +66,7 @@ class EquipmentConnection
       end
 
       if !@firmware || @firmware.closed?
-        if @platform_info.params['firmware_port'].to_s.strip != ''
+        if @platform_info.params && @platform_info.params['firmware_port'].to_s.strip != ''
           mod_platform_info = @platform_info.clone
           mod_platform_info.serial_port = @platform_info.params['firmware_port']
           mod_platform_info.serial_params = @platform_info.params['firmware_serial_params']
