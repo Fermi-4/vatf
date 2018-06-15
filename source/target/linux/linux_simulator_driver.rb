@@ -17,7 +17,7 @@ module Equipment
     end
 
     def send_cmd(command, expected_match=/.*/, timeout=10, check_cmd_echo=true, append_linefeed=true)
-      timeout*=8  # Simulators run much slower than real device
+      timeout*=12  # Simulators run much slower than real device
       super(command, expected_match, timeout, check_cmd_echo, append_linefeed)
     end
 
