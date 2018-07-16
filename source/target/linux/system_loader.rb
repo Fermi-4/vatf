@@ -116,7 +116,7 @@ module SystemLoader
     end
 
     def append_text(params, env_var, text)
-      send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'printenv', 'version'=>@@uboot_version})
+      send_cmd params, "#{CmdTranslator::get_uboot_cmd({'cmd'=>'printenv', 'version'=>@@uboot_version})} #{env_var}"
       if !params['dut'].response.match(/^#{env_var}=.*#{text}.*/)
         send_cmd params, "setenv #{env_var} ''${#{env_var}}' #{text}'"
       end
