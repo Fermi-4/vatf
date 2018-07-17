@@ -49,7 +49,12 @@ module SystemLoader
 
     def get_environment(params)
       params['_env'] = {}
-      send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'printenv', 'version'=>@@uboot_version})
+      3.times do
+        send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'printenv', 'version'=>@@uboot_version}), params['dut'].boot_prompt, 10, true, false
+        break if ! params['dut'].timeout?
+        sleep 1
+      end
+      raise "Error executing printenv" if params['dut'].timeout?
       params['dut'].response.split(/[\r\n]+/).each { |env_str| params['_env'].store(*(env_str.split('=',2))) if env_str.include?('=') }
       # Determine kernel loadaddr
       load_addr = '${loadaddr}'
@@ -960,7 +965,7 @@ module SystemLoader
 
     def run(params)
       send_cmd params, "saveenv"
-      send_cmd params, "printenv"
+      send_cmd params, "printenv", params['dut'].boot_prompt, 10, true, false
     end
   end
 
@@ -972,7 +977,7 @@ module SystemLoader
     def run(params)
       get_uboot_version params
       send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'env default', 'version'=>@@uboot_version})
-      send_cmd params, "printenv"
+      send_cmd params, "printenv", params['dut'].boot_prompt, 10, true, false
     end
   end
   
@@ -984,7 +989,6 @@ module SystemLoader
     def run(params)
       if params.has_key?("bootargs_append")
         send_cmd params, "setenv extraargs #{CmdTranslator::get_uboot_cmd({'cmd'=>params['bootargs_append'], 'version'=>@@uboot_version, 'platform'=>params['dut'].name})}",params['dut'].boot_prompt,10
-        send_cmd params, "printenv", params['dut'].boot_prompt, 10
         # add extraargs to bootargs for all lines with bootm
         params['dut'].response.split(/\n/).each {|line|
           if line.match(/boot[mz]\s+/)
