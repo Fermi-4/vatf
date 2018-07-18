@@ -990,6 +990,7 @@ module SystemLoader
       if params.has_key?("bootargs_append")
         send_cmd params, "setenv extraargs #{CmdTranslator::get_uboot_cmd({'cmd'=>params['bootargs_append'], 'version'=>@@uboot_version, 'platform'=>params['dut'].name})}",params['dut'].boot_prompt,10
         # add extraargs to bootargs for all lines with bootm
+        send_cmd params, "printenv", params['dut'].boot_prompt, 10, true, false
         params['dut'].response.split(/\n/).each {|line|
           if line.match(/boot[mz]\s+/)
             varname = line.split('=')[0]
