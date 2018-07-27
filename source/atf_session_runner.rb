@@ -674,7 +674,7 @@ class SessionHandler
                   if key.match(/^value/i)
                     current_hash.merge!(get_stat_values(val))
                   elsif key.match(/^name/i)
-                    val = val[0..29]         # Testlink restrict metric names to 30 chars
+                    val = val[0..63]         # Testlink restrict metric names to 64 chars
                     val.gsub!(/\s/,'_')      # remove white spaces from metric names
                     val.gsub!(/[\/\\]/,'_')  # remove '/' and '\' from metric names
                     current_hash[key]=val
