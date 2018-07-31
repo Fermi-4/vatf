@@ -305,7 +305,7 @@ class BaseLoader
       # Ensure the board is reset.
       dut.power_cycle(params)
     end
-    params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 240)
+    params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 360)
     raise "run_bootloader_load_script: Transfer failed" if (params['server'].response.match(/Transfer\s+incomplete/i) || !params['server'].response.match(/Transfer\s+complete/i))
   end
 
