@@ -74,6 +74,7 @@ module SystemLoader
       params['_env']['kernel_loadaddr'] = load_addr
       params['_env']['loadaddr'] = load_addr
       params['_env']['fitaddr'] = fit_loadaddr
+      params['_env']['overlayaddr'] = '${overlayaddr}'
       # filesize will be updated to the size of file which was just loaded
       params['_env']['filesize'] = '${filesize}'
       params['_env']['initramfs'] = '${_initramfs}'
@@ -626,6 +627,38 @@ module SystemLoader
       append_text params, 'bootcmd', "ubifsload #{params['_env']['dtb_loadaddr']} #{params['dtb_image_name']};"
     end
 
+  end
+
+  class DTBOStep < UbootStep
+    def initialize
+      super('dtbo')
+    end
+
+    def run(params)
+      resize_already = false
+      params.select{|k| k.match /dtbo_\d+$/}.each {|key,value|
+        case params['dtb_dev']
+        when 'mmc'
+          load_dtbo_from_mmc params, params[key+'_image_name']
+        when 'eth'
+          load_dtbo_from_eth params, params[key+'_image_name']
+        else
+          next
+        end
+        self.send_cmd(params, "fdt address #{params['_env']['dtb_loadaddr']};fdt resize 0x100000", params['dut'].boot_prompt, 10) if !resize_already
+        resize_already = true
+        self.send_cmd(params, "fdt apply #{params['_env']['overlayaddr']}", params['dut'].boot_prompt, 10)
+      }
+    end
+
+    private
+    def load_dtbo_from_mmc(params, filename)
+      load_file_from_mmc params, params['_env']['overlayaddr'], filename
+    end
+
+    def load_dtbo_from_eth(params, filename)
+      load_file_from_eth_now params, params['_env']['overlayaddr'], filename
+    end
   end
 
   class SkernStep < SystemLoader::UbootStep
@@ -1576,6 +1609,7 @@ module SystemLoader
       add_step( PmmcStep.new )
       add_step( KernelStep.new )
       add_step( DTBStep.new )
+      add_step( DTBOStep.new )
       add_step( SkernStep.new )
       add_step( InitRamfsStep.new )
       add_step( FSStep.new )
@@ -1612,6 +1646,7 @@ module SystemLoader
       add_step( PmmcStep.new )
       add_step( KernelStep.new )
       add_step( DTBStep.new )
+      add_step( DTBOStep.new )
     end
 
   end
