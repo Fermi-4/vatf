@@ -34,8 +34,8 @@ module Equipment
 
     def login_simulator(params)
       connect({'type'=>'serial'}) if !target.serial
-      boot_timeout = params['var_boot_timeout'] ? params['var_boot_timeout'].to_i : 600
-      wait_for(/(Please press Enter to activate this console|#{params['dut'].login_prompt}|#{params['dut'].prompt})/, 600)
+      boot_timeout = params['var_boot_timeout'] ? params['var_boot_timeout'].to_i : 1500
+      wait_for(/(Please press Enter to activate this console|#{params['dut'].login_prompt}|#{params['dut'].prompt})/, boot_timeout)
       params['dut'].boot_log = params['dut'].response
       if params['dut'].boot_log.match(/Please press Enter to activate this console/)
         2.times {
