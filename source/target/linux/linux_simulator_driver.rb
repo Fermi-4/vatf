@@ -65,10 +65,12 @@ module Equipment
         params['server'].send_cmd("tar -C #{install_directory} -xvf #{startup_tarball}; echo $?", /^0/, 30)
         raise "Error installing simulator_startup_files" if params['server'].timeout?
       end
-      if not params.key?('linux_system') or params['linux_system'].size < 2
-        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; cd $(dirname $(find . -name vlab-startup)); ./vlab-startup -c -d `pwd` -p "
+      if params.key?('var_simulator_startup_script_name') and params['var_simulator_startup_script_name'].match(/.+\.sh/)
+        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; cd $(dirname $(find . -name vlab-startup)); "
+      elsif not params.key?('linux_system') or params['linux_system'].size < 2
+        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; cd $(dirname $(find . -name vlab-startup)); ./vlab-startup -c -d `pwd` -p '"
       else
-        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; cd $(dirname $(find . -name vlab-startup)); ./vlab-startup -c -p "
+        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; cd $(dirname $(find . -name vlab-startup)); ./vlab-startup -c -p '"
       end
     end
 
