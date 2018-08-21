@@ -269,7 +269,7 @@ class SessionHandler
       @tester = tester
       @session_start_time = Time.now
       @test_sess_sum = [0,0,0]
-      @session_dir = File.join(@session_results_base_directory,tester+@session_start_time.strftime("%m_%d_%Y_%H_%M_%S"))
+      @session_dir = File.join(@session_results_base_directory,@session_start_time.strftime("%m_%Y"),tester+@session_start_time.strftime("%m_%d_%Y_%H_%M_%S"))
       FileUtils.mkdir_p(@session_dir) unless File.exists?(@session_dir)
       @session_html_path = File.join(@session_dir,"session.html")
       @session_html_url = @session_html_path.sub(@session_results_base_directory,@session_results_base_url)
