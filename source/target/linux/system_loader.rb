@@ -1028,11 +1028,12 @@ module SystemLoader
         # add extraargs to bootargs for all lines with bootm
         send_cmd params, "printenv", params['dut'].boot_prompt, 10, true, false
         params['dut'].response.split(/\n/).each {|line|
-          if line.match(/boot[mz]\s+/)
+          if line.match(/boot[mzi]\s+/)
             varname = line.split('=')[0]
             varvalue = line.sub(varname + '=', '')
             newvalue = varvalue.gsub(/bootm\s+/, "setenv bootargs ${bootargs} ${extraargs}; bootm ")
             newvalue = newvalue.gsub(/bootz\s+/, "setenv bootargs ${bootargs} ${extraargs}; bootz ")
+            newvalue = newvalue.gsub(/booti\s+/, "setenv bootargs ${bootargs} ${extraargs}; booti ")
             send_cmd params, "setenv #{varname.strip} \'#{newvalue.strip}\'", params['dut'].boot_prompt, 10
           end
         }
