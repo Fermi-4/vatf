@@ -317,7 +317,11 @@ module SystemLoader
 
     def write_file_to_rawmmc(params, mem_addr, blk_num, filesize, timeout)    
       cnt = get_blk_cnt(filesize, 512)
-      self.send_cmd(params, "mmc dev #{params['_env']['mmcdev']}; mmc write #{mem_addr} #{blk_num} #{cnt}", params['dut'].boot_prompt, timeout)
+      if params['bootpart']
+        self.send_cmd(params, "mmc dev #{params['_env']['mmcdev']} #{params['bootpart']}; mmc write #{mem_addr} #{blk_num} #{cnt}", params['dut'].boot_prompt, timeout) 
+      else
+        self.send_cmd(params, "mmc dev #{params['_env']['mmcdev']}; mmc write #{mem_addr} #{blk_num} #{cnt}", params['dut'].boot_prompt, timeout)
+      end
       raise "write rawmmc failed!" if !params['dut'].response.match(/written:\s+OK/i)
     end
 
