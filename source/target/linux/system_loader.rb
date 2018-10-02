@@ -379,6 +379,8 @@ module SystemLoader
       when 'mmc'
         if part.match(/initial_bootloader/)
           write_file_to_mmc_boot params, params['_env']['loadaddr'], "tiboot3.bin", txed_size, timeout
+        elsif part.match(/sysfw/)
+          write_file_to_mmc_boot params, params['_env']['loadaddr'], 'sysfw.itb', txed_size, timeout
         elsif part.match(/primary_bootloader/)
           write_file_to_mmc_boot params, params['_env']['loadaddr'], CmdTranslator::get_uboot_cmd({'cmd'=>'primary_bootloader_filename', 'version'=>@@uboot_version, 'platform'=>params['dut'].name}), txed_size, timeout
         elsif part.match(/secondary_bootloader/)
@@ -412,6 +414,7 @@ module SystemLoader
     end
 
     def run(params)
+      flash_run(params, "sysfw", 60) if params['sysfw'] != ''
       flash_run(params, "initial_bootloader", 60) if params['initial_bootloader'] != ''
       flash_run(params, "primary_bootloader", 60) if params['primary_bootloader'] != ''
       flash_run(params, "secondary_bootloader", 60) if params['secondary_bootloader'] != ''
