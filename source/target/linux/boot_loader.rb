@@ -252,6 +252,10 @@ class BaseLoader
       file.puts "/usr/bin/timeout 120 /usr/bin/sx -k --xmodem #{params['initial_bootloader']} < #{params['dut'].params['bootloader_port']} > #{params['dut'].params['bootloader_port']}"
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi"
+      # Send sysfw as ymodem, 2 minute timeout.
+      file.puts "/usr/bin/timeout 120 /usr/bin/sb -kb --ymodem #{params['sysfw']} < #{params['dut'].params['bootloader_port']} > #{params['dut'].params['bootloader_port']}"
+      # If we timeout or don't return cleanly (transfer failed), return 1
+      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
       # Send primary bootloader as ymodem, 4 minute timeout.
       file.puts "/usr/bin/timeout 240 /usr/bin/sb -kb --ymodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
