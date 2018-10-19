@@ -4,7 +4,7 @@ class PowerHandler
   def initialize
     @power_controllers = Hash.new
 
-    [:get_status, :switch_on, :switch_off].each do |method|
+    [:get_status, :switch_on, :switch_off, :por].each do |method|
       define_singleton_method(method) do |p_port|
         call(method, p_port)
       end

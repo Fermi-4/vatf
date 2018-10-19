@@ -16,6 +16,11 @@ module TestEquipment
             super(platform_info, log_path)
         end
 
+        def set_dut_type(dut_type)
+            @dut_type = dut_type
+            robust_send_cmd("auto set dut #{@dut_type}", @prompt)
+        end
+
         def login
         end
 

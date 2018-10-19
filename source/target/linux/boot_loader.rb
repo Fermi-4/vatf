@@ -38,6 +38,8 @@ module BootLoader
   end
 
   def LOAD_FROM_SERIAL_TI_BOOT3(params)
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'uart')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
     params.merge!({'bootloader_load_script_name' => 'uart-ti-boot3.sh'})
     params['bootloader_class'].create_bootloader_load_script_uart_ti_boot3(params)
     params['bootloader_class'].run_bootloader_load_script(params)

@@ -1,5 +1,6 @@
 module SysBootModule
 
+@@sysboot_controller = nil
 # Function to set sysboot via relay to $setting
 #     This function is to switch the diff bits between $setting and default setting 
 # Setup:    
@@ -9,16 +10,23 @@ module SysBootModule
 # Input: 'setting' [n:0], Ex: '110111'
 def SysBootModule.set_sysboot(dut, setting)
   return if !dut.instance_variable_defined?(:@params) or !dut.params.key?('sysboot_ctrl')
-  sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl'])
+  @@sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl']) if !@@sysboot_controller
+  @@sysboot_controller.set_dut_type(dut.name) if @@sysboot_controller.respond_to?(:set_dut_type)
   default_bootmedia = get_default_bootmedia(dut.name)
   default_sysboot = get_sysboot_setting(dut, default_bootmedia)
   # find out which bit need to be change, either on->off or off->on
   sysboot_diff = get_sysboot_diff(default_sysboot, setting).reverse
   if dut.params['sysboot_ctrl'].driver_class_name == 'DevantechRelayController'
-    sysboot_controller.sysboot(sysboot_diff)  # Farm boards with this setup connect relays in fail-safe mode
+    @@sysboot_controller.sysboot(sysboot_diff)  # Farm boards with this setup connect relays in fail-safe mode
   else
-    sysboot_controller.sysboot(setting)
+    @@sysboot_controller.sysboot(setting)
   end
+end
+
+def SysBootModule.por(dut)
+  return if !dut.instance_variable_defined?(:@params) or !dut.params.key?('sysboot_ctrl')
+  @@sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl']) if !@@sysboot_controller
+  @@sysboot_controller.por() if sysboot_controller.respond_to?(:por)
 end
 
 def SysBootModule.reset_sysboot(dut)
@@ -58,6 +66,8 @@ def SysBootModule.get_sysboot_setting(dut, boot_media)
     machines['am43xx-hsevm'] = machines['am43xx-gpevm']
     machines['am335x-evm'] = {'mmc'=>'10111', 'nand'=>'10100', 'uart'=>'00101', 'usbeth'=>'01101', 'eth'=>'01010' }
     machines['beaglebone-black'] = {'mmc'=>'11100', 'uart'=>'10000', 'eth'=>'10000' }
+    machines['am654x-evm'] = {'mmc'=>'001006', 'uart'=>'00100a', 'eth'=>'000087', 'usbeth'=>'000008', 'usbmsc'=>'000408', 'qspi'=>'000082', 'ospi'=>'000081', 'emmc'=>'00080d'}
+    machines['am654x-idk'] = machines['am654x-evm']
 
     raise "Sysboot setting for #{boot_media} not defined for #{platform}" if !machines[platform][boot_media]
     machines[platform][boot_media]
