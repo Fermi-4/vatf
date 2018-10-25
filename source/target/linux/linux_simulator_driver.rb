@@ -91,5 +91,10 @@ module Equipment
       login_simulator(params)
     end
 
+    def reset_sysboot(dut)
+      @system_loader.get_step('start_simulator')[0].simulator_stdin.puts("quit()")
+    end
+
+
   end
 end
