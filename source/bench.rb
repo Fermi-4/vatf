@@ -438,6 +438,21 @@ dut.driver_class_name='LinuxEquipmentDriver'
 dut.power_port = {'autoiface.dra71x' => 1}
 dut.params = {'multimeter1' => minfo}
 
+
+# Sample bench entry for AM654x EVM with automation interface connected
+# "multimeter" and "power_controller" can be defined as in previous dra71x-evm section
+# Please note usage of 'sysboot_ctrl' to also signal that sysboot pins can be controlled on this setup
+# AM654x also supports traces on 3 different uart consoles serial_port (main one), bootloader_port (R5) and firmware_port (M3)
+dut = EquipmentInfo.new("am654x-evm", "linux_sd_sdhc_usbdevice_power")
+dut.driver_class_name='LinuxArm64Driver'
+dut.serial_port = '/dev/ttyUSB6'
+dut.power_port = {'autoiface.am654x' => 1}
+dut.params = {'bootloader_port'=> '/dev/ttyUSB7', 'bootloader_serial_params' => dut.serial_params, 'bootloader_prompt' => /.*/,
+              'firmware_port'=> '/dev/ttyUSB8', 'firmware_serial_params' => dut.serial_params, 'firmware_prompt' => /.*/,
+              'multimeter1' => minfo,
+              'sysboot_ctrl' => minfo}
+
+
 #Sample bench entries for an Android vatf setup that is shared with a lava-dispatcher setup
 dut = EquipmentInfo.new("amXXXX-evm", "android_linux")
 dut.driver_class_name='AndriodEquipmentDriver'
