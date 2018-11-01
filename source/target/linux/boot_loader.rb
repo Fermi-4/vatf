@@ -104,6 +104,13 @@ module BootLoader
     early_conn_power_cycle(params, CmdTranslator::get_uboot_cmd({'cmd'=>'emmcboot_expect', 'version'=>'0.0', 'platform'=>params['dut'].name}))
   end
 
+  def LOAD_FROM_EMMC_USER(params)
+    puts "########LOAD_FROM_EMMC########"
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'emmc_user')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
+    early_conn_power_cycle(params, CmdTranslator::get_uboot_cmd({'cmd'=>'emmcboot_expect', 'version'=>'0.0', 'platform'=>params['dut'].name}))
+  end
+
   def LOAD_FROM_USBETH(params)
     puts "########LOAD_FROM_USBETH########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'usbeth')
@@ -304,7 +311,6 @@ class BaseLoader
     dut = params['dut']
     # Kill anything which has the serial port open already.
     3.times { break if kill_tasks_holding_serial_port(params) }
-
     # Make sure that we're ready to catch the board coming out of reset
     sleep 1
     if dut.instance_variable_defined?(:@params) and dut.params.key? 'bmc_port' 

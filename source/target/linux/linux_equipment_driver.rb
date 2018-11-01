@@ -118,6 +118,8 @@ module Equipment
         BaseLoader.new method(:LOAD_FROM_USBETH)
       when /usbmsc/i
         BaseLoader.new method(:LOAD_FROM_USBMSC)
+      when /emmc_user/i
+        BaseLoader.new method(:LOAD_FROM_EMMC_USER)
       when /emmc/i #'rawmmc-emmc' or 'emmc' or 'rawmmc-emmc-bootpart'
         BaseLoader.new method(:LOAD_FROM_EMMC)
       when /nand/i

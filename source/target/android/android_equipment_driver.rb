@@ -211,6 +211,10 @@ EOF
     def add_adb_device()
       add_device_to_lxc_container(@params['lxc-info']['adb-device']) if @lxc_container && @params && @params['lxc-info'] && @params['lxc-info']['adb-device'] && File.exists?(@params['lxc-info']['adb-device']) 
     end
+
+    def get_fastboot_media_type()
+      return 'emmc_user'
+    end
       
   end
   

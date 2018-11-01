@@ -1367,13 +1367,30 @@ module SystemLoader
     end
 
     def run(params)
-      if @@must_flash
+      if @@must_flash || params['run_fastboot.sh']
         send_cmd params, "env default -f -a", params['dut'].boot_prompt
         params['dut'].set_fastboot_partitions(params)
       end
-      if @@must_flash || params['_env']['serial#'] != params['dut'].board_id
+      if @@must_flash || params['_env']['serial#'] != params['dut'].board_id || params['run_fastboot.sh']
+        raise "Error: Must define board_id in the dut section at the bench file" if !params['dut'].respond_to? :board_id
         send_cmd params, "setenv serial# #{params['dut'].board_id}", params['dut'].boot_prompt
         send_cmd params, "saveenv", params['dut'].boot_prompt
+      end
+    end
+  end
+
+  class FastbootRunScript < FastbootStep
+    def initialize
+      super('fastboot_run_fastboot.sh')
+    end
+
+    def run(params)
+      if params['run_fastboot.sh']
+        this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], params['dut'].get_fastboot_media_type())
+        SysBootModule::set_sysboot(params['dut'], this_sysboot)
+        params['server'].send_cmd("cd #{params['fastboot_path']}; ./fastboot.sh", /OKAY.*finished.\s*total\s*time:[^\r\n]+/im, 600)
+        raise "Error: Host timed out running #{File.join(params['fastboot_path'], 'fastboot.sh')}" if params['server'].timeout?
+        @@updated_imgs['tarball_md5'] = params['tarball_md5']
       end
     end
   end
@@ -1411,6 +1428,40 @@ module SystemLoader
     end
   end
 
+  class CheckFastbootRequiredStep < UbootStep
+    def initialize
+      super('check_fastboot_required')
+    end
+
+    def run(params)
+      send_cmd params, "printenv tarball_md5", params['dut'].boot_prompt
+      match = params['dut'].response.match(/tarball_md5=([a-f0-9]+)/)
+      if match && match[1] == params['tarball_md5'].strip
+        params['run_fastboot.sh'] = false
+      else
+        params['run_fastboot.sh'] = true
+      end
+      rescue Exception => e
+         params['dut'].recover_bootloader(params)
+         params['run_fastboot.sh'] = true
+      ensure
+        get_environment(params)
+    end
+  end
+
+
+  class GptWriteStep < UbootStep
+    def initialize
+      super('gpt_write')
+    end
+
+    def run(params)
+      if params['run_fastboot.sh']
+        send_cmd params, "gpt write mmc 0 $partitions_android", params['dut'].boot_prompt, 30 # TODO: Replace mmc 0 with dynamic logic
+      end
+    end
+  end
+
   class FastbootSetBootloaderTargetStep < FastbootStep
     def initialize
       super('fastboot_set_flash_target')
@@ -1437,7 +1488,7 @@ module SystemLoader
     def run(params)
       get_environment(params)
       if params['primary_bootloader'].to_s != '' && params['secondary_bootloader'].to_s != '' && 
-        (should_flash?(params, 'primary_bootloader') || should_flash?(params, 'secondary_bootloader'))
+        (should_flash?(params, 'primary_bootloader') || should_flash?(params, 'secondary_bootloader')) && !params['run_fastboot.sh']
         @@must_flash = true
         params['dut'].update_bootloader(params)
       end
@@ -1827,6 +1878,25 @@ module SystemLoader
       add_step( SaveImagesInfo.new )
       add_step( BoardInfoStep.new )
       add_step( SetOSBootcmdStep.new )
+      add_step( BootStep.new )
+    end
+
+  end
+
+  class FastbootScriptSystemLoader < BaseSystemLoader
+    attr_accessor :steps
+
+    def initialize
+      super
+      add_step( CheckFastbootRequiredStep.new )
+      add_step( FastbootResetEnvStep.new )
+      add_step( GptWriteStep.new)
+      add_step( SaveEnvStep.new)
+      add_step( StartFastbootStep.new )
+      add_step( FastbootRunScript.new )
+      add_step( StopFastbootStep.new )
+      add_step( SaveImagesInfo.new )
+      add_step( PowerCycleStep.new )
       add_step( BootStep.new )
     end
 
