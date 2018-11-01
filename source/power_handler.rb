@@ -4,12 +4,20 @@ class PowerHandler
   def initialize
     @power_controllers = Hash.new
 
-    [:get_status, :switch_on, :switch_off, :por].each do |method|
+    [:get_status, :switch_on, :switch_off].each do |method|
       define_singleton_method(method) do |p_port|
         call(method, p_port)
       end
     end
 
+  end
+
+  def por(p_port)
+    call(:por, p_port)
+    if block_given?
+      # Do something (if needed) before restoring power
+      yield
+    end
   end
 
   def load_power_ports(lio_info)
