@@ -118,12 +118,14 @@ module Equipment
         BaseLoader.new method(:LOAD_FROM_USBETH)
       when /usbmsc/i
         BaseLoader.new method(:LOAD_FROM_USBMSC)
-      when /emmc/i #'rawmmc-emmc' or 'emmc'
+      when /emmc/i #'rawmmc-emmc' or 'emmc' or 'rawmmc-emmc-bootpart'
         BaseLoader.new method(:LOAD_FROM_EMMC)
       when /nand/i
         BaseLoader.new method( get_nand_boot_method(@name) )
       when /qspi/i
         BaseLoader.new method( get_qspi_boot_method(@name) )
+      when /ospi/i
+        BaseLoader.new method(:LOAD_FROM_OSPI)
       when /^spi/i
         BaseLoader.new method( get_spi_boot_method(@name) )
       when /no-boot/i

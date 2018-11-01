@@ -71,6 +71,13 @@ module BootLoader
     params['bootloader_class'].bmc_trigger_boot(params['dut'], 'qspi')
   end
 
+  def LOAD_FROM_OSPI(params)
+    puts "########LOAD_FROM_OSPI########"
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'ospi')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
+    early_conn_power_cycle(params, 'spi', 'c')
+  end
+
   def LOAD_FROM_QSPI(params)
     puts "########LOAD_FROM_QSPI########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'qspi')
@@ -94,7 +101,7 @@ module BootLoader
     puts "########LOAD_FROM_EMMC########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'emmc')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    early_conn_power_cycle(params, 'mmc2')
+    early_conn_power_cycle(params, CmdTranslator::get_uboot_cmd({'cmd'=>'emmcboot_expect', 'version'=>'0.0', 'platform'=>params['dut'].name}))
   end
 
   def LOAD_FROM_USBETH(params)

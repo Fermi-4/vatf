@@ -259,7 +259,7 @@ module SystemLoader
       case dev.downcase
         when 'spi'
           key = 'spi_sf_probe'
-        when 'qspi'
+        when /ospi|qspi/
           key = 'qspi_sf_probe'
       end
       sf_probe_cmd = CmdTranslator::get_uboot_cmd({'cmd'=>key, 'version'=>@@uboot_version, 'platform'=>params['dut'].name}) 
@@ -364,7 +364,7 @@ module SystemLoader
       when 'nand'
         erase_nand params, params["nand_#{part}_loc"], txed_size, timeout
         write_file_to_nand params, params['_env']['loadaddr'], params["nand_#{part}_loc"], txed_size, timeout
-      when /spi/ # 'qspi' or 'spi'
+      when /spi/ # 'ospi' or 'qspi' or 'spi'
         # Only call probe_spi once due to LCPD-6981
         if params["#{part}_dst_dev"]
           probe_spi params, params["#{part}_dst_dev"], timeout
@@ -522,7 +522,7 @@ module SystemLoader
         load_kernel_from_usbmsc params
       when 'nand'
         load_kernel_from_nand params
-      when /spi/ # 'qspi' or 'spi'
+      when /spi/ # 'qspi' or 'spi' or 'ospi'
         load_kernel_from_spi params
       when 'eth'
         load_kernel_from_eth params
