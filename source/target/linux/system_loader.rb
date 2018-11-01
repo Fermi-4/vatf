@@ -138,6 +138,7 @@ module SystemLoader
         file.puts "if [ $? -ne 0 ]; then exit 1; fi"
         # Start loady
         file.puts "echo \'loady #{load_address}\' > #{params['dut'].serial_port}"
+        file.puts "sleep 1"
         # Send kernel as ymodem, <timeout> timeout (in seconds).
         file.puts "/usr/bin/timeout #{timeout} /usr/bin/sb -v --ymodem #{filename} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
         # If we timeout or don't return cleanly (transfer failed), return 1
