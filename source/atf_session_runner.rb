@@ -260,6 +260,7 @@ class SessionHandler
       @consecutive_non_pass_allowed = params['consec_non_pass']
       @consecutive_non_passed_tests = 0
       @old_keys = '';@new_keys = ''
+      @known_setup_issues = nil
     end
 
     #This function starts a test session initializes the results counter creates the files and directories to store the session results. Takes
@@ -330,6 +331,7 @@ class SessionHandler
       @power_handler = PowerHandler.new()
       @usb_switch_handler = UsbSwitchHandler.new()
       @logs_array = Array.new
+      @local_logs_array = Array.new
       temp_params = @cli_params.clone
       temp_params.delete('release_assets')
       @test_params = @rtp_db.get_test_parameters(temp_params.merge(@cli_params['release_assets']))
@@ -412,9 +414,11 @@ class SessionHandler
                   @usb_switch_handler.load_usb_ports(val)
                 end
               end
+              @local_logs_array << [test_vars, equip_log]
               @logs_array << [test_vars, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if $equipment_table[equip_type][eq_id][i].driver_class_name && $equipment_table[equip_type][eq_id][i].driver_class_name.strip.downcase != 'operaforclr'
               if @equipment[test_vars].respond_to?(:target) && @equipment[test_vars].target.respond_to?(:get_raw_logs)
                 @equipment[test_vars].target.get_raw_logs().each {|log_info|
+                  @local_logs_array << [test_vars+'_'+log_info[0], log_info[1]]
                   @logs_array << [test_vars+'_'+log_info[0], log_info[1].sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")]
                 }
               end
@@ -455,10 +459,10 @@ class SessionHandler
           end
           run
           @connection_handler.logs.each{|key,val| @logs_array << [key.to_s, val.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")]}
-          Marshal.dump([@new_keys, @test_result, @results_html_file, @logs_array] ,t_case_write)
+          Marshal.dump([@new_keys, @test_result, @results_html_file, @logs_array, @local_logs_array] ,t_case_write)
         rescue Exception => e
           n_e = Exception.new(e.to_s) #workaround since e sometimes gets mangled with non-Exception object
-          Marshal.dump([@new_keys, n_e, e.backtrace.to_s.gsub(/\s+/," "), @logs_array] , t_case_write)
+          Marshal.dump([@new_keys, n_e, e.backtrace.to_s.gsub(/\s+/," "), @logs_array, @local_logs_array] , t_case_write)
         ensure
           @connection_handler.disconnect if @connection_handler
           begin
@@ -481,6 +485,7 @@ class SessionHandler
       t_proc_result = Marshal.load(t_proc_result)
       @new_keys = t_proc_result[0]
       @logs_array = t_proc_result[3]
+      @local_logs_array = t_proc_result[4]
       if t_proc_result[1].is_a?(TestResult)
         @test_result = t_proc_result[1]
         @results_html_file = t_proc_result[2]
@@ -497,9 +502,10 @@ class SessionHandler
           @test_iter_sum[1] += 1
           @test_sess_sum[1] += 1
           @consecutive_non_passed_tests += 1
-        when FrameworkConstants::Result[:ns]
+        else
           @test_iter_sum[2] += 1
           @test_sess_sum[2] += 1
+
       end
       html_result = @test_result.comment
       rescue Exception => e
@@ -509,8 +515,7 @@ class SessionHandler
         @test_iter_sum[2] += 1
         @test_sess_sum[2] += 1
         @consecutive_non_passed_tests += 1 if @test_params.auto
-        @test_result.result = FrameworkConstants::Result[:blk]
-        @test_result.comment = e.to_s.gsub(/[\s<>]+/," ")
+        set_result(FrameworkConstants::Result[:blk], e.to_s.gsub(/[\s<>]+/," "))
         raise
       ensure
         @old_keys = @new_keys
@@ -534,8 +539,35 @@ class SessionHandler
       end
     end
 
+    # Pass hash to detect know setup issues that cause false failures
+    # Syntax: {/DEVICE TYPE/ => [/SETUP_ISSUE_REGEX/,'SETUP ERROR DESCRIPTION']}
+    #   e.g.: {/dut/    => [/nfs: server [\d\.]+ not responding/,'NFS Server failure'],
+    #          /server/ => [/incorrect password attempts/, 'Wrong password']}
+    def load_known_setup_issues_dictionary(known_setup_issues)
+      @known_setup_issues = known_setup_issues
+    end
+
     #This function is used inside the test script to set the result for the test. Takes test_result the result of the test (FrameworkConstants::Result), and comment a comment associated with the test result (string) as parameters.
     def set_result(test_result, comment = nil, perf_data = nil, max_dev = 0.05)
+      setup_issue_detected = false
+      if test_result != FrameworkConstants::Result[:pass] && @known_setup_issues && @known_setup_issues.is_a?(Hash)
+        @known_setup_issues.each{|type,issues_values|
+          issues_values.each{|values|
+            next if setup_issue_detected
+            next if !values.is_a?(Array)
+            type_logs = @local_logs_array.select {|element| true if element.is_a?(Array) && type.match(element[0])}
+            type_logs.each{|log|
+              next if setup_issue_detected
+              matches = File.open(log[1]).grep(values[0])
+              if matches.size > 0
+                test_result = FrameworkConstants::Result[:blk]
+                comment = "SETUP ISSUE DETECTED:#{values[1]}. #{comment}"
+                setup_issue_detected = true
+              end
+            }
+          }
+        }
+      end
       @test_result.result = test_result
       @test_result.comment = comment if comment
       @test_result.set_perf_data(perf_data)
@@ -643,6 +675,7 @@ class SessionHandler
     def add_equipment(equip_var, equip_info=nil, replace=false, link_log=true)
       raise "Could not add equipment, equipment hash already contains an equipment referenced with key #{equip_var}" if @equipment.has_key?(equip_var) && !replace
       equip_log = File.join(@files_dir,equip_var.strip+"_"+@current_test_iteration.to_s+"_log.txt")
+      @local_logs_array << [equip_var, equip_log]
       @logs_array << [equip_var, equip_log.sub(@session_results_base_directory,@session_results_base_url).sub(/http:\/\//i,"")] if link_log && !@equipment.has_key?(equip_var)
       if equip_info
         equip_object = yield Object.const_get(equip_info.driver_class_name), equip_log
