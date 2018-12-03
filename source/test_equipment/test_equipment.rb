@@ -15,6 +15,7 @@ require File.dirname(__FILE__)+'/staf_smartbits_sai_driver'
 require File.dirname(__FILE__)+'/ti_msp432_switch'
 require File.dirname(__FILE__)+'/touch_driver'
 require File.dirname(__FILE__)+'/automation_interface_driver'
+require File.dirname(__FILE__)+'/oscope_equipment_driver'
 
 # reference_file 'C:\Program Files\Automation Studio\test_equipment.dll'
 # reference_file 'C:\Program Files\Automation Studio\PesqCalculator.dll'
