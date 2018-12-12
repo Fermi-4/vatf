@@ -1211,7 +1211,7 @@ module SystemLoader
   end
 
   class StartSimulatorStep < Step
-    attr_reader :simulator_socket, :simulator_stdin, :simulator_stdout, :simulator_stderr
+    attr_reader :simulator_socket, :simulator_stdin, :simulator_stdout, :simulator_stderr, :simulator_thread
     def initialize
       super('start_simulator')
       @simulator_socket_regex=/Opened listening socket on port (\d+) for virtual terminal usart0/
@@ -1228,7 +1228,7 @@ module SystemLoader
         sleep 2
         Timeout::timeout(90) {
           @simulator_response = ''
-          @simulator_stdin, @simulator_stdout, @simulator_stderr = Open3.popen3('sh')
+          @simulator_stdin, @simulator_stdout, @simulator_stderr, @simulator_thread = Open3.popen3('sh')
           log_data(params, "Parsing parameters\n")
           cmd="#{params['dut'].params['simulator_startup_cmd']} "
           script_file = params['dut'].params['simulator_python_script']
@@ -1254,6 +1254,7 @@ module SystemLoader
         }
       rescue Timeout::Error => e
         puts "TIMEOUT Starting Simulator"
+        Process.kill("KILL", @simulator_thread.pid)
         raise "TIMEOUT Starting Simulator.\n#{@simulator_response}"
       end
 
