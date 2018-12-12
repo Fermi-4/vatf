@@ -34,7 +34,7 @@ module Equipment
 
     def login_simulator(params)
       connect({'type'=>'serial'}) if !target.serial
-      boot_timeout = params['var_boot_timeout'] ? params['var_boot_timeout'].to_i : 1500
+      boot_timeout = params['var_boot_timeout'] ? params['var_boot_timeout'].to_i : 2400
       wait_for(/(Please press Enter to activate this console|#{params['dut'].login_prompt}|#{params['dut'].prompt})/, boot_timeout)
       params['dut'].boot_log = params['dut'].response
       if params['dut'].boot_log.match(/Please press Enter to activate this console/)
@@ -42,7 +42,7 @@ module Equipment
           send_cmd('', /.*/, 1, false)
         }
       end
-      raise "DUT rebooted while Starting Kernel" if params['dut'].boot_log.match(/Hit\s+any\s+key\s+to\s+stop\s+autoboot/i)
+      raise "DUT rebooted while Starting Kernel" if params['dut'].boot_log.match(/Starting kernel.+Hit\s+any\s+key\s+to\s+stop\s+autoboot/i)
       params['dut'].check_for_boot_errors()
       if params['dut'].timeout?
         params['dut'].log_info("Collecting kernel traces via sysrq...")
