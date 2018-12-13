@@ -16,6 +16,7 @@ def SysBootModule.set_sysboot(dut, setting)
   default_sysboot = get_sysboot_setting(dut, default_bootmedia)
   # find out which bit need to be change, either on->off or off->on
   sysboot_diff = get_sysboot_diff(default_sysboot, setting).reverse
+  puts "sysboot to be set:#{setting}"
   if dut.params['sysboot_ctrl'].driver_class_name == 'DevantechRelayController'
     @@sysboot_controller.sysboot(sysboot_diff)  # Farm boards with this setup connect relays in fail-safe mode
   else
@@ -64,6 +65,7 @@ def SysBootModule.get_sysboot_setting(dut, boot_media)
     machines['am43xx-gpevm'] = {'mmc'=>'101100', 'nand'=>'100110', 'eth'=>'111100', 'usbeth'=>'111101', 'usbmsc'=>'111110', 'uart'=>'111010', 'qspi'=>'101010' }
     machines['am437x-sk'] = machines['am43xx-gpevm']
     machines['am43xx-hsevm'] = machines['am43xx-gpevm']
+    machines['am57xx-evm'] = {'mmc'=>'0000', 'uart'=>'1111'}
     machines['am335x-evm'] = {'mmc'=>'10111', 'nand'=>'10100', 'uart'=>'00101', 'usbeth'=>'01101', 'eth'=>'01010' }
     machines['beaglebone-black'] = {'mmc'=>'11100', 'uart'=>'10000', 'eth'=>'10000' }
     machines['am654x-evm'] = {'mmc'=>'001006', 'uart'=>'00100a', 'eth'=>'000087', 'usbeth'=>'000008', 'usbmsc'=>'000408', 'qspi'=>'000082', 'ospi'=>'000081', 'emmc'=>'00080d', 'emmc_user'=>'000006'}
