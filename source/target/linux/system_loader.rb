@@ -1228,7 +1228,7 @@ module SystemLoader
         sleep 2
         Timeout::timeout(90) {
           @simulator_response = ''
-          @simulator_stdin, @simulator_stdout, @simulator_stderr, @simulator_thread = Open3.popen3('sh')
+          @simulator_stdin, @simulator_stdout, @simulator_stderr, @simulator_thread = Open3.popen3('sh 2>&1')
           log_data(params, "Parsing parameters\n")
           cmd="#{params['dut'].params['simulator_startup_cmd']} "
           script_file = params['dut'].params['simulator_python_script']
