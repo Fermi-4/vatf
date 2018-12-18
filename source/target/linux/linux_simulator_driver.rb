@@ -32,31 +32,6 @@ module Equipment
       @system_loader = SystemLoader::SimulatorSystemLoader.new
     end
 
-    def login_simulator(params)
-      connect({'type'=>'serial'}) if !target.serial
-      boot_timeout = params['var_boot_timeout'] ? params['var_boot_timeout'].to_i : 2400
-      wait_for(/(Please press Enter to activate this console|#{params['dut'].login_prompt}|#{params['dut'].prompt})/, boot_timeout)
-      params['dut'].boot_log = params['dut'].response
-      if params['dut'].boot_log.match(/Please press Enter to activate this console/)
-        2.times {
-          send_cmd('', /.*/, 1, false)
-        }
-      end
-      raise "DUT rebooted while Starting Kernel" if params['dut'].boot_log.match(/Starting kernel.+Hit\s+any\s+key\s+to\s+stop\s+autoboot/i)
-      params['dut'].check_for_boot_errors()
-      if params['dut'].timeout?
-        params['dut'].log_info("Collecting kernel traces via sysrq...")
-        params['dut'].send_sysrq('t')
-        params['dut'].send_sysrq('l')
-        params['dut'].send_sysrq('w')
-      end
-      3.times {
-        send_cmd(params['dut'].login, params['dut'].prompt, 40, false)
-        break if !params['dut'].timeout?
-      }
-      raise "Error executing boot" if params['dut'].timeout?
-    end
-
     def install_startup_files(params)
       startup_tarball = params['simulator_startup_files']
       install_directory = File.join(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name']), File.basename(startup_tarball))
@@ -88,7 +63,6 @@ module Equipment
       @boot_loader.run params
       @system_loader.run params
       @platform_info.serial_server_port = @system_loader.get_step('start_simulator')[0].simulator_socket
-      login_simulator(params)
     end
 
     def reset_sysboot(dut)

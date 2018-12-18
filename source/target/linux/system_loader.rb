@@ -1063,6 +1063,20 @@ module SystemLoader
     end
   end
 
+  class Arm64BootCmdStep < UbootStep
+    def initialize
+      super('arm64_boot_cmd')
+    end
+
+    def run(params)
+      ramdisk_addr = params['_env']['initramfs']
+      dtb_addr     = ''
+      dtb_addr = params['_env']['dtb_loadaddr'] if params['dtb_image_name'].strip != ''
+      append_text params, 'bootcmd', "if iminfo #{params['_env']['kernel_loadaddr']}; then bootm #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr};"\
+                                     " else booti #{params['_env']['kernel_loadaddr']} #{ramdisk_addr} #{dtb_addr}; fi"
+    end
+  end
+
   class BootStep < UbootStep
     def initialize
       super('boot')
@@ -1211,6 +1225,16 @@ module SystemLoader
     end
   end
 
+  class OverwriteFindfdtStep < UbootStep
+    def initialize
+      super('overwrite_findfdt_step')
+    end
+
+    def run(params)
+      send_cmd params, "setenv findfdt \"setenv name_fdt #{params['dtb_image_name']}\"" if params['dtb_image_name'].to_s != ''
+    end
+  end
+
   class StartSimulatorStep < Step
     attr_reader :simulator_socket, :simulator_stdin, :simulator_stdout, :simulator_stderr, :simulator_thread
     def initialize
@@ -1221,6 +1245,25 @@ module SystemLoader
     def log_data(params, msg)
       Kernel.print msg
       params['server'].log_info("SIMULATOR: #{msg}")
+    end
+
+    def stop_at_boot_prompt(params)
+      dut = params['dut']
+      dut.connect({'type'=>'serial'})
+      b_prompt_th = Thread.new do
+        dut.send_cmd("", dut.boot_prompt, 40, false)
+      end
+      300.times {
+        dut.target.serial.puts(" ")
+        dut.target.serial.flush
+        s_time = Time.now()
+        while Time.now() - s_time < 0.1
+          #busy wait
+        end
+        break if !b_prompt_th.alive?
+      }
+      b_prompt_th.join()
+      raise "Failed to load bootloader" if dut.target.bootloader.timeout?
     end
 
     def run(params)
@@ -1252,6 +1295,8 @@ module SystemLoader
           end
           log_data(params, "Simulator started at socket #{@simulator_response.match(@simulator_socket_regex).captures[0]}\n")
           @simulator_socket = @simulator_response.match(@simulator_socket_regex).captures[0]
+          params['dut'].target.platform_info.serial_server_port = @simulator_socket
+          stop_at_boot_prompt(params)
         }
       rescue Timeout::Error => e
         puts "TIMEOUT Starting Simulator"
@@ -1850,6 +1895,9 @@ module SystemLoader
     def initialize
       super
       add_step( StartSimulatorStep.new )
+      add_step( BoardInfoStep.new )
+      add_step( OverwriteFindfdtStep.new )
+      add_step( BootStep.new )
     end
 
   end
