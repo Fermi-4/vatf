@@ -42,8 +42,6 @@ module Equipment
       end
       if params.key?('var_simulator_startup_script_name') and params['var_simulator_startup_script_name'].match(/.+\.sh/)
         params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; cd $(dirname $(find . -name vlab-startup)); "
-      elsif not params.key?('linux_system') or params['linux_system'].size < 2
-        params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; cd $(dirname $(find . -name vlab-startup)); ./vlab-startup -c -d `pwd` -p '"
       else
         params['dut'].params['simulator_startup_cmd'] = "cd #{install_directory}; cd $(dirname $(find . -name vlab-startup)); ./vlab-startup -c -p '"
       end
