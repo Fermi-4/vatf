@@ -67,7 +67,7 @@ def SysBootModule.get_sysboot_setting(dut, boot_media)
     machines['am43xx-hsevm'] = machines['am43xx-gpevm']
     machines['am57xx-evm'] = {'mmc'=>'0000', 'uart'=>'1111'}
     machines['am335x-evm'] = {'mmc'=>'10111', 'nand'=>'10100', 'uart'=>'00101', 'usbeth'=>'01101', 'eth'=>'01010' }
-    machines['beaglebone-black'] = {'mmc'=>'11100', 'uart'=>'10000', 'eth'=>'10000' }
+    machines['beaglebone-black'] = {'mmc'=>'11000', 'emmc'=>'11100', 'uart'=>'10000', 'eth'=>'10000' }
     machines['am654x-evm'] = {'mmc'=>'001006', 'uart'=>'00100a', 'eth'=>'000087', 'usbeth'=>'000008', 'usbmsc'=>'000408', 'qspi'=>'000082', 'ospi'=>'000081', 'emmc'=>'00080d', 'emmc_user'=>'000006'}
     machines['am654x-idk'] = machines['am654x-evm']
 
