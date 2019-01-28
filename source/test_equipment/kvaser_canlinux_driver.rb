@@ -54,7 +54,7 @@ module TestEquipment
              canfd_hash=Hash.new
              canlegacy_hash={1000000=>-1, 500000=>-2, 250000=>-3, 125000=>-4, 100000=>-5, 62000=>-6, 50000=>-7, 83000=>-8, 10000=>-9}
              canfd_hash={500000=>-1000, 1000000=>-1001, 2000000=>-1002, 4000000=>-1003, 8000000=>-1004}
-             if (params['can_type'] == "dcan")
+             if (params['can_type'] == "dcan" || params['interop_mode'] ==1)
                 kvaserid=canlegacy_hash[params['baudrate']]
              else 
                if (data_flag == 0)
