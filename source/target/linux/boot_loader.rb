@@ -275,19 +275,19 @@ class BaseLoader
       file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
       file.puts "stty -F #{params['dut'].params['bootloader_port']} #{params['dut'].params['bootloader_serial_params']['baud']}"
       # Send initial bootloader as xmodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 120 /usr/bin/sx -k --xmodem #{params['initial_bootloader']} < #{params['dut'].params['bootloader_port']} | /usr/bin/tee #{params['dut'].params['bootloader_port']}"
+      file.puts "/usr/bin/timeout 120 /usr/bin/sx -k --xmodem #{params['initial_bootloader']} < #{params['dut'].params['bootloader_port']} > #{params['dut'].params['bootloader_port']}"
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi"
       # Send sysfw as ymodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 120 /usr/bin/sb -kb --ymodem #{params['sysfw']} < #{params['dut'].params['bootloader_port']} | /usr/bin/tee #{params['dut'].params['bootloader_port']}" if params['sysfw'] != ''
+      file.puts "/usr/bin/timeout 120 /usr/bin/sb -kb --ymodem #{params['sysfw']} < #{params['dut'].params['bootloader_port']} > #{params['dut'].params['bootloader_port']}" if params['sysfw'] != ''
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi" if params['sysfw'] != ''
       # Send primary bootloader as ymodem, 4 minute timeout.
-      file.puts "/usr/bin/timeout 240 /usr/bin/sb -kb --ymodem #{params['primary_bootloader']} < #{params['dut'].serial_port} | /usr/bin/tee #{params['dut'].serial_port}"
+      file.puts "/usr/bin/timeout 240 /usr/bin/sb -kb --ymodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi"
       # Send U-Boot as ymodem, 4 minute timeout.
-      file.puts "/usr/bin/timeout 240 /usr/bin/sb -kb --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} | /usr/bin/tee #{params['dut'].serial_port}"
+      file.puts "/usr/bin/timeout 240 /usr/bin/sb -kb --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi"
       # Send an echo to be sure that we will break into autoboot.
