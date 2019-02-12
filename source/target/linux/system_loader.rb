@@ -1235,6 +1235,20 @@ module SystemLoader
     end
   end
 
+  class LoadRemoteProcStep < UbootStep
+    def initialize
+      super('load_remoteproc_step')
+    end
+
+    def run(params)
+      if params['start_remoteproc_cmd'].to_s != ''
+         remoteproc_start_cmd=params['start_remoteproc_cmd']
+         send_cmd params, "#{remoteproc_start_cmd}"
+      end
+    end
+  end
+
+
   class StartSimulatorStep < Step
     attr_reader :simulator_socket, :simulator_stdin, :simulator_stdout, :simulator_stderr, :simulator_thread
     def initialize
@@ -1897,6 +1911,7 @@ module SystemLoader
       add_step( StartSimulatorStep.new )
       add_step( BoardInfoStep.new )
       add_step( OverwriteFindfdtStep.new )
+      add_step( LoadRemoteProcStep.new )
       add_step( BootStep.new )
     end
 
