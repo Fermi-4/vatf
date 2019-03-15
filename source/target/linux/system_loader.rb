@@ -1267,7 +1267,7 @@ module SystemLoader
       b_prompt_th = Thread.new do
         dut.send_cmd("", dut.boot_prompt, 40, false)
       end
-      300.times {
+      2400.times {
         dut.target.serial.puts(" ")
         dut.target.serial.flush
         s_time = Time.now()
@@ -1284,7 +1284,7 @@ module SystemLoader
       begin
         log_data(params, "Sleeping 2 secs to avoid Simulator init errors\n")
         sleep 2
-        Timeout::timeout(90) {
+        Timeout::timeout(240) {
           @simulator_response = ''
           @simulator_stdin, @simulator_stdout, @simulator_stderr, @simulator_thread = Open3.popen3('sh 2>&1')
           log_data(params, "Parsing parameters\n")
