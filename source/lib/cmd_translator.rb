@@ -25,7 +25,7 @@ module CmdTranslator
     'wdt'     => { '0.0' => Hash.new('').merge!({'omap5-evm' => 'omap-wdt.kernelpet=0', 'dra7xx-evm' => 'omap-wdt.kernelpet=0'})},
     # Add u-boot-extra partition to protect u-boot-spl partition so the spi test won't corrupt the data in u-boot-spl part
     'spi'     => { '0.0' => Hash.new('cmdlinepart.mtdparts=spi0.0:1m(u-boot-spl)ro,256k(u-boot-extra)ro,-(misc)').merge!({'k2g-evm' => 'cmdlinepart.mtdparts=spi1.0:1m(u-boot-spl)ro,256k(u-boot-extra)ro,-(misc)' })},
-    'qspi'     => { '0.0' => Hash.new('').merge!({'am43xx-epos' => 'spi-ti-qspi.enable_qspi=1', 'am654x-evm' => 'mtdparts=$mtdparts' })},
+    'qspi'     => { '0.0' => Hash.new('').merge!({'am43xx-epos' => 'spi-ti-qspi.enable_qspi=1', 'am654x-evm' => '$mtdparts' })},
     # Add u-boot-extra partition to protect u-boot partition so the nand test won't corrupt the data in u-boot part
     'nand'    => {'0.0' => Hash.new('').merge!({'omapl138-lcdk' => 'cmdlinepart.mtdparts=davinci-nand.0:128k(u-boot-env)ro,1m(u-boot)ro,256k(u-boot-extra)ro,-(free-space)'})},
     'env default' => { '0.0'  => 'env default -f',
