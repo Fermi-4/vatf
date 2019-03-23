@@ -1350,7 +1350,7 @@ module SystemLoader
     end
 
     def fastboot_cmd(params, cmd, timeout=20, expect=/OKAY.*finished.\s*total\s*time:[^\r\n]+/im, raise_on_error=true)
-      params['server'].send_sudo_cmd("#{params['fastboot']} -s #{params['dut'].board_id} #{cmd}", expect, timeout)
+      params['server'].send_sudo_cmd("ANDROID_PRODUCT_OUT=#{params['workdir']}/tar_folder #{params['fastboot']} -s #{params['dut'].board_id} #{cmd}", expect, timeout)
       if raise_on_error && params['server'].timeout?
         send_cmd params, "\x03", nil, 20, false
         @@updated_imgs.each do |i_name, i_md5|
@@ -1367,7 +1367,7 @@ module SystemLoader
       @@must_flash || (params['_env']["#{part}_md5"] != params['server'].response.strip)
     end
 
-    def flash_run(params, part, timeout=20)
+    def flash_run(params, part, timeout=60)
       if should_flash?(params, part)
         fastboot_cmd(params, "flash #{@partition_tx_table[part]} #{params[part]}", timeout, /OKAY.*OKAY.*finished.\s*total\s*time:[^\r\n]+/im)
         params['server'].send_cmd("md5sum #{params[part]} | cut -d' ' -f 1")
@@ -1635,8 +1635,8 @@ module SystemLoader
 
     def run(params)
       if params['userdata'].to_s != ''
-        new_image = resize_image(params, params['userdata'], 'resized_userdata.img')
-        params['userdata'] = new_image if new_image
+        #new_image = resize_image(params, params['userdata'], 'resized_userdata.img')
+        #params['userdata'] = new_image if new_image
         flash_run(params, 'userdata')
       end
     end
