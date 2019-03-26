@@ -29,6 +29,8 @@ module TestEquipment
 
         def robust_send_cmd(cmd, expected_regex, timeout=120)
             connect({'type'=>'serial'}) if !@target.serial
+            @target.serial.flush_input
+            @target.serial.flush_output
             3.times {
                 send_cmd(cmd, expected_regex, timeout, false)
                 break if !timeout?
