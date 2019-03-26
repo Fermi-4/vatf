@@ -34,7 +34,7 @@ module CmdTranslator
     'ramfs_bootargs' => {'0.0' => Hash.new("setenv bootargs ''${bootargs}' root=/dev/ram0 rw rootfstype=ramfs'").merge!({'k2g-evm' => 'run args_ramfs'})},
     'k2_sec_bm_install' => {'0.0' => "setenv sec_bm_install 'go ${addr_mon}4 0xc084000 ${mon_size}; mon_install ${addr_mon_mkimg}'",
                              '2017.01' => "run run_mon_hs" },
-    'start_fastboot'     => { '0.0' => Hash.new('fastboot 0').merge!({'am57xx-evm' => 'fastboot 1', 'am574x-idk' => 'fastboot 1', 'am572x-idk' => 'fastboot 1', 'am571x-idk' => 'fastboot 1'})},
+    'start_fastboot'     => { '0.0' => Hash.new('fastboot 0').merge!({'am57xx-evm' => 'fastboot 1', 'am574x-idk' => 'fastboot 1', 'am572x-idk' => 'fastboot 1', 'am571x-idk' => 'fastboot 1', 'am57xx-beagle-x15' => 'fastboot 1'})},
     'emmcboot_expect' => { '0.0' => Hash.new('MMC2').merge!({'am654x-evm' => 'MMC1', 'am654x-idk' => 'MMC1'})},
     'primary_bootloader_filename' => { '0.0' => Hash.new('MLO').merge!({'am654x-evm' => 'tispl.bin', 'am654x-idk' => 'tispl.bin'})},
     'emmc_partition_config' => { '0.0' => Hash.new('').merge!({'am654x-evm' => '0 1 1 1', 'am654x-idk' => '0 1 1 1', 'dra7xx-evm' => '1 1 1 0', 'dra71x-evm' => '1 1 1 0', 'dra72x-evm' => '1 1 1 0'})},
