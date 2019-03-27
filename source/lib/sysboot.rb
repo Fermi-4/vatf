@@ -1,6 +1,5 @@
 module SysBootModule
 
-@@sysboot_controller = nil
 # Function to set sysboot via relay to $setting
 #     This function is to switch the diff bits between $setting and default setting 
 # Setup:    
@@ -10,24 +9,24 @@ module SysBootModule
 # Input: 'setting' [n:0], Ex: '110111'
 def SysBootModule.set_sysboot(dut, setting)
   return if !dut.instance_variable_defined?(:@params) or !dut.params.key?('sysboot_ctrl')
-  @@sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl']) if !@@sysboot_controller
-  @@sysboot_controller.set_dut_type(dut.name) if @@sysboot_controller.respond_to?(:set_dut_type)
+  sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl'])
+  sysboot_controller.set_dut_type(dut.name) if sysboot_controller.respond_to?(:set_dut_type)
   default_bootmedia = get_default_bootmedia(dut.name)
   default_sysboot = get_sysboot_setting(dut, default_bootmedia)
   # find out which bit need to be change, either on->off or off->on
   sysboot_diff = get_sysboot_diff(default_sysboot, setting).reverse
   puts "sysboot to be set:#{setting}"
   if dut.params['sysboot_ctrl'].driver_class_name == 'DevantechRelayController'
-    @@sysboot_controller.sysboot(sysboot_diff)  # Farm boards with this setup connect relays in fail-safe mode
+    sysboot_controller.sysboot(sysboot_diff)  # Farm boards with this setup connect relays in fail-safe mode
   else
-    @@sysboot_controller.sysboot(setting)
+    sysboot_controller.sysboot(setting)
   end
 end
 
 def SysBootModule.por(dut)
   return if !dut.instance_variable_defined?(:@params) or !dut.params.key?('sysboot_ctrl')
-  @@sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl']) if !@@sysboot_controller
-  @@sysboot_controller.por() if sysboot_controller.respond_to?(:por)
+  sysboot_controller = Object.const_get(dut.params['sysboot_ctrl'].driver_class_name).new(dut.params['sysboot_ctrl'])
+  sysboot_controller.por() if sysboot_controller.respond_to?(:por)
 end
 
 def SysBootModule.reset_sysboot(dut)
