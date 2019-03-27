@@ -59,6 +59,9 @@ sudo lxc-destroy -n #{@lxc_container}
       else
         super(params)
       end
+      if params.has_key?("autologin")
+        @system_loader.replace_step('boot', BootAutologinStep.new)
+      end
     end
 
     def poweroff(params=nil)
