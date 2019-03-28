@@ -1637,7 +1637,7 @@ module SystemLoader
       if params['userdata'].to_s != ''
         #new_image = resize_image(params, params['userdata'], 'resized_userdata.img')
         #params['userdata'] = new_image if new_image
-        flash_run(params, 'userdata')
+        flash_run(params, 'userdata', 200)
       end
     end
   end
