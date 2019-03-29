@@ -133,6 +133,10 @@ module CmdTranslator
                           {'am335x-evm' => 'echo disabled > /sys/devices/platform/ocp/44e0d000.tscadc/power/wakeup',
                            'am43xx-epos'=> 'echo disabled > /sys/devices/platform/44000000.ocp/44e0d000.tscadc/power/wakeup',
                            'am43xx-gpevm'=> 'echo disabled > /sys/devices/platform/44000000.ocp/44e0d000.tscadc/power/wakeup',} ),
+                    '4.19' => Hash.new('').merge!(
+                          {'am335x-evm' => 'lst=`find /sys/devices/platform/ocp/44e0d000.tscadc/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
+                           'am43xx-epos'=> 'lst=`find /sys/devices/platform/ocp/44e0d000.tscadc/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',
+                           'am43xx-gpevm'=> 'lst=`find /sys/devices/platform/ocp/44e0d000.tscadc/ -name wakeup`; for ent in $lst; do echo $ent; echo disabled > $ent; done',} ),
     },
     'disable_adc_wakeup' => { 
                     '0.0' => Hash.new('').merge!(
