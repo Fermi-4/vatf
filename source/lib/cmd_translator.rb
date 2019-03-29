@@ -27,7 +27,8 @@ module CmdTranslator
     'spi'     => { '0.0' => Hash.new('cmdlinepart.mtdparts=spi0.0:1m(u-boot-spl)ro,256k(u-boot-extra)ro,-(misc)').merge!({'k2g-evm' => 'cmdlinepart.mtdparts=spi1.0:1m(u-boot-spl)ro,256k(u-boot-extra)ro,-(misc)', 'am654x-evm' => '$mtdparts', 'am654x-idk' => '$mtdparts' })},
     'qspi'     => { '0.0' => Hash.new('').merge!({'am43xx-epos' => 'spi-ti-qspi.enable_qspi=1', 'am654x-evm' => '$mtdparts', 'am654x-idk' => '$mtdparts' })},
     # Add u-boot-extra partition to protect u-boot partition so the nand test won't corrupt the data in u-boot part
-    'nand'    => {'0.0' => Hash.new('').merge!({'omapl138-lcdk' => 'cmdlinepart.mtdparts=davinci-nand.0:128k(u-boot-env)ro,1m(u-boot)ro,256k(u-boot-extra)ro,-(free-space)'})},
+    'nand'    => {'0.0' => Hash.new('').merge!({'omapl138-lcdk' => 'cmdlinepart.mtdparts=davinci-nand.0:128k(u-boot-env)ro,1m(u-boot)ro,256k(u-boot-extra)ro,-(free-space)'}),
+                  '2019.01' => Hash.new('').merge!({'omapl138-lcdk' => 'cmdlinepart.mtdparts=62000000.nand:128k(u-boot-env)ro,1m(u-boot)ro,256k(u-boot-extra)ro,-(free-space)'}) },
     'env default' => { '0.0'  => 'env default -f',
                        '2011.10' => 'env default -a -f',},
     'run_pmmc' => {'0.0' => 'run run_pmmc', },
