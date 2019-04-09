@@ -147,7 +147,7 @@ EOF
 
     def get_android_version()
       return @android_version if @android_version
-      raise "Unable to get android version since Android has not booted up" if send_adb_cmd("get-state").strip.downcase != 'device'
+      raise "Unable to get android version since Android has not booted up" if !send_adb_cmd("get-state").match(/device/i)
       @android_version = send_adb_cmd("shell getprop ro.build.version.release")
       raise "Could not find android version" if @android_version.strip == ''
       puts "\nAndroid version = #{@android_version}\n\n"
