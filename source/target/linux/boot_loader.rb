@@ -287,6 +287,7 @@ class BaseLoader
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi"
       # Send U-Boot as ymodem, 4 minute timeout.
+      file.puts "sleep 1"
       file.puts "/usr/bin/timeout 240 /usr/bin/sb -kb --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
       file.puts "if [ $? -ne 0 ]; then exit 1; fi"
