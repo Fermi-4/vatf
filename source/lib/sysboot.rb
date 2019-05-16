@@ -69,6 +69,7 @@ def SysBootModule.get_sysboot_setting(dut, boot_media)
     machines['beaglebone-black'] = {'mmc'=>'11000', 'emmc'=>'11100', 'uart'=>'10000', 'eth'=>'10000' }
     machines['am654x-evm'] = {'mmc'=>'001006', 'uart'=>'00100a', 'eth'=>'000087', 'usbeth'=>'000008', 'usbmsc'=>'000408', 'qspi'=>'000082', 'ospi'=>'000081', 'emmc'=>'00080d', 'emmc_user'=>'000006'}
     machines['am654x-idk'] = machines['am654x-evm']
+    machines['am654x-hsevm'] = machines['am654x-evm']
 
     raise "Sysboot setting for #{boot_media} not defined for #{platform}" if !machines[platform][boot_media]
     machines[platform][boot_media]
