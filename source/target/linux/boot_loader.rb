@@ -220,7 +220,7 @@ class BaseLoader
       sleep 1  
       file.puts "#!/bin/bash"
       # Run stty to set the baud rate.
-      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
+      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']} -crtscts"
       # Send SPL as xmodem, 2 minute timeout.
       file.puts "/usr/bin/timeout 120 /usr/bin/sx -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
@@ -243,7 +243,7 @@ class BaseLoader
       sleep 1  
       file.puts "#!/bin/bash"
       # Run stty to set the baud rate.
-      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
+      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']} -crtscts"
       # Send u-boot-min as xmodem, 2 minute timeout.
       file.puts "/usr/bin/timeout 120 /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
@@ -272,8 +272,8 @@ class BaseLoader
       sleep 1
       file.puts "#!/bin/bash"
       # Run stty to set the baud rate.
-      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
-      file.puts "stty -F #{params['dut'].params['bootloader_port']} #{params['dut'].params['bootloader_serial_params']['baud']}"
+      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']} -crtscts"
+      file.puts "stty -F #{params['dut'].params['bootloader_port']} #{params['dut'].params['bootloader_serial_params']['baud']} -crtscts"
       # Send initial bootloader as xmodem, 2 minute timeout.
       file.puts "/usr/bin/timeout 120 /usr/bin/sx -k --xmodem #{params['initial_bootloader']} < #{params['dut'].params['bootloader_port']} > #{params['dut'].params['bootloader_port']}"
       # If we timeout or don't return cleanly (transfer failed), return 1
@@ -305,7 +305,7 @@ class BaseLoader
       sleep 1
       file.puts "#!/bin/bash"
       # Run stty to set the baud rate.
-      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
+      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']} -crtscts"
       # Send SPL as xmodem, 2 minute timeout.
       file.puts "/usr/bin/timeout 120 /usr/bin/sx -k --xmodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
       # If we timeout or don't return cleanly (transfer failed), return 1
@@ -324,7 +324,7 @@ class BaseLoader
       sleep 1  
       file.puts "#!/bin/bash"
       # Run stty to set the baud rate.
-      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']}"
+      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']} -crtscts"
       # Send u-boot-spl.bin using serial-boot.pl script, 2 minute timeout.
       file.puts "/usr/bin/timeout 120 perl #{Dir.pwd}/target/utils/serial-boot.pl -p #{params['dut'].serial_port} -d0 -t40 -s #{params['primary_bootloader']} "
       # If we timeout or don't return cleanly (transfer failed), return 1
