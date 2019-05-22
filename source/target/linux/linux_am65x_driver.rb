@@ -66,7 +66,7 @@ module Equipment
     # Select SystemLoader's Steps implementations based on params
     def set_systemloader(params)
       super(params)
-      @system_loader.replace_step('boot_cmd', SystemLoader::Arm64BootCmdStep.new)  if @system_loader.contains?('boot')
+      @system_loader.replace_step('boot_cmd', SystemLoader::Arm64BootCmdStep.new)  if @system_loader.contains?('boot') || @system_loader.contains?('boot_autologin')
     end
 
   end

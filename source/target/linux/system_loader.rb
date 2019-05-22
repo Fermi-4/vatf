@@ -95,9 +95,11 @@ module SystemLoader
         load_ramdisk_addr = '${ramdisk_addr}'
       when /addr_fs=[\da-fA-Fx]+/
         load_ramdisk_addr = '${addr_fs}'
+      else
+        load_ramdisk_addr = '0x84000000'
       end
       params['_env']['ramdisk_loadaddr'] = load_ramdisk_addr
-      
+
       # Determine mon 
       mon_addr = '${addr_mon}'
       case params['dut'].response
@@ -930,7 +932,7 @@ module SystemLoader
       
       case params['fs_dev']
       when /eth/i
-        load_file_from_eth_now params, params['_env']['ramdisk_loadaddr'], params['fs_image_name'], 600
+        load_file_from_eth_now params, params['_env']['ramdisk_loadaddr'], params['fs_image_name'], 600  if params['fs_image_name'] && params['fs_image_name'] != ''
         send_cmd params, "setenv _initramfs #{params['_env']['ramdisk_loadaddr']}:#{params['_env']['filesize']}"
       when /mmc/i
         load_file_from_mmc params, params['_env']['ramdisk_loadaddr'], params['fs_image_name']
@@ -1114,10 +1116,21 @@ module SystemLoader
 
     def run(params)
       boot_timeout = params['var_boot_timeout'] ? params['var_boot_timeout'].to_i : 210
-      send_cmd params, "boot", params['dut'].prompt, boot_timeout
+
+      send_cmd params, "boot", /.*/, 1, true, false
+      params['dut'].target.default = params['dut'].target.serial
+      send_cmd params, "", params['dut'].prompt, boot_timeout, true, false
+
       params['dut'].boot_log = params['dut'].response
       raise "DUT rebooted while Starting Kernel" if params['dut'].boot_log.match(/Hit\s+any\s+key\s+to\s+stop\s+autoboot/i)
       params['dut'].check_for_boot_errors()
+      if params['dut'].timeout?
+        params['dut'].log_info("Collecting kernel traces via sysrq...")
+        params['dut'].send_sysrq('t')
+        params['dut'].send_sysrq('l')
+        params['dut'].send_sysrq('w')
+        raise "Error executing boot"
+      end
     end
 
   end
