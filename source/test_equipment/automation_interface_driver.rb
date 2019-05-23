@@ -16,8 +16,17 @@ module TestEquipment
             super(platform_info, log_path)
         end
 
+
+
         def set_dut_type(dut_type)
-            @dut_type = dut_type
+            dut_names_map = {
+                'am654x-hsevm' => 'am654x-evm',
+                'j721e-hsevm' => 'j721e-evm',
+                'j721e-idk-gw' => 'j721e-evm',
+                'dra71x-hsevm' => 'dra71x-evm',
+                'dra7xx-hsevm' => 'dra7xx-evm',
+            }
+            @dut_type = dut_names_map.has_key?(dut_type) ? dut_names_map[dut_type] : dut_type
             robust_send_cmd("auto set dut #{@dut_type}", @prompt)
         end
 
