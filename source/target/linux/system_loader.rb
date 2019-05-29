@@ -1449,7 +1449,7 @@ module SystemLoader
       if params['run_fastboot.sh']
         this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], params['dut'].get_fastboot_media_type())
         SysBootModule::set_sysboot(params['dut'], this_sysboot)
-        params['server'].send_cmd("cd #{params['fastboot_path']}; ./fastboot.sh", /OKAY.*finished.\s*total\s*time:[^\r\n]+/im, 600)
+        params['server'].send_cmd("cd #{params['fastboot_path']}; ./fastboot.sh", /OKAY.*finished.\s*total\s*time:[^\r\n]+/im, 700)
         raise "Error: Host timed out running #{File.join(params['fastboot_path'], 'fastboot.sh')}" if params['server'].timeout?
         @@updated_imgs['tarball_md5'] = params['tarball_md5']
       end
