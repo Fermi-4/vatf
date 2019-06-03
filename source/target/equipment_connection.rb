@@ -20,6 +20,27 @@ class EquipmentConnection
     @base_log_dir=File.dirname(log_path) if log_path
   end
 
+  def connect_bootloader()
+	 if !@bootloader || @bootloader.closed?
+        if @platform_info.params && @platform_info.params['bootloader_port'].to_s.strip != ''
+          mod_platform_info = @platform_info.clone
+          mod_platform_info.serial_port = @platform_info.params['bootloader_port']
+          mod_platform_info.serial_params = @platform_info.params['bootloader_serial_params']
+          mod_platform_info.prompt = @platform_info.params['bootloader_prompt']
+          @bootloader = SerialEquipmentConnection.new(mod_platform_info)
+          if @base_log_dir
+            @bootloader.start_listening {[mod_platform_info, File.join(@base_log_dir, mod_platform_info.serial_port.gsub(/\W/,'_'))]}
+          else
+            @serial.start_listening
+          end
+        end
+      end
+  end
+
+  def disconnect_bootloader()
+	@bootloader.disconnect if @bootloader
+  end
+
   def connect(params)
     case params['type'].to_s.downcase.strip
     when 'telnet'
@@ -50,20 +71,7 @@ class EquipmentConnection
       end
       @default = @serial 
 
-      if !@bootloader || @bootloader.closed?
-        if @platform_info.params && @platform_info.params['bootloader_port'].to_s.strip != ''
-          mod_platform_info = @platform_info.clone
-          mod_platform_info.serial_port = @platform_info.params['bootloader_port']
-          mod_platform_info.serial_params = @platform_info.params['bootloader_serial_params']
-          mod_platform_info.prompt = @platform_info.params['bootloader_prompt']
-          @bootloader = SerialEquipmentConnection.new(mod_platform_info)
-          if @base_log_dir
-            @bootloader.start_listening {[mod_platform_info, File.join(@base_log_dir, mod_platform_info.serial_port.gsub(/\W/,'_'))]}
-          else
-            @serial.start_listening
-          end
-        end
-      end
+      connect_bootloader()
 
       if !@firmware || @firmware.closed?
         if @platform_info.params && @platform_info.params['firmware_port'].to_s.strip != ''
@@ -131,7 +139,7 @@ class EquipmentConnection
     end
     if type == 'serial' || type == 'all'
       @serial.disconnect if @serial
-      @bootloader.disconnect if @bootloader
+      disconnect_bootloader()
       @firmware.disconnect if @firmware
       @default = nil if type.downcase.strip == 'all' || @default == @serial
       @serial = nil
