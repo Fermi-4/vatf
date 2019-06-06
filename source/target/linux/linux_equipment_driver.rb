@@ -88,6 +88,7 @@ module Equipment
      'am654x-evm' => 'console=ttyS2,115200n8 earlyprintk=serial,ttyS2,115200n8 earlycon=ns16550a,mmio32,0x02800000 rootwait fsck.mode=skip',
      'am654x-idk' => 'console=ttyS2,115200n8 earlyprintk=serial,ttyS2,115200n8 earlycon=ns16550a,mmio32,0x02800000 rootwait fsck.mode=skip',
      'am654x-hsevm' => 'console=ttyS2,115200n8 earlyprintk=serial,ttyS2,115200n8 earlycon=ns16550a,mmio32,0x02800000 rootwait fsck.mode=skip',
+     'j721e-evm' => 'console=ttyS2,115200n8 earlyprintk=serial,ttyS2,115200n8 earlycon=ns16550a,mmio32,0x02800000 rootwait fsck.mode=skip',
      })
     
     def initialize(platform_info, log_path)

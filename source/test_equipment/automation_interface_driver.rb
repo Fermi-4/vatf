@@ -128,10 +128,14 @@ module TestEquipment
             cmd_response.scan(/^\|\s*\d+\s*\|\s*(\w+)\s*\|\s*([\d\.\-]+)\s*\|\s*([\d\.\-]+)\s*\|\s*([\d\.\-]+)\s*\|\s*([\d\.]+)\s*\|/).each{|data|
                 puts "domain \t drop V \t volt \t current \t power"
                 puts "#{data[0]} \t #{data[1]} \t #{data[2]} \t #{data[3]} \t #{data[4]}"
-                h["domain_"+ _reverse_translate_domain_names(data[0]) + "drop_volt_readings"] << data[1].to_f * 10**-6
-                h["domain_"+ _reverse_translate_domain_names(data[0]) + "_volt_readings"]  << data[2].to_f
-                h["domain_"+ _reverse_translate_domain_names(data[0]) + "_current_readings"] << data[3].to_f * 10**-3
-                h["domain_"+ _reverse_translate_domain_names(data[0]) + "_power_readings"] << data[4].to_f
+                if @dut_power_domains.include?(_reverse_translate_domain_names(data[0]))
+                    h["domain_"+ _reverse_translate_domain_names(data[0]) + "drop_volt_readings"] << data[1].to_f * 10**-6
+                    h["domain_"+ _reverse_translate_domain_names(data[0]) + "_volt_readings"]  << data[2].to_f
+                    h["domain_"+ _reverse_translate_domain_names(data[0]) + "_current_readings"] << data[3].to_f * 10**-3
+                    h["domain_"+ _reverse_translate_domain_names(data[0]) + "_power_readings"] << data[4].to_f
+                else
+                    puts "domain #{data[0]} not is evms data, skipping ..."
+                end
             }
             h
         end
