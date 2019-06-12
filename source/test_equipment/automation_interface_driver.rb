@@ -23,6 +23,7 @@ module TestEquipment
                 'am654x-hsevm' => 'am654x-evm',
                 'j721e-hsevm' => 'j721e-evm',
                 'j721e-idk-gw' => 'j721e-evm',
+                'j721e-evm-ivi' => 'j721e-evm',
                 'dra71x-hsevm' => 'dra71x-evm',
                 'dra7xx-hsevm' => 'dra7xx-evm',
             }
