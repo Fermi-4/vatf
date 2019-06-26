@@ -70,7 +70,7 @@ def SysBootModule.get_sysboot_setting(dut, boot_media)
     machines['am654x-evm'] = {'mmc'=>'001006', 'uart'=>'00100a', 'eth'=>'000087', 'usbeth'=>'000008', 'usbmsc'=>'000408', 'qspi'=>'000082', 'ospi'=>'000081', 'emmc'=>'00080d', 'emmc_user'=>'000006'}
     machines['am654x-idk'] = machines['am654x-evm']
     machines['am654x-hsevm'] = machines['am654x-evm']
-    machines['j721e-evm'] = {'mmc'=>'4100', 'uart'=>'000E', 'ospi'=>'0002'}
+    machines['j721e-evm'] = {'mmc'=>'4100', 'uart'=>'000E', 'ospi'=>'0002', 'hflash'=>'0000'}
     machines['j721e-idk-gw'] = machines['j721e-evm']
     machines['j721e-evm-ivi'] = machines['j721e-evm']
     raise "Sysboot setting for #{boot_media} not defined for #{platform}" if !machines[platform][boot_media]

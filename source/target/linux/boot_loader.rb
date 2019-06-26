@@ -75,6 +75,13 @@ module BootLoader
     check_boot_media(params, 'nand')
   end
 
+  def LOAD_FROM_HFLASH(params)
+    puts "########LOAD_FROM_HFLASH########"
+    this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'hflash')
+    SysBootModule::set_sysboot(params['dut'], this_sysboot)
+    params['dut'].power_cycle(params)
+    check_boot_media(params, 'nor')
+  end
 
   def LOAD_FROM_QSPI_BY_BMC(params)
     puts "########LOAD_FROM_QSPI_BY_BMC########"

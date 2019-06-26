@@ -218,6 +218,12 @@ module SystemLoader
       self.send_cmd(params, "fatload usb #{params['_env']['usbdev']} #{load_addr} #{filename} ", params['dut'].boot_prompt, timeout)
     end
 
+    def erase_mtd(params, dev, mtd_loc, size, timeout=60)
+      aligned_size = get_aligned_size params, size, dev
+      self.send_cmd(params, "mtd erase #{dev} #{mtd_loc} #{aligned_size}", params['dut'].boot_prompt, timeout)
+      raise "erase_mtd failed!" if !params['dut'].response.match(/Erasing/) or params['dut'].response.match(/error/i)
+    end
+
     # The erase size returned is in decimal format
     def get_nand_sector_size(params)
       self.send_cmd(params, "nand info", params['dut'].boot_prompt, 10)
@@ -227,9 +233,21 @@ module SystemLoader
       return sectorsize
     end
 
-    def get_aligned_size(params, size)
-      sector_size = get_nand_sector_size params
-      # nand_erase_size is in decimal format
+    def get_nor_sector_size(params)
+      self.send_cmd(params, "mtd list", params['dut'].boot_prompt, 10)
+      # "block size: 0x40000 bytes"
+      sectorsize_h = /nor0\s*.*?block\s+size:\s*(0x\h+)\s*bytes/im.match(params['dut'].response).captures[0]
+      sectorsize = sectorsize_h.to_i(16)
+      return sectorsize
+    end
+
+    def get_aligned_size(params, size, dev='nand')
+      if dev == 'nand'
+        sector_size = get_nand_sector_size params
+      elsif dev == 'nor0'
+        sector_size = get_nor_sector_size params
+      end
+      # sector_size is in decimal format
       # size passed here is in hex format
       roundup_size = (size.to_i(16).to_f / sector_size.to_f).ceil * sector_size.to_f
       roundup_size = roundup_size.to_i.to_s(16)
@@ -245,6 +263,12 @@ module SystemLoader
         self.send_cmd(params, "nand erase.part #{nand_loc} ", params['dut'].boot_prompt, timeout)
       end
       raise "erase_nand failed!" if !params['dut'].response.match(/OK/) 
+    end
+
+    def write_file_to_mtd(params, dev, mem_addr, mtd_loc, size, timeout=60)
+      aligned_size = get_aligned_size params, size, dev
+      self.send_cmd(params, "mtd write #{dev} #{mem_addr} #{mtd_loc} #{aligned_size}", params['dut'].boot_prompt, timeout)
+      raise "write to mtd failed!" if !params['dut'].response.match(/writing/i) or params['dut'].response.match(/error/i) 
     end
 
     def write_file_to_nand(params, mem_addr, nand_loc, size, timeout=60)
@@ -367,6 +391,9 @@ module SystemLoader
       when 'nand'
         erase_nand params, params["nand_#{part}_loc"], txed_size, timeout
         write_file_to_nand params, params['_env']['loadaddr'], params["nand_#{part}_loc"], txed_size, timeout
+      when /hflash/ # hyperflash 
+        erase_mtd params, 'nor0', params["hflash_#{part}_loc"], txed_size, timeout
+        write_file_to_mtd params, 'nor0', params['_env']['loadaddr'], params["hflash_#{part}_loc"], txed_size, timeout
       when /spi/ # 'ospi' or 'qspi' or 'spi'
         # Only call probe_spi once due to LCPD-6981
         if params["#{part}_dst_dev"]

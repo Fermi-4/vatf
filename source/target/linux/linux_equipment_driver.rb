@@ -133,6 +133,8 @@ module Equipment
         BaseLoader.new method(:LOAD_FROM_OSPI)
       when /^spi/i
         BaseLoader.new method( get_spi_boot_method(@name) )
+      when /hflash/i
+        BaseLoader.new method(:LOAD_FROM_HFLASH)
       when /no-boot/i
         puts "*** Note: DUT boot mode will be changed via BMC commands. ***"
         DSPOnlyLoader.new method( get_no_boot_method(@name) )
