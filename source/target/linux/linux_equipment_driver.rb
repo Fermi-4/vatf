@@ -374,8 +374,17 @@ module Equipment
         puts 'Resetting @using power switch'
         poweroff(params) if connected && at_prompt?({'prompt'=>@prompt})
         disconnect('serial')
-        @power_handler.reset(@power_port) do
-          yield if block_given?
+        # Auto Interface on boards like am6, dra71x requires especial sequence to set sysboot pins
+        # because I/O expander on I2C bus loses power/context during EVM power off.
+        if @params and @params.key?('sysboot_ctrl') and @params['sysboot_ctrl'].driver_class_name == 'AutomationInterfaceDriver' and params['dut'].name =~ /am654x|j721e|dra71x/i
+          # Use POR instead of power off due to AM654x auto interface limitation
+          @power_handler.por(@power_port) do
+            yield if block_given?
+          end
+        else
+          @power_handler.reset(@power_port) do
+            yield if block_given?
+          end
         end
         trials = 0
         while (@serial_port && !File.exist?(@serial_port) && trials < 600)
