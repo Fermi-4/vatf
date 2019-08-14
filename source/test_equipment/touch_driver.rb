@@ -5,7 +5,7 @@ module TestEquipment
 
   # To install pre-requisite driver on beaglebone, run following command:
   # sudo pip install Adafruit_BBIO
-  class BeagleboneSingleTouchDriver < Equipment::EquipmentDriver
+  class BeagleboneTouchDriver < Equipment::EquipmentDriver
     attr_reader :number_of_servos, :dut_type, :executable_path
 
     def initialize(platform_info, log_path = nil)
