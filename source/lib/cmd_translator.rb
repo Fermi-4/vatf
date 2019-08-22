@@ -39,8 +39,8 @@ module CmdTranslator
     'start_fastboot'     => { '0.0' => Hash.new('fastboot 0').merge!({'am57xx-evm' => 'fastboot 1', 'am574x-idk' => 'fastboot 1', 'am572x-idk' => 'fastboot 1', 'am571x-idk' => 'fastboot 1', 'am57xx-beagle-x15' => 'fastboot 1'})},
     'emmcboot_expect' => { '0.0' => Hash.new('MMC2').merge!({'am654x-evm' => 'MMC1', 'am654x-idk' => 'MMC1', 'j721e-idk-gw'=>'MMC1', 'j721e-evm'=>'MMC1'})},
     'primary_bootloader_filename' => { '0.0' => Hash.new('MLO').merge!({'am654x-evm' => 'tispl.bin', 'am654x-idk' => 'tispl.bin', 'am654x-hsevm' => 'tispl.bin', 'j721e-evm' => 'tispl.bin', 'j721e-idk-gw' => 'tispl.bin', 'j721e-evm-ivi' => 'tispl.bin'})},
-    'emmc_partition_config' => { '0.0' => Hash.new('').merge!({'am654x-evm' => '0 1 1 1', 'am654x-idk' => '0 1 1 1', 'dra7xx-evm' => '1 1 1 0', 'dra71x-evm' => '1 1 1 0', 'dra72x-evm' => '1 1 1 0'})},
-    'emmc_boot_bus_width' => { '0.0' => Hash.new('').merge!({'am654x-evm' => '0 1 0 0', 'am654x-idk' => '0 1 0 0', 'dra7xx-evm' => '1 2 0 2', 'dra71x-evm' => '1 2 0 2', 'dra72x-evm' => '1 2 0 2'})},
+    'emmc_partition_config' => { '0.0' => Hash.new('').merge!({'j721e-idk-gw' => '0 1 1 1', 'am654x-evm' => '0 1 1 1', 'am654x-idk' => '0 1 1 1', 'dra7xx-evm' => '1 1 1 0', 'dra71x-evm' => '1 1 1 0', 'dra72x-evm' => '1 1 1 0'})},
+    'emmc_boot_bus_width' => { '0.0' => Hash.new('').merge!({'j721e-idk-gw' => '0 2 0 0', 'am654x-evm' => '0 1 0 0', 'am654x-idk' => '0 1 0 0', 'dra7xx-evm' => '1 2 0 2', 'dra71x-evm' => '1 2 0 2', 'dra72x-evm' => '1 2 0 2'})},
     'emmc_rst_n_function' => { '0.0' => Hash.new('').merge!({'dra7xx-evm' => '1 1', 'dra71x-evm' => '1 1', 'dra72x-evm' => '1 1'})}
   }
   
