@@ -75,7 +75,7 @@ module TestEquipment
          end
 
          def check_channel(params)
-             response=`cd #{@params['exec_path']};./listChannels|grep -i "ch *#{params['kvaser_channel']}"`
+             response=`cd #{@params['exec_path']};./listChannels|grep -iE "(ch|channel) *#{params['kvaser_channel']}"`
              if response.to_s.strip.empty?
                 puts "Check kvaser tool connection to PC - the channel cannot be listed on PC"
                 return false
