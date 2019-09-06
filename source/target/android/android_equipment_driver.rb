@@ -68,6 +68,13 @@ sudo lxc-destroy -n #{@lxc_container}
       send_cmd("sync",@prompt,120)
     end
 
+    #Soft reboot
+    def reboot(params)
+      reboot_regexp = /init:\s*terminating\s*init\s*services/i
+      reboot_regexp = params['reboot_regex'] if params['reboot_regex']
+      send_cmd('su root sync; su root reboot', reboot_regexp, 30)
+    end
+
     # Send command to an android device
     def send_adb_cmd (cmd)
       send_host_sudo_cmd("#{@adb} -s #{@board_id} #{cmd}", 'ADB')

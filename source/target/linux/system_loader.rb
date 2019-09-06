@@ -1968,6 +1968,7 @@ module SystemLoader
       add_step( FastbootCreatePartitionsStep.new)
       add_step( FastbootSetBootloaderTargetStep.new )
       add_step( FastbootFlashBootloaderStep.new )
+      add_step( StopFastbootStep.new )
       add_step( FastbootRebootBootloaderStep.new )
       add_step( StartFastbootStep.new )
       add_step( FastbootCreatePartitionsStep.new)
