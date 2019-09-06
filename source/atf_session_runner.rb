@@ -52,7 +52,7 @@ class CmdLineParser
       options.rtp = nil
       options.session_iterations = 1
       options.tests_to_run = [['all', 1]]
-      options.tester = Socket.gethostname
+      options.tester = Socket.gethostname.downcase()
       options.drive = nil
       options.bench_path = SiteInfo::BENCH_FILE
       options.results_base_dir = SiteInfo::LOGS_FOLDER
@@ -73,7 +73,7 @@ class CmdLineParser
         opts.separator "Specific options:"
 
         opts.on("-u name","=OPTIONAL","Tester's name or Id") do |tster|
-          options.tester = tster.strip
+		options.tester = tster.strip.downcase()
         end
 
         opts.on("-t tests","=OPTIONAL","Test cases to run, -t option format is one or more semicolon separated string of structure <tests cases to run>*<number of times to run each case>;.... where *<number of times to run each case> is optional and <test cases to run> can be an array of caseID i.e [caseID,caseID,...]") do |test_cases|
@@ -113,7 +113,7 @@ class CmdLineParser
         end
 
         opts.on("-d","=OPTIONAL","specified the directory used to store the html results") do |res_dir|
-          options.results_base_dir = res_dir.sub(/(\\|\/)$/,'')
+          options.results_base_dir = res_dir.sub(/(\\|\/)$/,'').downcase()
         end
 
         opts.on("-b","=OPTIONAL","specifies the path of the bench.rb file") do |bnch_pth|
