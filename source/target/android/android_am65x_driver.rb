@@ -21,6 +21,7 @@ module Equipment
         connected = false
       end
 
+      last_response = ''
       if @power_port !=nil
         puts 'Resetting using power switch'
         poweroff(params) if connected && at_prompt?({'prompt'=>@prompt})
@@ -50,13 +51,12 @@ module Equipment
           # assume at u-boot prompt
           send_cmd('reset', /resetting/i, 3)
         else
-          # at linux prompt
-          reboot_regexp = /(Restarting|Rebooting|going\s+down|Reboot\s+start)/i
-          reboot_regexp = params['reboot_regex'] if params['reboot_regex']
-          send_cmd('reboot', reboot_regexp, 40)
+          reboot(params)
         end
+        last_response = @response
         disconnect('serial')
       end
+        last_response
     end
 
     def set_systemloader(params)
