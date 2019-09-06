@@ -370,6 +370,7 @@ module Equipment
                  "#{e.to_s}\nWill try to connect again after power cycle...")
         connected = false
       end
+      last_response = ''
       if @power_port !=nil
         puts 'Resetting @using power switch'
         poweroff(params) if connected && at_prompt?({'prompt'=>@prompt})
@@ -390,14 +391,21 @@ module Equipment
         if timeout?
           # assume at u-boot prompt
           send_cmd('reset', /resetting/i, 3)
+          last_response = response
         else
           # at linux prompt
-          reboot_regexp = /(Restarting|Rebooting|going\s+down|Reboot\s+start)/i
-          reboot_regexp = params['reboot_regex'] if params['reboot_regex']
-          send_cmd('sync; reboot', reboot_regexp, 100)
+          reboot(params)
+          disconnect('serial')
         end
-        disconnect('serial')
       end
+      last_response
+    end
+
+    #Soft reboot
+    def reboot(params)
+      reboot_regexp = /(Restarting|Rebooting|going\s+down|Reboot\s+start)/i
+      reboot_regexp = params['reboot_regex'] if params['reboot_regex']
+      send_cmd('sync; reboot', reboot_regexp, 100)
     end
 
     # Gracefully bring down the system to avoid FS corruption
