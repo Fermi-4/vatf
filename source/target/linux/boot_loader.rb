@@ -71,16 +71,16 @@ module BootLoader
     puts "########LOAD_FROM_NAND########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'nand')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    params['dut'].power_cycle(params)
-    check_boot_media(params, 'nand')
+    last_response = params['dut'].power_cycle(params)
+    check_boot_media(params, 'nand', last_response)
   end
 
   def LOAD_FROM_HFLASH(params)
     puts "########LOAD_FROM_HFLASH########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'hflash')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    params['dut'].power_cycle(params)
-    check_boot_media(params, 'nor')
+    last_response = params['dut'].power_cycle(params)
+    check_boot_media(params, 'nor', last_response)
   end
 
   def LOAD_FROM_QSPI_BY_BMC(params)
@@ -132,24 +132,24 @@ module BootLoader
     puts "########LOAD_FROM_USBETH########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'usbeth')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    params['dut'].power_cycle(params)
-    check_boot_media(params, 'usb eth')
+    last_response = params['dut'].power_cycle(params)
+    check_boot_media(params, 'usb eth', last_response)
   end
 
   def LOAD_FROM_USBMSC(params)
     puts "########LOAD_FROM_USBMSC########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'usbmsc')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    params['dut'].power_cycle(params)
-    check_boot_media(params, 'usb')
+    last_response = params['dut'].power_cycle(params)
+    check_boot_media(params, 'usb', last_response)
   end
 
   def LOAD_FROM_ETHERNET(params)
     puts "########LOAD_FROM_ETHERNET#########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'eth')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    params['dut'].power_cycle(params)
-    check_boot_media(params, 'eth')
+    last_response = params['dut'].power_cycle(params)
+    check_boot_media(params, 'eth', last_response)
   end
 
   def LOAD_FROM_ETHERNET_BY_BMC(params)
@@ -164,17 +164,17 @@ module BootLoader
   ####################################################################################
   ####################################################################################
 
-  def check_boot_media(params, boot_media, timeout=5)
+  def check_boot_media(params, boot_media,  last_response='', timeout=5)
     params['dut'].connect({'type'=>'serial'})
     params['dut'].wait_for(/Trying\s+to\s+boot\s+from\s+[\w\s]+/i, timeout)
     if !params['dut'].timeout?
-      raise "Failed to boot from #{boot_media}!" if !params['dut'].response.match(/#{boot_media}/i)
+      raise "Failed to boot from #{boot_media}!" if !last_response.match(/Trying\s+to\s+boot\s+from.*?#{boot_media}/i) && (!params['dut'].response || !params['dut'].response.match(/#{boot_media}/i))
     end
   end
   
   def early_conn_power_cycle(params, media, stop_char=' ')
     b_thread = nil
-    params['dut'].power_cycle(params) do 
+    last_response = params['dut'].power_cycle(params) do 
       params['dut'].connect({'type'=>'serial'})
       b_thread = Thread.new do
         200.times {
@@ -187,7 +187,7 @@ module BootLoader
         }
       end
     end
-    check_boot_media(params, media)
+    check_boot_media(params, media, last_response)
     b_thread.kill() if b_thread.alive?
   end
 end

@@ -21,7 +21,7 @@ END_OF_MESSAGE
 #main execution file
 def run_session
   options = CmdLineParser.parse(ARGV) #getting the test session's parameters
-  frame_id = Socket.gethostname
+  frame_id = Socket.gethostname.downcase()
   frame_id += '_' + options.staf_service_name if options.staf_service_name
 
   session_result_dir = options.results_base_dir+"/"+options.tester+"/"+frame_id+"/"
