@@ -226,7 +226,12 @@ EOF
     end
 
     def get_fastboot_media_type()
-      return 'emmc_user'
+      return case @name
+        when /j7.*/i
+          'emmc'
+        else
+          'emmc_user'
+        end
     end
       
   end
