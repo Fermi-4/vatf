@@ -443,12 +443,15 @@ dut.params = {'multimeter1' => minfo}
 # "multimeter" and "power_controller" can be defined as in previous dra71x-evm section
 # Please note usage of 'sysboot_ctrl' to also signal that sysboot pins can be controlled on this setup
 # AM654x also supports traces on 3 different uart consoles serial_port (main one), bootloader_port (R5) and firmware_port (M3)
+# secondary_serial_port is used for platforms that output to a serial port other than the main one. For AM654x this is the 
+# same port as the bootloader port, but that does not have to be the case for other platforms (e.g. J721E).
 dut = EquipmentInfo.new("am654x-evm", "linux_sd_sdhc_usbdevice_power")
 dut.driver_class_name='LinuxArm64Driver'
 dut.serial_port = '/dev/ttyUSB6'
 dut.power_port = {'autoiface.am654x' => 1}
 dut.params = {'bootloader_port'=> '/dev/ttyUSB7', 'bootloader_serial_params' => dut.serial_params, 'bootloader_prompt' => /.*/,
               'firmware_port'=> '/dev/ttyUSB8', 'firmware_serial_params' => dut.serial_params, 'firmware_prompt' => /.*/,
+              'secondary_serial_port'=> '/dev/ttyUSB7', 'secondary_serial_params' => dut.serial_params, 'secondary_serial_prompt' => /.*/,
               'multimeter1' => minfo,
               'sysboot_ctrl' => minfo}
 

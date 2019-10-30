@@ -5,7 +5,7 @@ require File.dirname(__FILE__)+'/ccs_equipment_connection'
 require File.dirname(__FILE__)+'/tcp_ip_equipment_connection'
 
 class EquipmentConnection
-  attr_reader :telnet, :serial, :ccs, :tcp_ip, :bmc, :bootloader, :firmware
+  attr_reader :telnet, :serial, :ccs, :tcp_ip, :bmc, :bootloader, :firmware, :secondary_serial
   attr_accessor :platform_info, :default
   def initialize(platform_info, log_path = nil)
     @platform_info = platform_info
@@ -17,6 +17,7 @@ class EquipmentConnection
     @tcp_ip = nil
     @bootloader = nil
     @firmware = nil
+    @secondary_serial = nil
     @base_log_dir=File.dirname(log_path) if log_path
   end
 
@@ -37,8 +38,27 @@ class EquipmentConnection
       end
   end
 
+  def connect_secondary_serial()
+    if !@secondary_serial || @secondary_serial.closed?
+         if @platform_info.params && @platform_info.params['secondary_serial_port'].to_s.strip != ''
+           mod_platform_info = @platform_info.clone
+           mod_platform_info.serial_port = @platform_info.params['secondary_serial_port']
+           mod_platform_info.serial_params = @platform_info.params['secondary_serial_params']
+           mod_platform_info.prompt = @platform_info.params['secondary_serial_prompt']
+           @secondary_serial = SerialEquipmentConnection.new(mod_platform_info)
+           if @base_log_dir
+             @secondary_serial.start_listening {[mod_platform_info, File.join(@base_log_dir, mod_platform_info.serial_port.gsub(/\W/,'_'))]}
+           end
+         end
+       end
+   end
+
   def disconnect_bootloader()
 	@bootloader.disconnect if @bootloader
+  end
+
+  def disconnect_secondary_serial()
+    @secondary_serial.disconnect if @secondary_serial
   end
 
   def connect(params)
@@ -72,6 +92,7 @@ class EquipmentConnection
       @default = @serial 
 
       connect_bootloader()
+      connect_secondary_serial()
 
       if !@firmware || @firmware.closed?
         if @platform_info.params && @platform_info.params['firmware_port'].to_s.strip != ''
@@ -140,11 +161,13 @@ class EquipmentConnection
     if type == 'serial' || type == 'all'
       @serial.disconnect if @serial
       disconnect_bootloader()
+      disconnect_secondary_serial()
       @firmware.disconnect if @firmware
       @default = nil if type.downcase.strip == 'all' || @default == @serial
       @serial = nil
       @bootloader = nil
       @firmware = nil
+      @secondary_serial = nil
     end
     if type == 'bmc' || type == 'all'
       @bmc.disconnect if @bmc
@@ -206,6 +229,9 @@ class EquipmentConnection
     end
     if @platform_info.params && @platform_info.params['firmware_port']
       logs << ['firmware_raw', File.join(@base_log_dir, @platform_info.params['firmware_port'].gsub(/\W/,'_'))]
+    end
+    if @platform_info.params && @platform_info.params['secondary_serial_port']
+      logs << ['secondary_serial_raw', File.join(@base_log_dir, @platform_info.params['secondary_serial_port'].gsub(/\W/,'_'))]
     end
     return logs
   end
