@@ -20,6 +20,7 @@ require File.dirname(__FILE__)+'/oscope_equipment_driver'
 require File.dirname(__FILE__)+'/singletouch_driver'
 require File.dirname(__FILE__)+'/multitouch_driver'
 require File.dirname(__FILE__)+'/cambrionix_usb_driver'
+require File.dirname(__FILE__)+'/exablaze_switch_equipment_driver'
 
 # reference_file 'C:\Program Files\Automation Studio\test_equipment.dll'
 # reference_file 'C:\Program Files\Automation Studio\PesqCalculator.dll'
