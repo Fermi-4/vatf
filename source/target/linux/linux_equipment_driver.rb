@@ -360,14 +360,23 @@ module Equipment
 
     def power_cycle(params)
       @power_handler = params['power_handler'] if !@power_handler
+      @usb_switch_handler = params['usb_switch_handler'] if !@usb_switch_handler
       connected = true
       begin
         connect({'type'=>'serial'}) 
         send_cmd(@login,@prompt, 3) if at_login_prompt?
       rescue Exception => e
-        raise e if !@power_port
-        log_info("Problems while trying to connect to the board...\n" \
-                 "#{e.to_s}\nWill try to connect again after power cycle...")
+        raise e if !@power_port && !@params['usb_switch_port']
+        log_info("Problems while trying to connect to the board...\n#{e.to_s}\n")
+        if @params['usb_switch_port']
+          begin
+            log_info("Going to try to reset USB port #{@params['usb_switch_port']}\n")
+            @usb_switch_handler.reset(@params['usb_switch_port'])
+          rescue Exception => error_msg
+            log_info("Exception trying to reset usb port...\n#{error_msg.to_s}\n")
+          end
+        end
+        log_info("Will try to connect again after power cycle...")
         connected = false
       end
       last_response = ''
