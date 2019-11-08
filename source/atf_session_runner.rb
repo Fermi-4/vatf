@@ -411,7 +411,7 @@ class SessionHandler
               if $equipment_table[equip_type][eq_id][i].params
                 $equipment_table[equip_type][eq_id][i].params.each do |key,val|
                   next if !key.match(/^usb.*_port$/i)
-                  @usb_switch_handler.load_usb_ports(val)
+                  @usb_switch_handler.load_usb_ports(val)  { self }
                 end
               end
               @local_logs_array << [test_vars, equip_log]
