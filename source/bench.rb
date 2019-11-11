@@ -186,6 +186,18 @@ minfo = EquipmentInfo.new("multimeter") do
   params = {'executable_path' => '/home/root'}  # Location where ptool and configs/ are located
 end
 
+# Cambrionix USB Hub, use to control (i.e. enable/disable/reset) USB ports
+# Requires installing Cambrionix daemon (cbrxd)
+# See https://hub.cambrionix.com/pages/cambrionix-api for instructions about installing cbrxd on host machine
+usb = EquipmentInfo.new("usb_switch_controller", "0")
+usb.telnet_ip = 'localhost'
+usb.driver_class_name = 'CambrionixUsbDriver'
+usb.params = {'id' => "DN00608D"}   # Use python provided code or updater tool to determine ID
+                                    # from cbrxapi import cbrxapi; cbrxapi.cbrx_discover("local")
+# and then on DUT section
+dut.params = {'usb_switch_port' => {'0' => 3} } # on this example dut usb cable is connected to port 3 in the switch
+
+
 # MSP430-Based USB switch
 EquipmentInfo.new("usb_switch_controller", "1") do
   serial_port = '/dev/ttyACM0'
