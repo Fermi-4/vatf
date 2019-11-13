@@ -214,6 +214,12 @@ end
 dut.params = {'microsd_switch' => {ti_test_gadget => 'r' }, {'microsd_host_node' => '/dev/vatf@k2e-evm-sd-1'}}
 # value 'r' or 'l' indicates side connected to DUT
 
+# SDWire test gadget used to switch MicroSD card between host and dut
+ti_test_gadget = EquipmentInfo.new("sdwire", "0")
+ti_test_gadget.params = {"control_bin" => '/home/tigtfarm30/opentest/sd-mux-ctrl', "serial_no" => "sdwire-2"}
+ti_test_gadget.driver_class_name = 'SDWire'
+dut.params = {'microsd_switch' => {ti_test_gadget => 'r' }, 'microsd_host_node' => '/dev/vatf@am654x-evm-sd'}
+
 #Objective Speech Tester information
 EquipmentInfo.new("speech_tester") do
   driver_class_name = "OperaForClr"
