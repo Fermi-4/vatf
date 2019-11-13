@@ -197,7 +197,6 @@ usb.params = {'id' => "DN00608D"}   # Use python provided code or updater tool t
 # and then on DUT section
 dut.params = {'usb_switch_port' => {'0' => 3} } # on this example dut usb cable is connected to port 3 in the switch
 
-
 # MSP430-Based USB switch
 EquipmentInfo.new("usb_switch_controller", "1") do
   serial_port = '/dev/ttyACM0'
@@ -214,11 +213,14 @@ end
 dut.params = {'microsd_switch' => {ti_test_gadget => 'r' }, {'microsd_host_node' => '/dev/vatf@k2e-evm-sd-1'}}
 # value 'r' or 'l' indicates side connected to DUT
 
-# SDWire test gadget used to switch MicroSD card between host and dut
-ti_test_gadget = EquipmentInfo.new("sdwire", "0")
-ti_test_gadget.params = {"control_bin" => '/home/tigtfarm30/opentest/sd-mux-ctrl', "serial_no" => "sdwire-2"}
-ti_test_gadget.driver_class_name = 'SDWire'
-dut.params = {'microsd_switch' => {ti_test_gadget => 'r' }, 'microsd_host_node' => '/dev/vatf@am654x-evm-sd'}
+# SDWire sd mux, used to toggle the sd card between host and dut
+# Requires compiling command line application git://git.tizen.org/tools/testlab/sd-mux
+sd_mux = EquipmentInfo.new("sdwire","0")
+sd_mux.driver_class_name = 'SDWire'
+sd_mux.params = {'control_bin' => '<path to sd-mux-ctrl app from git://git.tizen.org/tools/testlab/sd-mux>', 'serial_no' => 'sdwire-2'}
+
+# and then on DUT section
+dut.params = {'microsd_switch' => {sd_mux => 'r'}, 'microsd_host_node' => '/dev/vatf@am654x-evm-sd'} # links the sdmux to the dut
 
 #Objective Speech Tester information
 EquipmentInfo.new("speech_tester") do
