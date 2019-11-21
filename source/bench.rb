@@ -241,6 +241,30 @@ EquipmentInfo.new("can","kvaser") do
   login_prompt = /login:/i
 end
 
+# Beaglebone black tester to control adc, gpio and pwm channels
+# Refer to http://www.toptechboy.com/wp-content/uploads/2015/06/beaglebone-black-pinout.jpg
+# for pinout information
+bbb = EquipmentInfo.new("beagle_tester", "0")
+bbb.login = 'debian'
+bbb.login_passwd = 'temppwd'
+bbb.prompt = /debian@.+[@:#]+/
+bbb.driver_class_name = 'BeagleTester'
+bbb.serial_params = {"baud" => 115200, "data_bits" => 8, "stop_bits" => 1, "parity" => SerialPort::NONE}
+bbb.serial_port = '/dev/ttyUSB14'
+# User is free to define any key names in params below
+# but must use same key names in the test script
+bbb.params = {'pwm_port' => 'P8_13', 'adc_port' => 'P9_33', 'gpio_out' => 'P8_18', 'gpio_in' => 'P8_7'}
+# ==== Examples
+#
+# @equipment['bbb1'].connect({'type'=>'serial'})
+# @equipment['bbb1'].configure_device()
+# @equipment['bbb1'].pwm_start(@equipment['bbb1'].params['pwm_port'], 50, 100000)
+# @equipment['bbb1'].adc_read(@equipment['bbb1'].params['adc_port'])
+# @equipment['bbb1'].pwm_stop(@equipment['bbb1'].params['pwm_port'])
+# @equipment['bbb1'].gpio_read(@equipment['bbb1'].params['gpio_in'])
+# @equipment['bbb1'].gpio_write(@equipment['bbb1'].params['gpio_out'], 1)
+
+
 # DUT controlled via CCS/JTAG
 EquipmentInfo.new("am180x-evm", "ccs") do
   driver_class_name='EquipmentInfoDriver'

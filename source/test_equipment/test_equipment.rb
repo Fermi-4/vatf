@@ -22,6 +22,7 @@ require File.dirname(__FILE__)+'/multitouch_driver'
 require File.dirname(__FILE__)+'/cambrionix_usb_driver'
 require File.dirname(__FILE__)+'/exablaze_switch_equipment_driver'
 require File.dirname(__FILE__)+'/sdwire_switch'
+require File.dirname(__FILE__)+'/beagle_tester'
 
 # reference_file 'C:\Program Files\Automation Studio\test_equipment.dll'
 # reference_file 'C:\Program Files\Automation Studio\PesqCalculator.dll'
