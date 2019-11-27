@@ -111,10 +111,10 @@ EOF
     # Update primary and secondary bootloader 
     def update_bootloader(params)
       return if @updated_bootloader
-      raise "Only (q)spi|rawmmc-emmc boot is supported for Android" if !params['primary_bootloader_dev'].to_s.match(/spi|rawmmc-emmc/) || !params['secondary_bootloader_dev'].to_s.match(/spi|rawmmc-emmc/)
+      raise "Only (q)spi|emmc boot is supported for Android" if !params['primary_bootloader_dev'].to_s.match(/spi|emmc/) || !params['secondary_bootloader_dev'].to_s.match(/spi|emmc/)
       ub_params = params.dup
       init_loader = SystemLoader::UbootFlashBootloaderSystemLoader.new()        
-      ub_params['mmcdev'] = 1 if params['primary_bootloader_dev'].to_s.match(/rawmmc-emmc/)
+      ub_params['mmcdev'] = 1 if params['primary_bootloader_dev'].to_s.match(/emmc/)
       init_loader.run ub_params
       SysBootModule::set_sysboot(params['dut'], SysBootModule::get_sysboot_setting(params['dut'], @bootdev_table[params['primary_bootloader_dev']]))
       @boot_loader = nil
@@ -122,7 +122,7 @@ EOF
     end
     
     def recover_bootloader(params)
-      raise "Only (q)spi|rawmmc-emmc boot is supported for Android" if !params['primary_bootloader_dev'].to_s.match(/spi|rawmmc-emmc/) || !params['secondary_bootloader_dev'].to_s.match(/spi|rawmmc-emmc/)
+      raise "Only (q)spi|emmc boot is supported for Android" if !params['primary_bootloader_dev'].to_s.match(/spi|emmc/) || !params['secondary_bootloader_dev'].to_s.match(/spi|emmc/)
       ub_params = params.dup
       init_loader = SystemLoader::UbootFlashBootloaderSystemLoader.new()        
       SysBootModule::reset_sysboot(params['dut'])
@@ -136,7 +136,7 @@ EOF
       log_info(msg)
       @boot_loader = nil
       boot_to_bootloader(ub_params)
-      ub_params['mmcdev'] = 1 if params['primary_bootloader_dev'].to_s.match(/rawmmc-emmc/)
+      ub_params['mmcdev'] = 1 if params['primary_bootloader_dev'].to_s.match(/emmc/)
       init_loader.run ub_params
       SysBootModule::set_sysboot(params['dut'], SysBootModule::get_sysboot_setting(params['dut'], @bootdev_table[params['primary_bootloader_dev']]))
       @boot_loader = nil
@@ -227,10 +227,10 @@ EOF
 
     def get_fastboot_media_type()
       return case @name
-        when /j7.*/i
-          'emmc'
-        else
+        when /j7|am6/i
           'emmc_user'
+        else
+          'emmc'
         end
     end
       
