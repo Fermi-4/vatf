@@ -51,7 +51,7 @@ module TestEquipment
             end
 
             @headers = {
-                "Cookie": @cookie
+                "Cookie" => @cookie
             }
         end
 
@@ -181,10 +181,10 @@ module TestEquipment
         # Send login request        
         def login() 
             login_request = {
-                "method": "login",
-                "params": {
-                    "username": "#{@username}",
-                    "password": "#{@password}"
+                "method" => "login",
+                "params" => {
+                    "username" => "#{@username}",
+                    "password" => "#{@password}"
                 }
             }
 
@@ -194,9 +194,9 @@ module TestEquipment
         # Create a patch from port_a to port_b
         def create_patch(port_a, port_b) 
             create_patch_request = {
-                "method": "create_patch",
-                "params": {
-                    "ports": ["#{port_a}", "#{port_b}"]
+                "method" => "create_patch",
+                "params" => {
+                    "ports" => ["#{port_a}", "#{port_b}"]
                 }
             }
 
@@ -206,9 +206,9 @@ module TestEquipment
         # Delete a patch from port_a to port_b
         def delete_patch(port_a, port_b) 
             delete_patch_request = {
-                "method": "delete_patch",
-                "params": {
-                    "ports": ["#{port_a}", "#{port_b}"]
+                "method" => "delete_patch",
+                "params" => {
+                    "ports" => ["#{port_a}", "#{port_b}"]
                 }
             }
 
@@ -218,11 +218,11 @@ module TestEquipment
         # Create a tap listening on src_port, outputting on dest_port for given direction of traffic
         def create_tap(src_port, dest_port, direction) 
             create_tap_request = {
-                "method": "create_tap",
-                "params": {
-                    "port": "#{dest_port}",
-                    "src_port": "#{src_port}",
-                    "direction": "#{direction}"
+                "method" => "create_tap",
+                "params" => {
+                    "port" => "#{dest_port}",
+                    "src_port" => "#{src_port}",
+                    "direction" => "#{direction}"
                 }
             }
             
@@ -232,11 +232,11 @@ module TestEquipment
         # Delete a tap listening on src_port, outputting on dest_port for given direction of traffic
         def delete_tap(src_port, dest_port, direction) 
             delete_tap_request = {
-                "method": "delete_tap",
-                "params": {
-                    "port": "#{dest_port}",
-                    "src_port": "#{src_port}",
-                    "direction": "#{direction}"
+                "method" => "delete_tap",
+                "params" => {
+                    "port" => "#{dest_port}",
+                    "src_port" => "#{src_port}",
+                    "direction" => "#{direction}"
                 }
             }
 
