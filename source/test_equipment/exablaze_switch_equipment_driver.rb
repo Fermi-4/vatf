@@ -1,16 +1,20 @@
-require File.dirname(__FILE__)+'/../target/equipment_driver'
 require 'socket'
 require 'net/http'
 require 'uri'
 require 'json'
- 
+require 'rubygems'
+gem 'log4r'
+require 'log4r'
+require 'log4r/outputter/fileoutputter'
+
 module TestEquipment
+    include Log4r
 
     class ExablazeSwitchDriver
-        attr_reader :headers, :cookie, :uri, :http
-
+        Logger = Log4r::Logger
         PATCH = "patch"
         TAP = "tap"
+        attr_reader :headers, :cookie, :uri, :http
 
         def initialize(platform_info, log_path = nil)
             platform_info.instance_variables.each {|var|
@@ -19,8 +23,9 @@ module TestEquipment
                   self.instance_variable_set(var, platform_info.instance_variable_get(var))
                 end
             }
-
             begin
+                start_logger(log_path) if log_path
+                log_info("Setting up connection to exablaze switch")
                 @http_api_addr = @params['http_api_addr']
                 @username = @params['username']
                 @password = @params['password']
@@ -60,8 +65,10 @@ module TestEquipment
             res = get_response_body(res)
 
             if (res['error'] && res['error']['message'])
+                log_error("EXABLAZE Error encountered with request: " + cmd.to_s + "=>" + res['error']['message'])
                 raise "EXABLAZE Error encountered with request: " + cmd.to_s + "=>" + res['error']['message']
             elsif (res['result'] == false)
+                log_error("EXABLAZE Request failed for request: " + cmd.to_s)
                 raise "EXABLAZE Request failed for request: " + cmd.to_s    
             end
         end
@@ -101,26 +108,29 @@ module TestEquipment
         ###################################################################
         def make_connections(connections) 
             # Authenticate with switch
+            log_info("Logging in...") 
             login_response = login()
             
             # Ensure valid login before making connections
             check_response(login_response, 'login')
+            log_info("Successful login") 
         
             # Get session id cookie from login response and store for subsequent reqs
             set_headers(login_response)
 
             # For each desired connection, send request to switch and check repsonse 
             connections.each { |conn|
-                puts "Making connection: " + conn.to_s
-            
-                case conn[:method]                
+                log_info("Making connection: #{conn.to_s}")
+
+                case conn["method"]                
                     when PATCH
-                        res = create_patch(conn[:src_port], conn[:dest_port]) 
+                        res = create_patch(conn["src_port"], conn["dest_port"]) 
                     when TAP
-                        res = create_tap(conn[:src_port], conn[:dest_port], conn[:direction])
+                        res = create_tap(conn["src_port"], conn["dest_port"], conn["direction"])
                 end
     
                 check_response(res, conn)
+                log_info("Successful connection: #{conn.to_s}") 
             }
             return 0
         end
@@ -154,26 +164,29 @@ module TestEquipment
         ###################################################################
         def delete_connections(connections) 
             # Authenticate with switch
+            log_info("Logging in...")
             login_response = login()
             
             # Ensure valid login before making connections
             check_response(login_response, 'login')
+            log_info("Successful login") 
 
             # Get session id cookie from login response and store for subsequent reqs
             set_headers(login_response)
             
             # For each desired connection, send request to switch and check repsonse 
             connections.each { |conn|
-                puts "Deleting connection: " + conn.to_s
+                log_info("Deleting connection: #{conn.to_s}")
                 
-                case conn[:method]
+                case conn["method"]
                     when PATCH
-                        res = delete_patch(conn[:src_port], conn[:dest_port]) 
+                        res = delete_patch(conn["src_port"], conn["dest_port"]) 
                     when TAP
-                        res = delete_tap(conn[:src_port], conn[:dest_port], conn[:direction])
+                        res = delete_tap(conn["src_port"], conn["dest_port"], conn["direction"])
                 end
 
                 check_response(res, conn)
+                log_info("Successful deletion: #{conn.to_s}") 
             }
             return 0
         end
@@ -241,6 +254,36 @@ module TestEquipment
             }
 
             return post(delete_tap_request.to_json)
+        end
+
+        #Starts the logger for the session. Takes the log file path as parameter.
+        # * file_path - the path to store the log
+        def start_logger(file_path)
+            if @exa_log
+                stop_logger
+            end
+
+            Logger.new('exablaze_log')
+            @exa_log_outputter = Log4r::FileOutputter.new("exablaze_log_out",{:filename => file_path.to_s , :truncate => false})
+            @exa_log= Logger['exablaze_log']
+            @exa_log.level = Log4r::DEBUG
+            @exa_log.add  @exa_log_outputter
+            @pattern_formatter = Log4r::PatternFormatter.new(:pattern => "- %d [%l] %c: %M",:date_pattern => "%H:%M:%S")
+            @exa_log_outputter.formatter = @pattern_formatter
+        end
+    
+        #Stops the logger.
+        def stop_logger
+            @exa_log_outputter = nil if @exa_log_outputter
+            @exa_log = nil if @exa_log
+        end
+
+        def log_info(info)
+            @exa_log.info(info) if @exa_log
+        end
+    
+        def log_error(error)
+            @exa_log.error(error) if @exa_log
         end
     end
 end
