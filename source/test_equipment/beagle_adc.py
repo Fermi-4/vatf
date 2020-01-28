@@ -4,7 +4,7 @@
 
 import argparse
 import Adafruit_BBIO.ADC as ADC
-
+DISCARD_SAMPLES=8
 
 program_description = 'Program to read adc channel on BBB.'\
 ' It returns normalized values from 0 to 1.0 (1 == 1.8volts)'
@@ -22,4 +22,9 @@ if args.version:
     print("program version {}".format(program_version))
 
 ADC.setup()
+
+# Flush ADC.read() buffer
+for _ in range(DISCARD_SAMPLES):
+    ADC.read(args.channel)
+
 print ADC.read(args.channel)
