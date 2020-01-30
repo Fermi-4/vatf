@@ -1189,6 +1189,10 @@ module SystemLoader
       send_cmd params, 'version'
       send_cmd params, 'bdinfo'
       send_cmd params, CmdTranslator::get_uboot_cmd({'cmd'=>'get_clk_info', 'version'=>@@uboot_version, 'platform'=>params['dut'].name})
+      send_cmd params, "ls mmc 0:1", params['dut'].boot_prompt, 10, false
+      send_cmd params, "ls mmc 1:1", params['dut'].boot_prompt, 10, false
+      send_cmd params, "ext4ls mmc 0:2 /lib/firmware", params['dut'].boot_prompt, 10, false
+      send_cmd params, "ext4ls mmc 1:2 /lib/firmware", params['dut'].boot_prompt, 10, false
     end
   end
 
