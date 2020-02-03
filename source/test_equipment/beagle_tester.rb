@@ -20,23 +20,20 @@ module TestEquipment
     end
 
 
-    def login()
-      send_cmd(@login, /[Pp]assword/, 10)
-      send_cmd(@login_passwd, @prompt, 20)
+    def log_in()
+      send_cmd(@login, /[Pp]assword:/, 10)
+      send_cmd(@login_passwd, @prompt, 20, false)
     end
 
     # Must be called prior to using BeagleTester functions to control pins
     def configure_device()
-      login()
       3.times do
         send_cmd("", @prompt)
-        if response.match(/[Pp]assword/)
-          send_cmd(' ',/login:/, 10)
-          login()
-        elsif response.match(/login:/)
-          login()
-        end
         break if !timeout?
+        if response.match(/[Pp]assword:/)
+          send_cmd(' ',/login:/, 10, false)
+        end
+        log_in()
       end
       raise "Error login into BeagleTester device" if timeout?
       send_cmd("cd ~", @prompt)
