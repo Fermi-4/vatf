@@ -51,6 +51,20 @@ module CmdTranslator
     'dhcp_service_restart' => { '12.04'     => 'sudo service isc-dhcp-server restart'},
   }
 
+  @dict_arago = {
+    'package-update' => { '0.0' => 'opkg update' },
+    'package-install' => { '0.0' => 'opkg install' },
+    'package-install-no-recommends' => { '0.0' => 'opkg install --no-install-recommends' },
+    'package-remove' => { '0.0' => 'opkg remove' },
+    'package-remove-autoremove' => { '0.0' => 'opkg remove --autoremove' },
+    'package-list' => { '0.0' => 'opkg list' },
+    'package-list-installed' => { '0.0' => 'opkg list-installed' },
+    'package-search' => { '0.0' => 'opkg find' },
+    'package-files' => { '0.0' => 'opkg files' },
+    'package-find-file' => { '0.0' => 'opkg search' },
+    'package-info' => { '0.0' => 'opkg info' },
+  }
+
   # place holder for linux cmds vs. version
   @dict_linux = {
     'set_uart_to_gpio_standby' => { 
@@ -301,6 +315,11 @@ module CmdTranslator
 
   def self.get_ubuntu_cmd(params)  
     params.merge!({'dict' => @dict_ubuntu})
+    get_cmd(params)
+  end
+
+  def self.get_arago_cmd(params)
+    params.merge!({'dict' => @dict_arago, 'version'=>'0.0'})
     get_cmd(params)
   end
 
