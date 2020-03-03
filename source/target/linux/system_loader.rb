@@ -70,6 +70,8 @@ module SystemLoader
       case params['dut'].response
       when /fit_loadaddr=[\da-fA-Fx]+/
         fit_loadaddr = '${fit_loadaddr}'
+      when /addr_fit=[\da-fA-Fx]+/
+        fit_loadaddr = '${addr_fit}'
       end
       params['_env']['kernel_loadaddr'] = load_addr
       params['_env']['loadaddr'] = load_addr
