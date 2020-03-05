@@ -44,7 +44,7 @@ class PowerHandler
     power_port = [p_port] if !p_port.kind_of?(Array)
     power_port.each {|power_port_element|
       switch_off(power_port_element)
-      sleep 1
+      sleep 3
       if power_port.size == 1 and block_given?
         # Do something (if needed) before restoring power
         yield
