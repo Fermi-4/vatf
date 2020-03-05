@@ -429,7 +429,12 @@ module Equipment
 
     # Gracefully bring down the system to avoid FS corruption
     def poweroff(params=nil)
-      send_cmd("sync;poweroff",/System halted|System will go to power_off|Power down|reboot: Power|All filesystems unmounted/i,120)
+      case @name
+      when /dra71x.*/i
+        send_cmd("sync", @prompt,120)
+      else
+        send_cmd("sync;poweroff",/System halted|System will go to power_off|Power down|reboot: Power|All filesystems unmounted/i,120)
+      end
     end
 
     def shutdown(params)
