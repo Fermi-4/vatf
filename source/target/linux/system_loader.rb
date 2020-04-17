@@ -1169,6 +1169,7 @@ module SystemLoader
     end
 
     def run(params)
+      get_environment(params) if !params['_env']
       params['serverip'] = params['server'].telnet_ip
       File.open(params['boot_cmds'], "r") do |file_handle|
         file_handle.each_line do |line|
@@ -1178,7 +1179,6 @@ module SystemLoader
         end
       end
       params['dut'].boot_log = params['dut'].response
-      send_cmd params, params['dut'].login, params['dut'].prompt, 10, false # login to the unit
     end
   end
   
@@ -1944,6 +1944,7 @@ module SystemLoader
     def initialize
       super
       add_step( UserCmdsStep.new )
+      add_step( BootStep.new )
     end
 
   end
