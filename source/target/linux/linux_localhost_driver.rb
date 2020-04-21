@@ -84,6 +84,53 @@ EOF
       sleep 1   # Make sure the new thread starts before returning to calling thread
     end
     
+    def serial_load(*load_list)
+      load_list.each do |l_spec|
+        r = nil
+        w = nil
+        status = ''
+        bin_path = ''
+        begin
+          bin_path = l_spec['bin_path']
+          timeout = l_spec['timeout'] ? l_spec['timeout'].to_i : 90
+          load_re = l_spec['load_re'] ? /#{l_spec['load_re']}/ : /Transfer\s*complete/im
+          load_cmd = l_spec['load_cmd'] ? l_spec['load_cmd'] : 'sx -k --xmodem'
+          load_port = l_spec['port']
+          baudrate = l_spec['baudrate'] ? l_spec['baudrate'].to_i : 115200
+
+          raise "File #{bin_path} specified for loading does not exists" if !File.exist?(bin_path) || !File.file?(bin_path)
+          raise "Port used to load the image was not specified #{l_spec.to_s} " if !load_port
+
+          send_cmd("stty -F #{load_port} #{baudrate} -crtscts")
+        
+          r,w = IO.pipe
+          log_info("#{bin_path} tranfer started ...")
+          sx_thread = Thread.new {
+          Thread.pass
+            Open3.pipeline("/usr/bin/timeout #{timeout} #{load_cmd} #{bin_path}", :in => load_port, :out => load_port, :err=>w)
+          }
+          status = ''
+          Timeout::timeout(timeout) {
+            status = r.read(8)
+            while !status.match(load_re) do
+              #puts status #Uncomment to debug
+              status += r.read_nonblock(8) if !r.eof?
+            end
+          }
+        rescue Timeout::Error => e
+          puts "TIMEOUT loading image #{bin_path}"
+          log_info("TIMEOUT loading image #{bin_path}")
+          raise "TIMEOUT loading image #{bin_path}\n#{e}"
+        ensure
+          Thread.new {
+            log_info(status)
+          }
+          w.close() if w
+          r.close() if r
+        end
+      end
+    end
+    
     def response
       @response
     end

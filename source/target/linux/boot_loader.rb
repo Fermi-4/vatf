@@ -26,42 +26,33 @@ module BootLoader
     puts "########LOAD_FROM_SERIAL########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'uart')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    params.merge!({'bootloader_load_script_name' => 'uart-spl-boot.sh'})
-    params['bootloader_class'].create_bootloader_load_script_uart_spl(params)
-    params['bootloader_class'].run_bootloader_load_script(params)
+    params['bootloader_class'].load_uart_spl(params)
   end
 
   def LOAD_FROM_SERIAL_TI_MIN(params)
     puts "########LOAD_FROM_SERIAL_TI_MIN########"
-    params.merge!({'bootloader_load_script_name' => 'uart-ti-min-boot.sh'})
-    params['bootloader_class'].create_bootloader_load_script_uart_ti_min(params)
-    params['bootloader_class'].run_bootloader_load_script(params)
+    params['bootloader_class'].load_uart_ti_min(params)
   end
 
   def LOAD_FROM_SERIAL_TI_BOOT3(params)
     puts "########LOAD_FROM_SERIAL_TI_BOOT3########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'uart')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    params.merge!({'bootloader_load_script_name' => 'uart-ti-boot3.sh'})
-    params['bootloader_class'].create_bootloader_load_script_uart_ti_boot3(params)
-    params['bootloader_class'].run_bootloader_load_script(params)
+    params['bootloader_class'].load_uart_ti_boot3(params)
   end
 
   def LOAD_FROM_SERIAL_UBOOT(params)
     puts "########LOAD_FROM_SERIAL_UBOOT########"
-    params.merge!({'bootloader_load_script_name' => 'uart-u-boot.sh'})
-    params['bootloader_class'].create_bootloader_load_script_uart_uboot(params)
-    params['bootloader_class'].run_bootloader_load_script(params)
+    params['bootloader_class'].load_uart_uboot(params)
   end
   
   def LOAD_FROM_SERIAL_TI_OMAP(params)
     puts "########LOAD_FROM_SERIAL_TI_OMAP########"
     this_sysboot = SysBootModule::get_sysboot_setting(params['dut'], 'uart')
     SysBootModule::set_sysboot(params['dut'], this_sysboot)
-    params.merge!({'bootloader_load_script_name' => 'uart-ti-omap.sh'})
-    params['bootloader_class'].create_bootloader_load_script_uart_ti_omap(params)
-    params['bootloader_class'].run_bootloader_load_script(params)
+    params['bootloader_class'].load_uart_ti_omap(params)
   end
+
   def LOAD_FROM_NAND_BY_BMC(params)
     puts "########LOAD_FROM_NAND_BY_BMC########"
     params['bootloader_class'].bmc_trigger_boot(params['dut'], 'nand')
@@ -221,134 +212,139 @@ class BaseLoader
       end
   end
 
-  def create_bootloader_load_script_uart_spl(params)
-    script = File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name'])
-    File.open(script, "w") do |file|
-      sleep 1  
-      file.puts "#!/bin/bash"
-      # Run stty to set the baud rate.
-      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']} -crtscts"
-      # Send SPL as xmodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 120 /usr/bin/sx -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
-      # If we timeout or don't return cleanly (transfer failed), return 1
-      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
-      # Send U-Boot as ymodem, 4 minute timeout.
-      file.puts "/usr/bin/timeout 240 /usr/bin/sb -kb --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
-      # If we timeout or don't return cleanly (transfer failed), return 1
-      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
-      # Send an echo to be sure that we will break into autoboot.
-      file.puts "echo > #{params['dut'].serial_port}"
-      # Return success.
-      file.puts "exit 0"
-    end
-    File.chmod(0755, script)
+  def load_uart_spl(params)
+    dut_load_prep(params)
+    sleep 1
+    params['server'].serial_load(
+      { 
+        'port' => params['dut'].serial_port,
+        'baudrate' => params['dut'].serial_params['baud'],
+        'bin_path' => params['primary_bootloader'],
+        'timeout' => 120
+      },
+      { 
+        'port' => params['dut'].serial_port,
+        'baudrate' => params['dut'].serial_params['baud'],
+        'bin_path' => params['secondary_bootloader'],
+        'timeout' => 240,
+        'load_cmd' => '/usr/bin/sb -kb --ymodem',
+        'load_re' => /Bytes\s*Sent:\s*\d+\s/
+      }
+    )
+    # Send an echo to be sure that we will break into autoboot.
+    params['server'].send_cmd("echo > #{params['dut'].serial_port}")
   end
 
-  def create_bootloader_load_script_uart_ti_min(params)
-    script = File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name'])
-    File.open(script, "w") do |file|
-      sleep 1  
-      file.puts "#!/bin/bash"
-      # Run stty to set the baud rate.
-      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']} -crtscts"
-      # Send u-boot-min as xmodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 120 /usr/bin/sx -v -k --xmodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
-      # If we timeout or don't return cleanly (transfer failed), return 1
-      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
-      # Send an echo to be sure that we will break into autoboot.
-      file.puts "echo > #{params['dut'].serial_port}"
-      # Start loady
-      file.puts "echo \"loady #{params['dut'].boot_load_address}\" > #{params['dut'].serial_port}"
-      # Send U-Boot as ymodem, 4 minute timeout.
-      file.puts "/usr/bin/timeout 240 /usr/bin/sb -v --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
-      # Start it.
-      file.puts "echo \"go #{params['dut'].boot_load_address}\" > #{params['dut'].serial_port}"
-      # If we timeout or don't return cleanly (transfer failed), return 1
-      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
-      # Send an echo to be sure that we will break into autoboot.
-      file.puts "echo > #{params['dut'].serial_port}"
-      # Return success.
-      file.puts "exit 1"
-    end
-    File.chmod(0755, script)
+  def load_uart_ti_min(params)
+    dut_load_prep(params)
+    sleep 1
+    params['server'].serial_load(
+      { 
+        'port' => params['dut'].serial_port,
+        'baudrate' => params['dut'].serial_params['baud'],
+        'bin_path' => params['primary_bootloader'],
+        'timeout' => 120
+      }
+    )
+    # Send an echo to be sure that we will break into autoboot.
+    params['server'].send_cmd("echo > #{params['dut'].serial_port}")
+    # Start loady
+    params['server'].send_cmd("echo \"loady #{params['dut'].boot_load_address}\" > #{params['dut'].serial_port}")
+    params['server'].serial_load(
+      { 
+        'port' => params['dut'].serial_port,
+        'baudrate' => params['dut'].serial_params['baud'],
+        'bin_path' => params['secondary_bootloader'],
+        'timeout' => 240,
+        'load_cmd' => '/usr/bin/sb -kb --ymodem',
+        'load_re' => /Bytes\s*Sent:\s*\d+\s/
+      }
+    )
+    # Start it.
+    params['server'].send_cmd("echo \"go #{params['dut'].boot_load_address}\" > #{params['dut'].serial_port}")
+    # Send an echo to be sure that we will break into autoboot.
+    params['server'].send_cmd("echo > #{params['dut'].serial_port}")
   end
 
-  def create_bootloader_load_script_uart_ti_boot3(params)
-    script = File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name'])
-    File.open(script, "w") do |file|
-      sleep 1
-      file.puts "#!/bin/bash"
-      # Run stty to set the baud rate.
-      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']} -crtscts"
-      file.puts "stty -F #{params['dut'].params['bootloader_port']} #{params['dut'].params['bootloader_serial_params']['baud']} -crtscts"
-      # Send initial bootloader as xmodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 120 /usr/bin/sx -k --xmodem #{params['initial_bootloader']} < #{params['dut'].params['bootloader_port']} > #{params['dut'].params['bootloader_port']}"
-      # If we timeout or don't return cleanly (transfer failed), return 1
-      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
-      # Send sysfw as ymodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 120 /usr/bin/sb -kb --ymodem #{params['sysfw']} < #{params['dut'].params['bootloader_port']} > #{params['dut'].params['bootloader_port']}" if params['sysfw'] != ''
-      # If we timeout or don't return cleanly (transfer failed), return 1
-      file.puts "if [ $? -ne 0 ]; then exit 1; fi" if params['sysfw'] != ''
-      # Send primary bootloader as ymodem, 4 minute timeout.
-      file.puts "/usr/bin/timeout 240 /usr/bin/sb -kb --ymodem #{params['primary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
-      # If we timeout or don't return cleanly (transfer failed), return 1
-      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
-      # Send U-Boot as ymodem, 4 minute timeout.
-      file.puts "sleep 1"
-      file.puts "/usr/bin/timeout 240 /usr/bin/sb -kb --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
-      # If we timeout or don't return cleanly (transfer failed), return 1
-      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
-      # Send an echo to be sure that we will break into autoboot.
-      file.puts "echo > #{params['dut'].serial_port}"
-      # Return success.
-      file.puts "exit 0"
+  def load_uart_ti_boot3(params)
+    dut_load_prep(params)
+    sleep 1
+    image_list = [
+      { 
+        'port' => params['dut'].params['bootloader_port'],
+        'baudrate' => params['dut'].serial_params['baud'],
+        'bin_path' => params['initial_bootloader'],
+        'timeout' => 120
+      }
+    ]
+    
+    if params['sysfw'].to_s != ''
+      image_list << { 
+        'port' => params['dut'].params['bootloader_port'],
+        'baudrate' => params['dut'].serial_params['baud'],
+        'bin_path' => params['sysfw'],
+        'timeout' => 240,
+        'load_cmd' => '/usr/bin/sb -kb --ymodem'
+      }
     end
-    File.chmod(0755, script)
+      
+    image_list << { 
+      'port' => params['dut'].serial_port,
+      'baudrate' => params['dut'].serial_params['baud'],
+      'bin_path' => params['primary_bootloader'],
+      'timeout' => 240,
+      'load_cmd' => '/usr/bin/sb -kb --ymodem'
+    }
+      
+    image_list << { 
+      'port' => params['dut'].serial_port,
+      'baudrate' => params['dut'].serial_params['baud'],
+      'bin_path' => params['secondary_bootloader'],
+      'timeout' => 240,
+      'load_cmd' => '/usr/bin/sb -kb --ymodem',
+      'load_re' => /Bytes\s*Sent:\s*\d+\s/
+    }
+
+    params['server'].serial_load(*image_list)
+    # Send an echo to be sure that we will break into autoboot.
+    params['server'].send_cmd("echo > #{params['dut'].serial_port}")
   end
 
-  def create_bootloader_load_script_uart_uboot(params)
-    script = File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name'])
-    File.open(script, "w") do |file|
-      sleep 1
-      file.puts "#!/bin/bash"
-      # Run stty to set the baud rate.
-      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']} -crtscts"
-      # Send SPL as xmodem, 2 minute timeout.
-      file.puts "/usr/bin/timeout 120 /usr/bin/sx -k --xmodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
-      # If we timeout or don't return cleanly (transfer failed), return 1
-      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
-      # Send an echo to be sure that we will break into autoboot.
-      file.puts "echo > #{params['dut'].serial_port}"
-      # Return success.
-      file.puts "exit 0"
-    end
-    File.chmod(0755, script)
+  def load_uart_uboot(params)
+    dut_load_prep(params)
+    sleep 1
+    params['server'].serial_load(
+      { 
+        'port' => params['dut'].serial_port,
+        'baudrate' => params['dut'].serial_params['baud'],
+        'bin_path' => params['secondary_bootloader'],
+        'timeout' => 120,
+        'load_re' => /Bytes\s*Sent:\s*\d+\s/
+      }
+    )
+    # Send an echo to be sure that we will break into autoboot.
+    params['server'].send_cmd("echo > #{params['dut'].serial_port}")
   end
 
-  def create_bootloader_load_script_uart_ti_omap(params)
-    script = File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name'])
-    File.open(script, "w") do |file|
-      sleep 1  
-      file.puts "#!/bin/bash"
-      # Run stty to set the baud rate.
-      file.puts "stty -F #{params['dut'].serial_port} #{params['dut'].serial_params['baud']} -crtscts"
-      # Send u-boot-spl.bin using serial-boot.pl script, 2 minute timeout.
-      file.puts "/usr/bin/timeout 120 perl #{Dir.pwd}/target/utils/serial-boot.pl -p #{params['dut'].serial_port} -d0 -t40 -s #{params['primary_bootloader']} "
-      # If we timeout or don't return cleanly (transfer failed), return 1
-      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
-      # Send U-Boot as ymodem, 4 minute timeout.
-      file.puts "/usr/bin/timeout 240 /usr/bin/sx -kb --ymodem #{params['secondary_bootloader']} < #{params['dut'].serial_port} > #{params['dut'].serial_port}"
-      # If we timeout or don't return cleanly (transfer failed), return 1
-      file.puts "if [ $? -ne 0 ]; then exit 1; fi"
-      # Send an echo to be sure that we will break into autoboot.
-      file.puts "echo > #{params['dut'].serial_port}"
-      # Return success.
-      file.puts "exit 0"
-    end
-    File.chmod(0755, script)
+  def load_uart_ti_omap(params)
+    dut_load_prep(params)
+    sleep 1
+    params['server'].send_cmd("/usr/bin/timeout 120 perl #{Dir.pwd}/target/utils/serial-boot.pl -p #{params['dut'].serial_port} -d0 -t40 -s #{params['primary_bootloader']} ", /.*/, 120)
+    params['server'].serial_load(
+      { 
+        'port' => params['dut'].serial_port,
+        'baudrate' => params['dut'].serial_params['baud'],
+        'bin_path' => params['secondary_bootloader'],
+        'timeout' => 240,
+        'load_cmd' => '/usr/bin/sx -kb --ymodem',
+        'load_re' => /Bytes\s*Sent:\s*\d+\s/
+      }
+    )
+
+    params['server'].send_cmd("echo > #{params['dut'].serial_port}")
   end
 
-  def run_bootloader_load_script(params)
+  def dut_load_prep(params)
     dut = params['dut']
     # Kill anything which has the serial port open already.
     3.times { break if kill_tasks_holding_serial_port(params) }
@@ -365,8 +361,6 @@ class BaseLoader
       # Ensure the board is reset.
       dut.power_cycle(params)
     end
-    params['server'].send_cmd(File.join(SiteInfo::LINUX_TEMP_FOLDER,params['staf_service_name'],params['bootloader_load_script_name']), params['server'].prompt, 360)
-    raise "run_bootloader_load_script: Transfer failed" if (params['server'].response.match(/Transfer\s+incomplete/i) || !params['server'].response.match(/Transfer\s+complete/i))
   end
 
   def bmc_get_version(dut)
