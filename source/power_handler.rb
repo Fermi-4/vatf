@@ -3,7 +3,7 @@ class PowerHandler
 
   def initialize
     @power_controllers = Hash.new
-
+    @reset_thr = nil
     [:get_status, :switch_on, :switch_off].each do |method|
       define_singleton_method(method) do |p_port|
         call(method, p_port)
@@ -13,11 +13,14 @@ class PowerHandler
   end
 
   def por(p_port)
-    call(:por, p_port)
-    if block_given?
-      # Do something (if needed) before restoring power
-      yield
-    end
+    @reset_thr = Thread.new {
+      Thread.pass
+      call(:por, p_port)
+      if block_given?
+        # Do something (if needed) before restoring power
+        yield
+      end
+    }
   end
 
   def load_power_ports(lio_info)
@@ -37,29 +40,37 @@ class PowerHandler
 
   def disconnect
     @power_controllers.each_value { |val| val.disconnect()}
+    @reset_thr = nil
   end
 
   def reset(p_port)
     power_port = p_port
     power_port = [p_port] if !p_port.kind_of?(Array)
-    power_port.each {|power_port_element|
-      switch_off(power_port_element)
-      sleep 3
-      if power_port.size == 1 and block_given?
-        # Do something (if needed) before restoring power
-        yield
-      end
-      switch_on(power_port_element)
-      # Sleep extra on first power port if there are multiple ports
-      # First port most likely controls USB power so allow extra time
-      if (power_port.size > 1 and power_port.index(power_port_element) == 0)
+    @reset_thr = Thread.new do
+      Thread.pass
+      power_port.each {|power_port_element|
+        switch_off(power_port_element)
         sleep 3
-        # Do something (if needed) before restoring power
-        if block_given?
+        if power_port.size == 1 and block_given?
+          # Do something (if needed) before restoring power
           yield
         end
-      end
-    }
+        switch_on(power_port_element)
+        # Sleep extra on first power port if there are multiple ports
+        # First port most likely controls USB power so allow extra time
+        if (power_port.size > 1 and power_port.index(power_port_element) == 0)
+          sleep 3
+          # Do something (if needed) before restoring power
+          if block_given?
+            yield
+          end
+        end
+      }
+    end
+  end
+  
+  def inprogress?
+    @reset_thr && @reset_thr.alive?
   end
 
   private

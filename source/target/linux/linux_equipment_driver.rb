@@ -397,12 +397,10 @@ module Equipment
             yield if block_given?
           end
         end
-        trials = 0
-        while (@serial_port && !File.exist?(@serial_port) && trials < 600)
-          sleep 0.1
-          trials += 1
+        while (@serial_port && !File.exist?(@serial_port) && @power_handler.inprogress?)
+          #busy wait to avoid loosing traces
         end
-        raise "Unable to detect serial node for the dut" if trials >= 600
+        raise "Unable to detect serial node for the dut" if !File.exist?(@serial_port)
       else
         puts "Soft reboot..."
         send_cmd('#check prompt', @prompt, 8)
